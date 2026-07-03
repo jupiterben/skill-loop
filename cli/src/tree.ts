@@ -2,6 +2,7 @@ import type {
   Feature,
   Milestone,
   StoryDependency,
+  StoryStatus,
   TreeNode,
   UserStory,
 } from "./types.js";

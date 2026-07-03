@@ -173,63 +173,31 @@ function MindMapNode({ id, data, selected }: NodeProps) {
             {d.label}
           </div>
         )}
-        {(d.addable || d.onMoveUp || d.onMoveDown) && (
+        {d.addable && (
           <div
             className="mm-node__actions"
             onPointerDown={(e) => e.stopPropagation()}
           >
-            {(d.onMoveUp || d.onMoveDown) && (
-              <div className="mm-node__reorder">
-                <button
-                  type="button"
-                  className="mm-node__action mm-node__action--icon"
-                  disabled={!d.canMoveUp}
-                  title="上移 (PageUp)"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    d.onMoveUp?.();
-                  }}
-                >
-                  ↑
-                </button>
-                <button
-                  type="button"
-                  className="mm-node__action mm-node__action--icon"
-                  disabled={!d.canMoveDown}
-                  title="下移 (PageDown)"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    d.onMoveDown?.();
-                  }}
-                >
-                  ↓
-                </button>
-              </div>
-            )}
-            {d.addable && (
-              <>
-                <button
-                  type="button"
-                  className="mm-node__action"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    d.onAddFeature?.();
-                  }}
-                >
-                  + Feature
-                </button>
-                <button
-                  type="button"
-                  className="mm-node__action"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    d.onAddStory?.();
-                  }}
-                >
-                  + Story
-                </button>
-              </>
-            )}
+            <button
+              type="button"
+              className="mm-node__action"
+              onClick={(e) => {
+                e.stopPropagation();
+                d.onAddFeature?.();
+              }}
+            >
+              + Feature
+            </button>
+            <button
+              type="button"
+              className="mm-node__action"
+              onClick={(e) => {
+                e.stopPropagation();
+                d.onAddStory?.();
+              }}
+            >
+              + Story
+            </button>
           </div>
         )}
         {d.confirmable && (
