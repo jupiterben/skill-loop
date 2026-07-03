@@ -6,6 +6,7 @@ const { Paragraph, Text } = Typography;
 interface Props {
   status: ProjectStatus;
   draftStories?: UserStory[];
+  userStories?: UserStory[];
   onConfirmStory?: (storyId: string) => void;
   busy?: boolean;
   loopRunner?: {
@@ -55,6 +56,7 @@ function ExecutingStory({
 export function ProjectCard({
   status,
   draftStories = [],
+  userStories = [],
   onConfirmStory,
   busy,
   loopRunner,
@@ -65,7 +67,25 @@ export function ProjectCard({
   const featureCount = status.totalFeatures ?? 0;
   const pct = total ? Math.round((completed / total) * 100) : 0;
   const next = status.nextStory;
-  const executing = status.currentStory;
+  const executingRuns =
+    status.activeRuns && status.activeRuns.length > 0
+      ? status.activeRuns
+      : status.activeRun?.status === "running"
+        ? [status.activeRun]
+        : [];
+  const executingStories = executingRuns
+    .map((run) => {
+      const id = run.storyId;
+      if (!id) return null;
+      return (
+        userStories.find((s) => s.id === id) ??
+        status.currentStory?.id === id
+          ? status.currentStory
+          : ({ id, title: id } as UserStory)
+      );
+    })
+    .filter(Boolean) as UserStory[];
+  const executing = status.currentStory ?? executingStories[0] ?? null;
   const isRunning =
     status.activeRun?.status === "running" || loopRunner?.running === true;
 
@@ -118,7 +138,20 @@ export function ProjectCard({
         size="small"
         format={() => `${completed} / ${total} (${pct}%)`}
       />
-      {isRunning && executing ? (
+      {isRunning && executingStories.length > 1 ? (
+        <div className="executing-story-list">
+          {executingStories.map((story) => (
+            <ExecutingStory
+              key={story.id}
+              story={story}
+              activeRun={
+                executingRuns.find((r) => r.storyId === story.id) ?? null
+              }
+              stopRequested={loopRunner?.stopRequested}
+            />
+          ))}
+        </div>
+      ) : isRunning && executing ? (
         <ExecutingStory
           story={executing}
           activeRun={status.activeRun}

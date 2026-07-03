@@ -58,7 +58,17 @@ export function App() {
     ? Math.round((status.completedStories / status.totalStories) * 100)
     : 0;
   const loopRunning =
-    status.activeRun?.status === "running" || data.loopRunner?.running === true;
+    status.activeRun?.status === "running" ||
+    (status.activeRuns?.length ?? 0) > 0 ||
+    data.loopRunner?.running === true;
+  const runningStoryIds = new Set(
+    [
+      status.currentStory?.id,
+      ...(status.activeRuns?.map((r) => r.storyId) ?? []),
+      ...(data.loopRunner?.workers?.map((w) => w.currentStoryId) ?? []),
+      data.loopRunner?.state?.currentStoryId,
+    ].filter(Boolean) as string[]
+  );
 
   return (
     <div className="layout layout--mindmap">
@@ -80,6 +90,7 @@ export function App() {
         <ProjectCard
           status={status}
           draftStories={draftStories}
+          userStories={userStories}
           onConfirmStory={handleConfirmStory}
           busy={confirmBusy}
           loopRunner={data.loopRunner}
@@ -103,14 +114,21 @@ export function App() {
             progress={progress}
             onRefresh={refresh}
             runningStoryId={
-              status.currentStory?.id ??
-              status.activeRun?.storyId ??
-              data.loopRunner?.state?.currentStoryId ??
-              null
+              runningStoryIds.size === 1
+                ? [...runningStoryIds][0]!
+                : status.currentStory?.id ??
+                  status.activeRun?.storyId ??
+                  data.loopRunner?.state?.currentStoryId ??
+                  null
             }
+            runningStoryIds={[...runningStoryIds]}
           />
         </section>
-        <AgentLivePanel runLive={data.runLive} isRunning={loopRunning} />
+        <AgentLivePanel
+          runLive={data.runLive}
+          runLiveWorkers={data.runLiveWorkers}
+          isRunning={loopRunning}
+        />
       </main>
     </div>
   );

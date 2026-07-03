@@ -96,7 +96,35 @@ const COMMANDS: Record<string, Handler> = {
   complete(db, _root, parsed) {
     const storyId = parsed.positional[0] ?? flagStr(parsed.flags, "story-id", "id");
     if (!storyId) fail("用法: loop-cli complete US-001");
-    return db.completeStory(projectName(db, parsed), storyId);
+    const workerId =
+      flagStr(parsed.flags, "worker-id", "worker") ??
+      process.env.LOOP_WORKER_ID?.trim();
+    return db.completeStory(projectName(db, parsed), storyId, workerId);
+  },
+
+  "claim-story"(db, _root, parsed) {
+    const storyId = parsed.positional[0] ?? flagStr(parsed.flags, "story-id", "id");
+    const workerId =
+      flagStr(parsed.flags, "worker-id", "worker") ??
+      process.env.LOOP_WORKER_ID?.trim();
+    if (!storyId || !workerId) {
+      fail("用法: loop-cli claim-story US-001 --worker-id w0");
+    }
+    return db.claimStory(projectName(db, parsed), storyId, workerId);
+  },
+
+  "release-claim"(db, _root, parsed) {
+    const storyId = parsed.positional[0] ?? flagStr(parsed.flags, "story-id", "id");
+    if (!storyId) fail("用法: loop-cli release-claim US-001 [--worker-id w0]");
+    const workerId =
+      flagStr(parsed.flags, "worker-id", "worker") ??
+      process.env.LOOP_WORKER_ID?.trim();
+    return db.releaseClaim(projectName(db, parsed), storyId, workerId);
+  },
+
+  "next-stories"(db, _root, parsed) {
+    const limit = flagNum(parsed.flags, "limit") ?? 3;
+    return db.getNextStories(projectName(db, parsed), limit);
   },
 
   "confirm-story"(db, _root, parsed) {
@@ -350,11 +378,15 @@ function printHelp(): void {
   update-milestone <MS-xxx> [--title "..."] [--description "..."]
 
 循环:
-  run [--tool agent|claude|amp] [--max-iterations 10] [N]
-                      外循环（默认最多 10 轮）
-  run --until-stop [--tool agent]     持续外循环，直到 loop run stop
-  run stop                            请求停止正在运行的外循环
+  run [--tool agent|claude|amp] [--max-iterations 10] [--workers N] [N]
+                      外循环（默认最多 10 轮，workers 默认 1）
+  run --until-stop [--tool agent] [--workers 3]
+                      持续外循环，直到 loop run stop
+  run stop [--worker w0]              请求停止外循环（或单个 worker）
   run status                          查看外循环运行状态
+  next-stories [--limit 3]            查看可并行执行的 Story 列表
+  claim-story <US-xxx> --worker-id w0 认领 Story（并行模式）
+  release-claim <US-xxx> [--worker-id w0]
 
 规划:
   plan [--tool agent] [--story-id US-xxx] [--requirement "..."]
@@ -384,6 +416,7 @@ function printHelp(): void {
   pnpm loop progress --story-id US-003 --summary "实现登录页"
   pnpm loop run --tool agent 10
   pnpm loop run --until-stop --tool agent
+  pnpm loop run --workers 3 --until-stop --tool agent
   pnpm loop run stop
 `);
 }
@@ -396,7 +429,8 @@ async function handleRunCommand(
   const sub = parsed.positional[0]?.toLowerCase();
 
   if (sub === "stop") {
-    output(requestLoopRunStop(projectRoot));
+    const workerId = flagStr(parsed.flags, "worker");
+    output(requestLoopRunStop(projectRoot, workerId));
     return;
   }
 
@@ -427,6 +461,7 @@ async function handleRunCommand(
       tool: flagStr(parsed.flags, "tool"),
       maxIterations,
       projectName: flagStr(parsed.flags, "project"),
+      workers: flagNum(parsed.flags, "workers"),
     });
 
     output(result);
@@ -442,6 +477,7 @@ async function handleRunCommand(
     tool: flagStr(parsed.flags, "tool"),
     untilStop: true,
     projectName: flagStr(parsed.flags, "project"),
+    workers: flagNum(parsed.flags, "workers"),
   });
 
   output(result);

@@ -12,16 +12,30 @@ import { getPackageRoot } from "./config.js";
 import { getProjectName } from "./get-project-name.js";
 import { getStateDir } from "./paths.js";
 import {
+  clearCoordinatorState,
   clearLoopRunState,
+  clearAllWorkerRunStates,
   isLoopRunStopRequested,
   readLoopRunState,
+  writeCoordinatorState,
   writeLoopRunState,
+  writeWorkerRunState,
+  clearWorkerRunState,
 } from "./run-process.js";
 import {
   appendRunLiveOutput,
+  clearAllRunLive,
   initRunLive,
   patchRunLivePhase,
 } from "./run-live.js";
+import {
+  cleanupAllWorktrees,
+  createWorktree,
+  mergeWorktreeBranch,
+  removeWorktree,
+  type WorktreeHandle,
+} from "./worktree-pool.js";
+import type { UserStory } from "./types.js";
 
 const COMPLETE_TAG = "<promise>COMPLETE</promise>";
 const VALID_TOOLS = ["claude", "amp", "agent", "cursor"] as const;
@@ -33,6 +47,7 @@ export type LoopRunOptions = {
   untilStop?: boolean;
   projectName?: string;
   sleepMs?: number;
+  workers?: number;
 };
 
 export type LoopRunResult = {
@@ -41,8 +56,13 @@ export type LoopRunResult = {
   maxIterations: number | null;
   untilStop: boolean;
   tool: string;
+  workers: number;
   reason: string;
 };
+
+function workerIds(count: number): string[] {
+  return Array.from({ length: count }, (_, i) => `w${i}`);
+}
 
 function commandExists(cmd: string): boolean {
   const check =
@@ -64,7 +84,6 @@ function resolveTool(preferred?: string): RunTool {
     } else if (tool !== "agent" && tool !== "cursor") {
       throw new Error(`未找到命令: ${tool}`);
     }
-    // agent/cursor 未安装时继续自动探测 claude / amp
   }
 
   if (commandExists("agent")) return "agent";
@@ -82,7 +101,6 @@ function resolveTool(preferred?: string): RunTool {
   );
 }
 
-/** 解析外循环 AI 工具（供 launcher 预检） */
 export function resolveRunTool(preferred?: string): RunTool {
   return resolveTool(preferred);
 }
@@ -97,7 +115,11 @@ function resolvePromptPath(projectRoot: string): string {
   return join(getPackageRoot(), "templates", "AGENT.md");
 }
 
-function maybeArchivePreviousRun(projectRoot: string, db: LoopStateDb, projectName: string): void {
+function maybeArchivePreviousRun(
+  projectRoot: string,
+  db: LoopStateDb,
+  projectName: string
+): void {
   const stateDir = getStateDir(projectRoot);
   const lastBranchFile = join(stateDir, ".last-branch");
   const meta = db.getProjectMeta(projectName);
@@ -127,14 +149,15 @@ function maybeArchivePreviousRun(projectRoot: string, db: LoopStateDb, projectNa
 
 function streamProcessOutput(
   projectRoot: string,
-  child: ReturnType<typeof spawn>
+  child: ReturnType<typeof spawn>,
+  workerId?: string
 ): Promise<{ output: string; code: number | null }> {
   return new Promise((resolve, reject) => {
     let output = "";
     const onData = (chunk: Buffer | string) => {
       const text = String(chunk);
       output += text;
-      appendRunLiveOutput(projectRoot, text);
+      appendRunLiveOutput(projectRoot, text, workerId);
       if (text.trim()) process.stdout.write(text);
     };
     child.stdout?.on("data", onData);
@@ -144,14 +167,15 @@ function streamProcessOutput(
   });
 }
 
-async function invokeTool(
+async function invokeToolWithPrompt(
   tool: RunTool,
-  promptPath: string,
+  prompt: string,
   cwd: string,
-  projectRoot: string
+  projectRoot: string,
+  env: NodeJS.ProcessEnv,
+  workerId?: string
 ): Promise<string> {
-  const prompt = readFileSync(promptPath, "utf8");
-  patchRunLivePhase(projectRoot, "invoking");
+  patchRunLivePhase(projectRoot, "invoking", workerId);
 
   if (tool === "claude") {
     const child = spawn(
@@ -159,13 +183,14 @@ async function invokeTool(
       ["--dangerously-skip-permissions", "--print"],
       {
         cwd,
+        env,
         shell: process.platform === "win32",
         stdio: ["pipe", "pipe", "pipe"],
       }
     );
     child.stdin?.write(prompt);
     child.stdin?.end();
-    const { output, code } = await streamProcessOutput(projectRoot, child);
+    const { output, code } = await streamProcessOutput(projectRoot, child, workerId);
     if (code !== 0 && !output.trim()) {
       throw new Error(`claude 退出码 ${code ?? "unknown"}`);
     }
@@ -175,12 +200,13 @@ async function invokeTool(
   if (tool === "amp") {
     const child = spawn("amp", ["--dangerously-allow-all"], {
       cwd,
+      env,
       shell: process.platform === "win32",
       stdio: ["pipe", "pipe", "pipe"],
     });
     child.stdin?.write(prompt);
     child.stdin?.end();
-    const { output, code } = await streamProcessOutput(projectRoot, child);
+    const { output, code } = await streamProcessOutput(projectRoot, child, workerId);
     if (code !== 0 && !output.trim()) {
       throw new Error(`amp 退出码 ${code ?? "unknown"}`);
     }
@@ -189,10 +215,11 @@ async function invokeTool(
 
   const child = spawn("agent", ["-p", "--force", prompt], {
     cwd,
+    env,
     shell: process.platform === "win32",
     stdio: ["ignore", "pipe", "pipe"],
   });
-  const { output, code } = await streamProcessOutput(projectRoot, child);
+  const { output, code } = await streamProcessOutput(projectRoot, child, workerId);
   if (code !== 0 && !output.trim()) {
     throw new Error(`agent 退出码 ${code ?? "unknown"}`);
   }
@@ -203,35 +230,374 @@ function sleep(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-export async function runLoop(
+function buildWorkerEnv(
+  base: NodeJS.ProcessEnv,
+  workerId: string,
+  storyId: string,
+  projectRoot: string
+): NodeJS.ProcessEnv {
+  return {
+    ...base,
+    LOOP_PROJECT_ROOT: projectRoot,
+    LOOP_WORKER_ID: workerId,
+    LOOP_CLAIMED_STORY_ID: storyId,
+  };
+}
+
+function buildAgentPrompt(
+  basePath: string,
+  input: { workerId: string; story: UserStory }
+): string {
+  const base = readFileSync(basePath, "utf8");
+  const { workerId, story } = input;
+  const criteria = (story.acceptanceCriteria ?? [])
+    .map((c) => `  - ${c}`)
+    .join("\n");
+
+  return [
+    base.trim(),
+    "",
+    "## 本轮任务（协调器分配，必须遵守）",
+    "",
+    `- **Worker**：\`${workerId}\``,
+    `- **Story ID**：\`${story.id}\`（仅实现此 Story，禁止改做其他 Story）`,
+    `- **标题**：${story.title}`,
+    story.description ? `- **描述**：${story.description}` : "",
+    criteria ? `- **验收标准**：\n${criteria}` : "",
+    "",
+    "实现并 `pnpm loop complete` 上述 Story 后，运行 `pnpm loop status` 查看全局进度。",
+    "仅当 status 输出中 `isComplete` 为 `true` 时才回复 `<promise>COMPLETE</promise>`；否则禁止输出该标记。",
+  ]
+    .filter(Boolean)
+    .join("\n");
+}
+
+function releaseAllClaims(db: LoopStateDb, projectName: string): void {
+  for (const story of db.getStories(projectName)) {
+    if (story.claimedBy) {
+      try {
+        db.releaseClaim(projectName, story.id);
+      } catch {
+        /* best effort */
+      }
+    }
+  }
+}
+
+type WorkerIterationResult = {
+  completed: boolean;
+  failed: boolean;
+};
+
+async function runWorkerIteration(
   db: LoopStateDb,
   projectRoot: string,
-  options: LoopRunOptions = {}
-): Promise<LoopRunResult> {
-  const untilStop = options.untilStop === true;
-  const maxIterations = untilStop ? null : (options.maxIterations ?? 10);
-  const sleepMs = options.sleepMs ?? 2000;
-  const tool = resolveTool(options.tool);
-  const projectName = getProjectName(db, options.projectName);
-  const promptPath = resolvePromptPath(projectRoot);
-
-  if (!existsSync(promptPath)) {
-    throw new Error(`找不到 Agent 提示词: ${promptPath}`);
+  projectName: string,
+  input: {
+    workerId: string;
+    story: UserStory;
+    iteration: number;
+    tool: RunTool;
+    promptPath: string;
+    baseBranch: string;
+    useWorktree: boolean;
   }
+): Promise<WorkerIterationResult> {
+  const { workerId, story, iteration, tool, promptPath, baseBranch, useWorktree } =
+    input;
+  let worktree: WorktreeHandle | null = null;
+  let runId: number | null = null;
 
-  maybeArchivePreviousRun(projectRoot, db, projectName);
+  try {
+    db.claimStory(projectName, story.id, workerId);
 
-  const status = db.getStatus(projectName);
-  if (status.isComplete) {
-    return {
-      completed: true,
-      iterations: 0,
+    const cwd = useWorktree
+      ? (worktree = createWorktree(
+          projectRoot,
+          workerId,
+          story.id,
+          baseBranch
+        )).path
+      : projectRoot;
+
+    const run = db.startRun(
+      projectName,
+      iteration,
+      tool,
+      story.id,
+      workerId
+    );
+    runId = run.id ?? null;
+    if (runId == null) throw new Error("startRun 未返回 run id");
+
+    initRunLive(projectRoot, {
+      workerId,
+      iteration,
+      storyId: story.id,
+      tool,
+      phase: "starting",
+    });
+
+    writeWorkerRunState(projectRoot, workerId, {
+      pid: process.pid,
+      tool,
+      startedAt: new Date().toISOString(),
+      mode: "until-stop",
+      stopRequested: false,
+      iteration,
+      currentStoryId: story.id,
+      workerId,
+    });
+
+    const env = buildWorkerEnv(process.env, workerId, story.id, projectRoot);
+    const prompt = buildAgentPrompt(promptPath, { workerId, story });
+    const output = await invokeToolWithPrompt(
+      tool,
+      prompt,
+      cwd,
+      projectRoot,
+      env,
+      workerId
+    );
+    patchRunLivePhase(projectRoot, "between", workerId);
+
+    if (useWorktree && worktree) {
+      mergeWorktreeBranch(projectRoot, worktree, baseBranch);
+    }
+
+    const doneByStatus = db.getStatus(projectName).isComplete;
+    const doneByTag = output.includes(COMPLETE_TAG);
+    const storyDone =
+      db.getStories(projectName).find((s) => s.id === story.id)?.passes === true;
+
+    if (doneByTag && !doneByStatus) {
+      console.error(
+        `[${workerId}] 警告: agent 返回 COMPLETE 但 isComplete=false，忽略并继续外循环`
+      );
+    }
+
+    if (doneByStatus) {
+      db.endRun(runId, "completed", "all stories complete");
+      return { completed: true, failed: false };
+    }
+
+    db.endRun(runId, "completed", "iteration finished");
+    if (!storyDone) {
+      try {
+        db.releaseClaim(projectName, story.id, workerId);
+      } catch {
+        /* ignore */
+      }
+    }
+    return { completed: false, failed: false };
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err);
+    if (runId != null) db.endRun(runId, "failed", message);
+    try {
+      db.releaseClaim(projectName, story.id, workerId);
+    } catch {
+      /* ignore */
+    }
+    console.error(`[${workerId}] 第 ${iteration} 轮失败 (${story.id}): ${message}`);
+    return { completed: false, failed: true };
+  } finally {
+    if (useWorktree) removeWorktree(projectRoot, workerId);
+    clearWorkerRunState(projectRoot, workerId);
+    patchRunLivePhase(projectRoot, "done", workerId);
+  }
+}
+
+async function runParallelLoop(
+  db: LoopStateDb,
+  projectRoot: string,
+  options: {
+    untilStop: boolean;
+    maxIterations: number | null;
+    sleepMs: number;
+    tool: RunTool;
+    projectName: string;
+    promptPath: string;
+    workers: number;
+  }
+): Promise<LoopRunResult> {
+  const {
+    untilStop,
+    maxIterations,
+    sleepMs,
+    tool,
+    projectName,
+    promptPath,
+    workers,
+  } = options;
+  const ids = workerIds(workers);
+  const baseBranch = db.getProjectMeta(projectName).branchName;
+  const useWorktree = workers > 1;
+
+  writeCoordinatorState(projectRoot, {
+    pid: process.pid,
+    tool,
+    startedAt: new Date().toISOString(),
+    mode: untilStop ? "until-stop" : "limited",
+    maxIterations: maxIterations ?? undefined,
+    stopRequested: false,
+    workers,
+    workerIds: ids,
+  });
+
+  const finish = (result: LoopRunResult): LoopRunResult => {
+    releaseAllClaims(db, projectName);
+    clearAllRunLive(projectRoot);
+    clearCoordinatorState(projectRoot);
+    clearAllWorkerRunStates(projectRoot);
+    if (useWorktree) cleanupAllWorktrees(projectRoot);
+    return result;
+  };
+
+  console.error(
+    untilStop
+      ? `Loop 并行外循环 — ${workers} workers — 工具: ${tool} — 持续运行`
+      : `Loop 并行外循环 — ${workers} workers — 工具: ${tool} — 最多 ${maxIterations} 轮`
+  );
+  console.error(`提示词: ${promptPath}`);
+  console.error(`项目: ${projectName} @ ${projectRoot}`);
+
+  let batch = 0;
+
+  try {
+    while (true) {
+      batch++;
+      if (isLoopRunStopRequested(projectRoot)) {
+        for (const run of db.getActiveRuns(projectName)) {
+          if (run.id != null) {
+            db.endRun(run.id, "completed", "stopped by user");
+          }
+        }
+        console.error(`Loop 已停止（用户请求，共 ${batch - 1} 批）`);
+        return finish({
+          completed: false,
+          iterations: Math.max(0, batch - 1),
+          maxIterations,
+          untilStop,
+          tool,
+          workers,
+          reason: "用户请求停止",
+        });
+      }
+
+      if (db.getStatus(projectName).isComplete) {
+        return finish({
+          completed: true,
+          iterations: batch - 1,
+          maxIterations,
+          untilStop,
+          tool,
+          workers,
+          reason: "所有 Story 已完成",
+        });
+      }
+
+      if (!untilStop && maxIterations != null && batch > maxIterations) {
+        break;
+      }
+
+      const stories = db.getNextStories(projectName, workers);
+      if (!stories.length) {
+        if (db.getStatus(projectName).isComplete) {
+          return finish({
+            completed: true,
+            iterations: batch - 1,
+            maxIterations,
+            untilStop,
+            tool,
+            workers,
+            reason: "所有 Story 已完成",
+          });
+        }
+        console.error("无可并行 Story，等待…");
+        await sleep(sleepMs);
+        continue;
+      }
+
+      console.error("");
+      console.error("===============================================================");
+      console.error(
+        ` Loop 批次 ${untilStop ? `${batch} (∞)` : `${batch} / ${maxIterations}`} — ${stories.length} worker(s)`
+      );
+      console.error("===============================================================");
+
+      const results = await Promise.all(
+        stories.map((story, idx) =>
+          runWorkerIteration(db, projectRoot, projectName, {
+            workerId: ids[idx]!,
+            story,
+            iteration: batch,
+            tool,
+            promptPath,
+            baseBranch,
+            useWorktree,
+          })
+        )
+      );
+
+      if (results.some((r) => r.completed)) {
+        console.error("");
+        console.error(`Loop 完成！（第 ${batch} 批）`);
+        return finish({
+          completed: true,
+          iterations: batch,
+          maxIterations,
+          untilStop,
+          tool,
+          workers,
+          reason: "agent 返回 COMPLETE 或全部 Story 已完成",
+        });
+      }
+
+      console.error(`第 ${batch} 批结束，继续…`);
+      await sleep(sleepMs);
+    }
+
+    for (const run of db.getActiveRuns(projectName)) {
+      if (run.id != null) {
+        db.endRun(
+          run.id,
+          "max_iterations",
+          `已达最大迭代次数 (${maxIterations})`
+        );
+      }
+    }
+
+    return finish({
+      completed: false,
+      iterations: maxIterations ?? 0,
       maxIterations,
       untilStop,
       tool,
-      reason: "所有 Story 已完成",
-    };
+      workers,
+      reason: `已达最大迭代次数 (${maxIterations})`,
+    });
+  } catch (err) {
+    clearCoordinatorState(projectRoot);
+    clearAllWorkerRunStates(projectRoot);
+    cleanupAllWorktrees(projectRoot);
+    throw err;
   }
+}
+
+async function runSequentialLoop(
+  db: LoopStateDb,
+  projectRoot: string,
+  options: {
+    untilStop: boolean;
+    maxIterations: number | null;
+    sleepMs: number;
+    tool: RunTool;
+    projectName: string;
+    promptPath: string;
+  }
+): Promise<LoopRunResult> {
+  const { untilStop, maxIterations, sleepMs, tool, projectName, promptPath } =
+    options;
 
   writeLoopRunState(projectRoot, {
     pid: process.pid,
@@ -243,6 +609,7 @@ export async function runLoop(
   });
 
   const finish = (result: LoopRunResult): LoopRunResult => {
+    releaseAllClaims(db, projectName);
     patchRunLivePhase(projectRoot, "done");
     clearLoopRunState(projectRoot);
     return result;
@@ -271,6 +638,7 @@ export async function runLoop(
           maxIterations,
           untilStop,
           tool,
+          workers: 1,
           reason: "用户请求停止",
         });
       }
@@ -282,6 +650,7 @@ export async function runLoop(
           maxIterations,
           untilStop,
           tool,
+          workers: 1,
           reason: "所有 Story 已完成",
         });
       }
@@ -290,68 +659,53 @@ export async function runLoop(
         break;
       }
 
-      const iterLabel = untilStop
-        ? `${i} (∞)`
-        : `${i} / ${maxIterations}`;
-
+      const iterLabel = untilStop ? `${i} (∞)` : `${i} / ${maxIterations}`;
       console.error("");
       console.error("===============================================================");
       console.error(` Loop 迭代 ${iterLabel} (${tool})`);
       console.error("===============================================================");
 
       const currentStory = db.getNextStory(projectName);
-      const run = db.startRun(
-        projectName,
-        i,
-        tool,
-        currentStory?.id ?? null
-      );
-      initRunLive(projectRoot, {
+      if (!currentStory) {
+        console.error("无可执行 Story，等待…");
+        await sleep(sleepMs);
+        continue;
+      }
+
+      const result = await runWorkerIteration(db, projectRoot, projectName, {
+        workerId: "w0",
+        story: currentStory,
         iteration: i,
-        storyId: currentStory?.id ?? null,
         tool,
-        phase: "starting",
+        promptPath,
+        baseBranch: db.getProjectMeta(projectName).branchName,
+        useWorktree: false,
       });
+
       const runState = readLoopRunState(projectRoot);
       if (runState) {
         writeLoopRunState(projectRoot, {
           ...runState,
           iteration: i,
-          currentStoryId: currentStory?.id ?? null,
+          currentStoryId: currentStory.id,
         });
       }
-      const runId = run.id;
-      if (runId == null) throw new Error("startRun 未返回 run id");
 
-      try {
-        const output = await invokeTool(tool, promptPath, projectRoot, projectRoot);
-        patchRunLivePhase(projectRoot, "between");
-
-        const doneByTag = output.includes(COMPLETE_TAG);
-        const doneByStatus = db.getStatus(projectName).isComplete;
-
-        if (doneByTag || doneByStatus) {
-          db.endRun(runId, "completed", "all stories complete");
-          console.error("");
-          console.error(`Loop 完成！（第 ${i} 轮）`);
-          return finish({
-            completed: true,
-            iterations: i,
-            maxIterations,
-            untilStop,
-            tool,
-            reason: doneByTag ? "agent 返回 COMPLETE" : "status.isComplete",
-          });
-        }
-
-        db.endRun(runId, "completed", "iteration finished");
-        console.error(`第 ${i} 轮结束，继续下一轮…`);
-      } catch (err) {
-        const message = err instanceof Error ? err.message : String(err);
-        db.endRun(runId, "failed", message);
-        console.error(`第 ${i} 轮失败: ${message}`);
+      if (result.completed) {
+        console.error("");
+        console.error(`Loop 完成！（第 ${i} 轮）`);
+        return finish({
+          completed: true,
+          iterations: i,
+          maxIterations,
+          untilStop,
+          tool,
+          workers: 1,
+          reason: "agent 返回 COMPLETE 或全部 Story 已完成",
+        });
       }
 
+      console.error(`第 ${i} 轮结束，继续下一轮…`);
       await sleep(sleepMs);
     }
 
@@ -370,6 +724,7 @@ export async function runLoop(
       maxIterations,
       untilStop,
       tool,
+      workers: 1,
       reason: `已达最大迭代次数 (${maxIterations})`,
     });
   } catch (err) {
@@ -377,4 +732,52 @@ export async function runLoop(
     clearLoopRunState(projectRoot);
     throw err;
   }
+}
+
+export async function runLoop(
+  db: LoopStateDb,
+  projectRoot: string,
+  options: LoopRunOptions = {}
+): Promise<LoopRunResult> {
+  const untilStop = options.untilStop === true;
+  const maxIterations = untilStop ? null : (options.maxIterations ?? 10);
+  const sleepMs = options.sleepMs ?? 2000;
+  const workers = Math.max(1, Math.min(8, options.workers ?? 1));
+  const tool = resolveTool(options.tool);
+  const projectName = getProjectName(db, options.projectName);
+  const promptPath = resolvePromptPath(projectRoot);
+
+  if (!existsSync(promptPath)) {
+    throw new Error(`找不到 Agent 提示词: ${promptPath}`);
+  }
+
+  maybeArchivePreviousRun(projectRoot, db, projectName);
+  releaseAllClaims(db, projectName);
+
+  const status = db.getStatus(projectName);
+  if (status.isComplete) {
+    return {
+      completed: true,
+      iterations: 0,
+      maxIterations,
+      untilStop,
+      tool,
+      workers,
+      reason: "所有 Story 已完成",
+    };
+  }
+
+  const common = {
+    untilStop,
+    maxIterations,
+    sleepMs,
+    tool,
+    projectName,
+    promptPath,
+  };
+
+  if (workers > 1) {
+    return runParallelLoop(db, projectRoot, { ...common, workers });
+  }
+  return runSequentialLoop(db, projectRoot, common);
 }

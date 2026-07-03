@@ -56,6 +56,7 @@ export const api = {
   addStory: (input: {
     title: string;
     description?: string;
+    acceptanceCriteria?: string[];
     milestoneId?: string | null;
     parentId?: string | null;
   }) => post("/api/stories", input),
@@ -72,10 +73,13 @@ export const api = {
   purgeStory: (storyId: string) => post("/api/stories/purge", { storyId }),
   setStoryMilestone: (storyId: string, milestoneId: string | null) =>
     post("/api/stories/milestone", { storyId, milestoneId }),
+  setStoryPriority: (storyId: string, priority: number) =>
+    post("/api/stories/priority", { storyId, priority }),
   updateStory: (input: {
     storyId: string;
     title?: string;
     description?: string;
+    acceptanceCriteria?: string[];
     changeNote?: string;
     status?: "draft" | "ready";
   }) => post("/api/stories/update", input),

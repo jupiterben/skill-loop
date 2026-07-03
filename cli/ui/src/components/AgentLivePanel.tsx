@@ -1,5 +1,5 @@
-import { useEffect, useRef } from "react";
-import { Tag, Typography } from "antd";
+import { useEffect, useRef, useState } from "react";
+import { Tabs, Tag, Typography } from "antd";
 import type { RunLivePhase, RunLiveState } from "../types";
 
 const { Text } = Typography;
@@ -26,50 +26,109 @@ function phaseColor(
   }
 }
 
-interface Props {
-  runLive: RunLiveState | null | undefined;
+function LiveOutput({
+  runLive,
+  isRunning,
+}: {
+  runLive: RunLiveState;
   isRunning?: boolean;
-}
-
-export function AgentLivePanel({ runLive, isRunning }: Props) {
+}) {
   const outputRef = useRef<HTMLPreElement>(null);
+  const showPulse = isRunning && runLive.phase === "invoking";
 
   useEffect(() => {
     const el = outputRef.current;
     if (!el) return;
     el.scrollTop = el.scrollHeight;
-  }, [runLive?.output, runLive?.updatedAt]);
-
-  if (!runLive) return null;
-
-  const showPulse = isRunning && runLive.phase === "invoking";
+  }, [runLive.output, runLive.updatedAt]);
 
   return (
-    <section className="card card--agent-live" aria-live="polite">
-      <div className="agent-live__head">
-        <h2>Agent 输出</h2>
-        <div className="agent-live__meta">
-          <Tag color={phaseColor(runLive.phase)}>
-            {showPulse && <span className="agent-live__pulse" aria-hidden />}
-            {PHASE_LABEL[runLive.phase]}
-          </Tag>
-          <Text type="secondary" className="agent-live__detail">
-            第 {runLive.iteration} 轮
-            {runLive.tool && <> · {runLive.tool}</>}
-            {runLive.storyId && (
-              <>
-                {" "}
-                · <code>{runLive.storyId}</code>
-              </>
-            )}
-          </Text>
-        </div>
+    <>
+      <div className="agent-live__meta">
+        <Tag color={phaseColor(runLive.phase)}>
+          {showPulse && <span className="agent-live__pulse" aria-hidden />}
+          {PHASE_LABEL[runLive.phase]}
+        </Tag>
+        <Text type="secondary" className="agent-live__detail">
+          第 {runLive.iteration} 轮
+          {runLive.tool && <> · {runLive.tool}</>}
+          {runLive.storyId && (
+            <>
+              {" "}
+              · <code>{runLive.storyId}</code>
+            </>
+          )}
+        </Text>
       </div>
       <pre ref={outputRef} className="agent-live__output">
         {runLive.output || (
           <span className="agent-live__placeholder">等待 Agent 输出…</span>
         )}
       </pre>
+    </>
+  );
+}
+
+interface Props {
+  runLive: RunLiveState | null | undefined;
+  runLiveWorkers?: RunLiveState[];
+  isRunning?: boolean;
+}
+
+export function AgentLivePanel({ runLive, runLiveWorkers, isRunning }: Props) {
+  const workers =
+    runLiveWorkers && runLiveWorkers.length > 0
+      ? runLiveWorkers
+      : runLive
+        ? [runLive]
+        : [];
+  const [activeKey, setActiveKey] = useState(workers[0]?.workerId ?? "0");
+
+  useEffect(() => {
+    if (!workers.length) return;
+    const exists = workers.some((w) => (w.workerId ?? "0") === activeKey);
+    if (!exists) {
+      setActiveKey(workers[0]?.workerId ?? "0");
+    }
+  }, [workers, activeKey]);
+
+  if (!workers.length) return null;
+
+  if (workers.length === 1) {
+    const single = workers[0]!;
+    return (
+      <section className="card card--agent-live" aria-live="polite">
+        <div className="agent-live__head">
+          <h2>Agent 输出</h2>
+        </div>
+        <LiveOutput runLive={single} isRunning={isRunning} />
+      </section>
+    );
+  }
+
+  return (
+    <section className="card card--agent-live" aria-live="polite">
+      <div className="agent-live__head">
+        <h2>Agent 输出（{workers.length} workers）</h2>
+      </div>
+      <Tabs
+        activeKey={activeKey}
+        onChange={setActiveKey}
+        size="small"
+        items={workers.map((w) => {
+          const key = w.workerId ?? w.storyId ?? String(w.iteration);
+          return {
+            key,
+            label: (
+              <span>
+                {w.workerId ?? key}
+                {w.storyId ? ` · ${w.storyId}` : ""}
+              </span>
+            ),
+            children: <LiveOutput runLive={w} isRunning={isRunning} />,
+          };
+        })}
+      />
     </section>
   );
 }

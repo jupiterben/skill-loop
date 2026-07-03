@@ -5,6 +5,7 @@ param(
     [ValidateSet("agent", "cursor", "claude", "amp")]
     [string]$Tool = "",
     [int]$MaxIterations = 10,
+    [int]$Workers = 1,
     [switch]$UntilStop
 )
 
@@ -23,6 +24,7 @@ try {
         $args = @("loop", "run", "--max-iterations", "$MaxIterations")
     }
     if ($Tool) { $args += @("--tool", $Tool) }
+    if ($Workers -gt 1) { $args += @("--workers", "$Workers") }
     pnpm @args
     exit $LASTEXITCODE
 } finally {

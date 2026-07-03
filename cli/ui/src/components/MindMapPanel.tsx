@@ -41,6 +41,11 @@ import {
   type MindMapNodeData,
 } from "../lib/mindmapLayout";
 import { filterTreeByMilestone, MILESTONE_NONE, MILESTONE_NONE_LABEL } from "../lib/treeFilter";
+import {
+  DEFAULT_ACCEPTANCE_CRITERIA,
+  formatAcceptanceCriteria,
+  parseAcceptanceCriteria,
+} from "../lib/acceptanceCriteria";
 import { MilestoneChip } from "./MilestoneChip";
 import {
   canDeleteFeature,
@@ -87,6 +92,7 @@ interface Props {
   archivedStories?: UserStory[];
   onRefresh: () => void;
   runningStoryId?: string | null;
+  runningStoryIds?: string[];
 }
 
 export function MindMapPanel({
@@ -101,7 +107,14 @@ export function MindMapPanel({
   archivedStories = [],
   onRefresh,
   runningStoryId = null,
+  runningStoryIds = [],
 }: Props) {
+  const runningIds = new Set(
+    [
+      ...runningStoryIds,
+      ...(runningStoryId ? [runningStoryId] : []),
+    ].filter(Boolean)
+  );
   const [selected, setSelected] = useState<SelectedMindMapNode | null>(null);
   const [selectedDepEdgeId, setSelectedDepEdgeId] = useState<string | null>(null);
   const [isConnecting, setIsConnecting] = useState(false);
@@ -116,6 +129,9 @@ export function MindMapPanel({
   } | null>(null);
   const [createTitle, setCreateTitle] = useState("");
   const [createDescription, setCreateDescription] = useState("");
+  const [createAcceptanceCriteria, setCreateAcceptanceCriteria] = useState(
+    () => formatAcceptanceCriteria(DEFAULT_ACCEPTANCE_CRITERIA)
+  );
   const [createMilestoneId, setCreateMilestoneId] = useState("");
   const [milestoneFilter, setMilestoneFilter] = useState<string | null>(null);
   const [renamingMilestoneId, setRenamingMilestoneId] = useState<string | null>(
@@ -146,10 +162,10 @@ export function MindMapPanel({
     });
   }, []);
 
+  // 仅项目 / Milestone 筛选切换时 fitView；节点重排、增删、收起展开均不改变视口
   const fitViewTrigger = useMemo(
-    () =>
-      `${projectTitle}|${milestoneFilter ?? ""}|${filteredTree.map((n) => n.id).join(",")}`,
-    [projectTitle, milestoneFilter, filteredTree]
+    () => `${projectTitle}|${milestoneFilter ?? ""}`,
+    [projectTitle, milestoneFilter]
   );
 
   useEffect(() => {
@@ -230,6 +246,9 @@ export function MindMapPanel({
     setCreateModal(null);
     setCreateTitle("");
     setCreateDescription("");
+    setCreateAcceptanceCriteria(
+      formatAcceptanceCriteria(DEFAULT_ACCEPTANCE_CRITERIA)
+    );
     setCreateMilestoneId("");
   };
 
@@ -282,7 +301,7 @@ export function MindMapPanel({
         draggable: reparentable && !busy,
         data: {
           ...n.data,
-          isRunning: n.id === runningStoryId,
+          isRunning: runningIds.has(n.id),
           isDragging: dragSourceId === n.id,
           isDropTarget: dropTargetId === n.id,
           showDepHandles: isStory && connectable,
@@ -343,7 +362,7 @@ export function MindMapPanel({
         },
       };
     });
-  }, [nodes, selected, addParentId, openCreate, toggleCollapse, onNodeHeightChange, features, userStories, progress, run, runningStoryId, busy, dragSourceId, dropTargetId]);
+  }, [nodes, selected, addParentId, openCreate, toggleCollapse, onNodeHeightChange, features, userStories, progress, run, runningStoryId, runningStoryIds, runningIds, busy, dragSourceId, dropTargetId]);
 
   flowNodesLayoutRef.current = flowNodes;
 
@@ -544,6 +563,7 @@ export function MindMapPanel({
           parentId,
           milestoneId: createMilestoneId || null,
           ...(description ? { description } : {}),
+          acceptanceCriteria: parseAcceptanceCriteria(createAcceptanceCriteria),
         });
       }
       closeCreateModal();
@@ -819,6 +839,18 @@ export function MindMapPanel({
                 />
               </div>
             )}
+            {createModal?.type === "story" && (
+              <div className="modal-form__field">
+                <Text className="modal-form__label">验收标准</Text>
+                <TextArea
+                  rows={3}
+                  placeholder="每行一条，例如：npm test 通过"
+                  value={createAcceptanceCriteria}
+                  onChange={(e) => setCreateAcceptanceCriteria(e.target.value)}
+                  disabled={busy}
+                />
+              </div>
+            )}
             {createModal?.type === "story" && milestones.length > 0 && (
               <div className="modal-form__field">
                 <Text className="modal-form__label">Milestone 标签</Text>
@@ -918,6 +950,9 @@ export function MindMapPanel({
           onAssignMilestone={(storyId, mid) =>
             run(() => api.setStoryMilestone(storyId, mid))
           }
+          onSetStoryPriority={(storyId, priority) =>
+            run(() => api.setStoryPriority(storyId, priority))
+          }
           onAddFeature={
             selected?.kind === "root" || selected?.kind === "feature"
               ? handleAddFeature
@@ -962,6 +997,8 @@ export function MindMapPanel({
             elementsSelectable
             disableKeyboardA11y
             autoPanOnNodeFocus={false}
+            autoPanOnNodeDrag={false}
+            autoPanOnConnect={false}
             onInit={(instance) => {
               flowRef.current = instance as Pick<
                 ReactFlowInstance,

@@ -14,6 +14,7 @@ export type StartLoopRunOptions = {
   tool?: string;
   untilStop?: boolean;
   maxIterations?: number;
+  workers?: number;
 };
 
 function sleep(ms: number): Promise<void> {
@@ -129,6 +130,7 @@ export async function startLoopRunBackground(
   const { resolveRunTool } = await import("./loop-run.js");
   const resolvedTool = resolveRunTool(toolHint);
 
+  const workers = Math.max(1, Math.min(8, options.workers ?? 1));
   const cliArgs = ["run"];
   if (untilStop) {
     cliArgs.push("--until-stop");
@@ -140,6 +142,9 @@ export async function startLoopRunBackground(
     cliArgs.push(String(max));
   }
   cliArgs.push("--tool", resolvedTool);
+  if (workers > 1) {
+    cliArgs.push("--workers", String(workers));
+  }
 
   const packageRoot = getPackageRoot();
   const entry = join(packageRoot, "src", "cli.ts");
@@ -157,12 +162,14 @@ export async function startLoopRunBackground(
     );
   }
 
-  const tool = status.state?.tool ?? resolvedTool;
+  const tool = status.state?.tool ?? status.coordinator?.tool ?? resolvedTool;
+  const workerLabel =
+    workers > 1 ? `${workers} workers · ` : "";
   return {
     ok: true,
     message: untilStop
-      ? `外循环已启动（${tool}，持续运行）`
-      : `外循环已启动（${tool}）`,
+      ? `外循环已启动（${workerLabel}${tool}，持续运行）`
+      : `外循环已启动（${workerLabel}${tool}）`,
     status,
   };
 }

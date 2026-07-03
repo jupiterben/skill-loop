@@ -217,14 +217,22 @@ export function normalizeDashboard(raw: Record<string, unknown>): DashboardData 
         ? (raw.patterns as string[])
         : [],
     activeRun: (status.activeRun as ProjectStatus["activeRun"]) ?? null,
+    activeRuns: Array.isArray(status.activeRuns)
+      ? (status.activeRuns as ProjectStatus["activeRuns"])
+      : undefined,
     lastProgress: (status.lastProgress as ProjectStatus["lastProgress"]) ?? null,
   };
+
+  const runLiveWorkers = Array.isArray(raw.runLiveWorkers)
+    ? (raw.runLiveWorkers as RunLiveState[])
+    : [];
 
   return {
     projectName: String(raw.projectName ?? normalizedStatus.project),
     status: normalizedStatus,
     loopRunner: raw.loopRunner as DashboardData["loopRunner"],
     runLive: (raw.runLive as RunLiveState | null) ?? null,
+    runLiveWorkers,
     milestones,
     features,
     userStories: activeStories,

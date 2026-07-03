@@ -35,6 +35,9 @@ export interface UserStory {
   removalRequestedAt: string | null;
   /** 已从脑图/PRD 归档，进度保留 */
   archivedAt: string | null;
+  /** 并行 worker 认领（如 w0、w1） */
+  claimedBy?: string | null;
+  claimedAt?: string | null;
 }
 
 export type TreeNodeKind = "feature" | "story";
@@ -85,6 +88,7 @@ export interface LoopRun {
   iteration: number;
   tool: string | null;
   storyId?: string | null;
+  workerId?: string | null;
   status: "running" | "completed" | "failed" | "max_iterations";
   message: string | null;
   startedAt: string;
@@ -109,5 +113,7 @@ export interface ProjectStatus {
   currentStory: UserStory | null;
   patterns: string[];
   activeRun: LoopRun | null;
+  /** 并行模式下的所有 running 迭代 */
+  activeRuns?: LoopRun[];
   lastProgress: ProgressEntry | null;
 }

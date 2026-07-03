@@ -269,18 +269,39 @@ export async function handleApiMutation(
       return true;
     }
 
+    if (req.method === "POST" && pathname === "/api/stories/priority") {
+      const storyId = String(body.storyId ?? "");
+      if (!storyId) throw new Error("storyId 必填");
+      const priority = Number(body.priority);
+      if (!Number.isInteger(priority) || priority < 0) {
+        throw new Error("priority 必须为非负整数");
+      }
+      const story = db.setStoryPriority(projectName, storyId, priority);
+      json(res, { ok: true, story });
+      return true;
+    }
+
     if (req.method === "POST" && pathname === "/api/stories/update") {
       const storyId = String(body.storyId ?? "");
       if (!storyId) throw new Error("storyId 必填");
       const patch: {
         title?: string;
         description?: string;
+        acceptanceCriteria?: string[];
         changeNote?: string;
         status?: "draft" | "ready";
       } = {};
       if (body.title !== undefined) patch.title = String(body.title);
       if (body.description !== undefined) {
         patch.description = String(body.description);
+      }
+      if (body.acceptanceCriteria !== undefined) {
+        if (!Array.isArray(body.acceptanceCriteria)) {
+          throw new Error("acceptanceCriteria 必须为字符串数组");
+        }
+        patch.acceptanceCriteria = (body.acceptanceCriteria as unknown[])
+          .map((item) => String(item).trim())
+          .filter(Boolean);
       }
       if (body.changeNote !== undefined) {
         patch.changeNote = String(body.changeNote);
@@ -307,6 +328,10 @@ export async function handleApiMutation(
       const result = db.completeStoryWithProgress(projectName, storyId, {
         summary,
         learnings,
+        workerId:
+          body.workerId !== undefined
+            ? String(body.workerId)
+            : process.env.LOOP_WORKER_ID?.trim(),
       });
       json(res, { ok: true, ...result });
       return true;
@@ -324,6 +349,8 @@ export async function handleApiMutation(
         tool: body.tool !== undefined ? String(body.tool) : undefined,
         untilStop,
         maxIterations,
+        workers:
+          body.workers !== undefined ? Number(body.workers) : undefined,
       });
       json(res, { ...result });
       return true;
@@ -331,7 +358,9 @@ export async function handleApiMutation(
 
     if (req.method === "POST" && pathname === "/api/loop-run/stop") {
       const { requestLoopRunStop } = await import("./run-process.js");
-      const result = requestLoopRunStop(projectRoot);
+      const workerId =
+        body.workerId !== undefined ? String(body.workerId) : undefined;
+      const result = requestLoopRunStop(projectRoot, workerId);
       json(res, { ...result });
       return true;
     }

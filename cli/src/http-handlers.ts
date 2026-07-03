@@ -4,9 +4,9 @@ import { handleApiMutation } from "./api.js";
 import { getProjectName } from "./get-project-name.js";
 import { buildStoryDependencies } from "./tree.js";
 import { getLoopRunStatus } from "./run-process.js";
-import { getRunLiveForDashboard } from "./run-live.js";
+import { getRunLiveForDashboard, getAllRunLiveForDashboard } from "./run-live.js";
 
-export const API_VERSION = 6;
+export const API_VERSION = 7;
 
 function json(res: ServerResponse, data: unknown, status = 200): void {
   res.writeHead(status, {
@@ -45,6 +45,7 @@ export async function handleDashboardApiRequest(
         status,
         loopRunner: getLoopRunStatus(projectRoot),
         runLive: getRunLiveForDashboard(projectRoot),
+        runLiveWorkers: getAllRunLiveForDashboard(projectRoot),
         milestones: db.getMilestones(projectName),
         features: db.getFeatures(projectName),
         userStories: activeStories,

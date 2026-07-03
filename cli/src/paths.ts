@@ -69,6 +69,32 @@ export function getLoopRunStateFile(projectRoot: string): string {
   return join(getStateDir(projectRoot), "run.json");
 }
 
-export function getRunLiveFile(projectRoot: string): string {
+export function getLoopCoordinatorStateFile(projectRoot: string): string {
+  return join(getStateDir(projectRoot), "run-coordinator.json");
+}
+
+export function getWorkerRunsDir(projectRoot: string): string {
+  const dir = join(getStateDir(projectRoot), "runs");
+  if (!existsSync(dir)) mkdirSync(dir, { recursive: true });
+  return dir;
+}
+
+export function getWorkerRunStateFile(
+  projectRoot: string,
+  workerId: string
+): string {
+  return join(getWorkerRunsDir(projectRoot), `${workerId}.json`);
+}
+
+export function getWorktreesDir(projectRoot: string): string {
+  const dir = join(getStateDir(projectRoot), "worktrees");
+  if (!existsSync(dir)) mkdirSync(dir, { recursive: true });
+  return dir;
+}
+
+export function getRunLiveFile(projectRoot: string, workerId?: string): string {
+  if (workerId) {
+    return join(getWorkerRunsDir(projectRoot), `${workerId}-live.json`);
+  }
   return join(getStateDir(projectRoot), "run-live.json");
 }

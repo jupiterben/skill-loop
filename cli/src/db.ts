@@ -7,6 +7,7 @@ import {
   writeEntity,
   writeJsonFile,
   deleteEntity,
+  withStateLock,
 } from "./json-fs.js";
 import {
   getFeaturesDir,
@@ -24,6 +25,7 @@ import {
   getActiveStories,
   getArchivedStories,
   getNextStory,
+  getNextStories,
   isDraftStory,
   normalizeUserStory,
   wouldCreateDependencyCycle,
@@ -812,17 +814,34 @@ export class LoopStateDb {
     );
   }
 
-  completeStory(projectName: string, storyId: string): UserStory {
-    const story = this.getStories(projectName).find((s) => s.id === storyId);
-    if (!story) throw new Error(`找不到 UserStory: ${storyId}`);
-    if (story.archivedAt) throw new Error("已归档 Story 不能修改");
-    if (isDraftStory(story)) {
-      throw new Error("草稿 Story 须先 confirm-story 确认后才能完成");
-    }
-    const updated = { ...story, passes: true, everCompleted: true };
-    writeEntity(getStoriesDir(this.projectRoot), updated);
-    this.touchProject();
-    return updated;
+  completeStory(projectName: string, storyId: string, workerId?: string): UserStory {
+    return withStateLock(this.stateDir, () => {
+      const story = this.getStories(projectName).find((s) => s.id === storyId);
+      if (!story) throw new Error(`找不到 UserStory: ${storyId}`);
+      if (story.archivedAt) throw new Error("已归档 Story 不能修改");
+      if (isDraftStory(story)) {
+        throw new Error("草稿 Story 须先 confirm-story 确认后才能完成");
+      }
+      if (
+        workerId &&
+        story.claimedBy &&
+        story.claimedBy !== workerId
+      ) {
+        throw new Error(
+          `Story ${storyId} 由 worker ${story.claimedBy} 认领，当前 worker ${workerId} 无权完成`
+        );
+      }
+      const updated = {
+        ...story,
+        passes: true,
+        everCompleted: true,
+        claimedBy: null,
+        claimedAt: null,
+      };
+      writeEntity(getStoriesDir(this.projectRoot), updated);
+      this.touchProject();
+      return updated;
+    });
   }
 
   updateStory(
@@ -927,12 +946,12 @@ export class LoopStateDb {
   completeStoryWithProgress(
     projectName: string,
     storyId: string,
-    input: { summary: string; learnings?: string[] }
+    input: { summary: string; learnings?: string[]; workerId?: string }
   ): { story: UserStory; progressEntry: ProgressEntry } {
     const summary = input.summary.trim();
     if (!summary) throw new Error("实现说明必填");
 
-    const story = this.completeStory(projectName, storyId);
+    const story = this.completeStory(projectName, storyId, input.workerId);
     const progressEntry = this.appendProgress(projectName, {
       storyId,
       entryDate: new Date().toISOString().slice(0, 10),
@@ -944,6 +963,80 @@ export class LoopStateDb {
 
   getNextStory(projectName: string): UserStory | null {
     return getNextStory(this.getStories(projectName));
+  }
+
+  getNextStories(projectName: string, limit: number): UserStory[] {
+    return getNextStories(this.getStories(projectName), limit);
+  }
+
+  claimStory(
+    projectName: string,
+    storyId: string,
+    workerId: string
+  ): UserStory {
+    return withStateLock(this.stateDir, () => {
+      const stories = this.getStories(projectName);
+      const story = stories.find((s) => s.id === storyId);
+      if (!story) throw new Error(`找不到 UserStory: ${storyId}`);
+      if (story.archivedAt) throw new Error("已归档 Story 不能认领");
+      if (story.passes) throw new Error("已完成的 Story 不能认领");
+      if (isDraftStory(story)) {
+        throw new Error("草稿 Story 须先 confirm-story 后才能认领");
+      }
+      if (!getNextStories(stories, stories.length).some((s) => s.id === storyId)) {
+        throw new Error(`Story ${storyId} 当前不可执行（依赖未满足或不在队列中）`);
+      }
+      if (story.claimedBy && story.claimedBy !== workerId) {
+        throw new Error(
+          `Story ${storyId} 已被 ${story.claimedBy} 认领`
+        );
+      }
+      if (story.claimedBy === workerId) return story;
+
+      const updated: UserStory = {
+        ...story,
+        claimedBy: workerId,
+        claimedAt: new Date().toISOString(),
+      };
+      writeEntity(getStoriesDir(this.projectRoot), updated);
+      this.touchProject();
+      return updated;
+    });
+  }
+
+  releaseClaim(
+    projectName: string,
+    storyId: string,
+    workerId?: string
+  ): UserStory {
+    return withStateLock(this.stateDir, () => {
+      const story = this.getStories(projectName).find((s) => s.id === storyId);
+      if (!story) throw new Error(`找不到 UserStory: ${storyId}`);
+      if (!story.claimedBy) return story;
+      if (workerId && story.claimedBy !== workerId) {
+        throw new Error(
+          `Story ${storyId} 由 ${story.claimedBy} 认领，${workerId} 无权释放`
+        );
+      }
+      const updated: UserStory = {
+        ...story,
+        claimedBy: null,
+        claimedAt: null,
+      };
+      writeEntity(getStoriesDir(this.projectRoot), updated);
+      this.touchProject();
+      return updated;
+    });
+  }
+
+  getClaimedStory(
+    projectName: string,
+    workerId: string
+  ): UserStory | null {
+    return (
+      this.getStories(projectName).find((s) => s.claimedBy === workerId) ??
+      null
+    );
   }
 
   confirmStory(projectName: string, storyId: string): UserStory {
@@ -982,6 +1075,24 @@ export class LoopStateDb {
     if (story.archivedAt) throw new Error("已归档 Story 不能修改");
     if (milestoneId) this.assertMilestone(projectName, milestoneId);
     const updated = { ...story, milestoneId };
+    writeEntity(getStoriesDir(this.projectRoot), updated);
+    this.touchProject();
+    return updated;
+  }
+
+  setStoryPriority(
+    projectName: string,
+    storyId: string,
+    priority: number
+  ): UserStory {
+    const story = this.getStories(projectName).find((s) => s.id === storyId);
+    if (!story) throw new Error(`找不到 UserStory: ${storyId}`);
+    if (story.archivedAt) throw new Error("已归档 Story 不能修改");
+    if (!Number.isInteger(priority) || priority < 0) {
+      throw new Error("priority 必须为非负整数");
+    }
+    if (story.priority === priority) return story;
+    const updated = { ...story, priority };
     writeEntity(getStoriesDir(this.projectRoot), updated);
     this.touchProject();
     return updated;
@@ -1056,35 +1167,41 @@ export class LoopStateDb {
     projectName: string,
     iteration: number,
     tool: string | null,
-    storyId?: string | null
+    storyId?: string | null,
+    workerId?: string | null
   ): LoopRun {
     this.assertProject(projectName);
-    const file = readJsonFile<RunsFile>(getRunsFile(this.projectRoot), {
-      runs: [],
-      nextId: 1,
-    });
-    const now = new Date().toISOString();
-    for (const stale of file.runs) {
-      if (stale.status === "running") {
-        stale.status = "completed";
-        stale.message = stale.message ?? "superseded by new run";
-        stale.endedAt = now;
+    return withStateLock(this.stateDir, () => {
+      const file = readJsonFile<RunsFile>(getRunsFile(this.projectRoot), {
+        runs: [],
+        nextId: 1,
+      });
+      const now = new Date().toISOString();
+      if (!workerId) {
+        for (const stale of file.runs) {
+          if (stale.status === "running") {
+            stale.status = "completed";
+            stale.message = stale.message ?? "superseded by new run";
+            stale.endedAt = now;
+          }
+        }
       }
-    }
-    const run: LoopRun = {
-      id: file.nextId++,
-      iteration,
-      tool,
-      storyId: storyId ?? null,
-      status: "running",
-      message: null,
-      startedAt: new Date().toISOString(),
-      endedAt: null,
-    };
-    file.runs.push(run);
-    writeJsonFile(getRunsFile(this.projectRoot), file);
-    this.touchProject();
-    return run;
+      const run: LoopRun = {
+        id: file.nextId++,
+        iteration,
+        tool,
+        storyId: storyId ?? null,
+        workerId: workerId ?? null,
+        status: "running",
+        message: null,
+        startedAt: new Date().toISOString(),
+        endedAt: null,
+      };
+      file.runs.push(run);
+      writeJsonFile(getRunsFile(this.projectRoot), file);
+      this.touchProject();
+      return run;
+    });
   }
 
   endRun(runId: number, status: LoopRun["status"], message?: string): LoopRun {
@@ -1110,9 +1227,11 @@ export class LoopStateDb {
   }
 
   getActiveRun(projectName: string): LoopRun | null {
-    return (
-      this.getRuns(projectName, 50).find((r) => r.status === "running") ?? null
-    );
+    return this.getActiveRuns(projectName)[0] ?? null;
+  }
+
+  getActiveRuns(projectName: string): LoopRun[] {
+    return this.getRuns(projectName, 50).filter((r) => r.status === "running");
   }
 
   getProjectMeta(projectName: string): {
@@ -1135,7 +1254,8 @@ export class LoopStateDb {
     const milestones = this.getMilestones(projectName);
     const counts = countStories(stories);
     const progress = this.getProgress(projectName, 1);
-    const activeRun = this.getActiveRun(projectName);
+    const activeRuns = this.getActiveRuns(projectName);
+    const activeRun = activeRuns[0] ?? null;
     const currentStory =
       activeRun?.storyId != null
         ? (stories.find((s) => s.id === activeRun.storyId) ?? null)
@@ -1157,6 +1277,7 @@ export class LoopStateDb {
       currentStory,
       patterns: this.getPatterns(projectName),
       activeRun,
+      activeRuns,
       lastProgress: progress[0] ?? null,
     };
   }

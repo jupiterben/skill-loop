@@ -16,6 +16,8 @@ export function normalizeUserStory(story: UserStory): UserStory {
     everCompleted,
     removalRequestedAt: story.removalRequestedAt ?? null,
     archivedAt: story.archivedAt ?? null,
+    claimedBy: story.claimedBy ?? null,
+    claimedAt: story.claimedAt ?? null,
   };
 }
 
@@ -175,17 +177,28 @@ export function buildStoryDependencies(stories: UserStory[]): StoryDependency[] 
   return deps;
 }
 
+export function isStoryClaimed(story: UserStory): boolean {
+  return Boolean(story.claimedBy?.trim());
+}
+
 export function getNextStory(stories: UserStory[]): UserStory | null {
+  return getNextStories(stories, 1)[0] ?? null;
+}
+
+/** 返回最多 limit 个可并行执行的 Story（跳过已认领；removal 仍串行） */
+export function getNextStories(stories: UserStory[], limit: number): UserStory[] {
+  if (limit < 1) return [];
   const active = getActiveStories(stories);
   const pendingRemoval = active.filter(isPendingRemoval);
   if (pendingRemoval.length) {
     pendingRemoval.sort(storySort);
-    return pendingRemoval[0];
+    return pendingRemoval.slice(0, 1);
   }
 
-  const ready = active.filter((s) => isStoryReady(s, stories));
+  const ready = active
+    .filter((s) => isStoryReady(s, stories) && !isStoryClaimed(s));
   ready.sort(storySort);
-  return ready[0] ?? null;
+  return ready.slice(0, limit);
 }
 
 export function countStories(stories: UserStory[]) {

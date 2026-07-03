@@ -106,6 +106,8 @@ pnpm build:ui     # 构建到 public/
 ├── patterns.json
 ├── progress.json
 ├── runs.json
+├── runs/              # 多 worker 状态与 live 输出
+├── worktrees/         # 并行 git worktree（运行时）
 └── dashboard.json   # 看板进程状态（运行时）
 ```
 

@@ -6,6 +6,7 @@ set -e
 
 TOOL=""
 MAX_ITERATIONS=10
+WORKERS=1
 UNTIL_STOP=0
 
 while [[ $# -gt 0 ]]; do
@@ -16,6 +17,14 @@ while [[ $# -gt 0 ]]; do
       ;;
     --tool=*)
       TOOL="${1#*=}"
+      shift
+      ;;
+    --workers)
+      WORKERS="$2"
+      shift 2
+      ;;
+    --workers=*)
+      WORKERS="${1#*=}"
       shift
       ;;
     --until-stop|--forever)
@@ -45,4 +54,5 @@ else
   ARGS=(loop run --max-iterations "$MAX_ITERATIONS")
 fi
 [[ -n "$TOOL" ]] && ARGS+=(--tool "$TOOL")
+[[ "$WORKERS" -gt 1 ]] && ARGS+=(--workers "$WORKERS")
 pnpm "${ARGS[@]}"

@@ -3,6 +3,7 @@ import {
   Button,
   Descriptions,
   Input,
+  InputNumber,
   List,
   Modal,
   Space,
@@ -28,6 +29,11 @@ import {
 } from "../lib/deletable";
 import { MILESTONE_NONE_LABEL } from "../lib/treeFilter";
 import { MilestoneChip } from "./MilestoneChip";
+import {
+  acceptanceCriteriaEqual,
+  formatAcceptanceCriteria,
+  parseAcceptanceCriteria,
+} from "../lib/acceptanceCriteria";
 
 const { Text } = Typography;
 const { TextArea } = Input;
@@ -43,6 +49,7 @@ interface Props {
   progress: ProgressEntry[];
   busy?: boolean;
   onAssignMilestone?: (storyId: string, milestoneId: string | null) => void;
+  onSetStoryPriority?: (storyId: string, priority: number) => void;
   onAddFeature?: () => void;
   onAddStory?: () => void;
   onUpdateFeature?: (input: {
@@ -54,6 +61,7 @@ interface Props {
     storyId: string;
     title: string;
     description: string;
+    acceptanceCriteria: string[];
     changeNote?: string;
     status: "draft" | "ready";
   }) => void;
@@ -193,6 +201,53 @@ function FeatureEditor({
   );
 }
 
+function PriorityEditor({
+  story,
+  busy,
+  onSetPriority,
+}: {
+  story: UserStory;
+  busy?: boolean;
+  onSetPriority?: (storyId: string, priority: number) => void;
+}) {
+  const [value, setValue] = useState(story.priority);
+
+  useEffect(() => {
+    setValue(story.priority);
+  }, [story.id, story.priority]);
+
+  if (!onSetPriority) {
+    return <Text>P{story.priority}</Text>;
+  }
+
+  const commit = () => {
+    if (value === story.priority) return;
+    if (!Number.isInteger(value) || value < 0) {
+      setValue(story.priority);
+      return;
+    }
+    onSetPriority(story.id, value);
+  };
+
+  return (
+    <Space direction="vertical" size={2} style={{ width: "100%" }}>
+      <InputNumber
+        min={0}
+        precision={0}
+        value={value}
+        disabled={busy}
+        onChange={(v) => setValue(typeof v === "number" ? v : story.priority)}
+        onBlur={commit}
+        onPressEnter={commit}
+        style={{ width: "100%" }}
+      />
+      <Text type="secondary" className="props-story-form__hint">
+        数值越小越先执行；同优先级时按 sortOrder 排序
+      </Text>
+    </Space>
+  );
+}
+
 function StoryEditor({
   story,
   busy,
@@ -204,22 +259,30 @@ function StoryEditor({
     storyId: string;
     title: string;
     description: string;
+    acceptanceCriteria: string[];
     changeNote?: string;
     status: "draft" | "ready";
   }) => void;
 }) {
   const [title, setTitle] = useState(story.title);
   const [description, setDescription] = useState(story.description);
+  const [acceptanceCriteria, setAcceptanceCriteria] = useState(
+    () => formatAcceptanceCriteria(story.acceptanceCriteria)
+  );
   const [changeNote, setChangeNote] = useState("");
 
   useEffect(() => {
     setTitle(story.title);
     setDescription(story.description);
+    setAcceptanceCriteria(formatAcceptanceCriteria(story.acceptanceCriteria));
     setChangeNote("");
-  }, [story.id, story.title, story.description]);
+  }, [story.id, story.title, story.description, story.acceptanceCriteria]);
 
+  const parsedAcceptanceCriteria = parseAcceptanceCriteria(acceptanceCriteria);
   const dirty =
-    title.trim() !== story.title || description !== story.description;
+    title.trim() !== story.title ||
+    description !== story.description ||
+    !acceptanceCriteriaEqual(parsedAcceptanceCriteria, story.acceptanceCriteria);
   const canSave = Boolean(onUpdateStory) && (dirty || story.passes);
 
   const submit = (status: "draft" | "ready") => {
@@ -227,6 +290,7 @@ function StoryEditor({
       storyId: story.id,
       title: title.trim(),
       description,
+      acceptanceCriteria: parsedAcceptanceCriteria,
       changeNote: changeNote.trim() || undefined,
       status,
     });
@@ -254,6 +318,18 @@ function StoryEditor({
             value={description}
             disabled={busy}
             onChange={(e) => setDescription(e.target.value)}
+          />
+        </div>
+        <div className="props-field">
+          <Text type="secondary" className="props-field__label">
+            验收标准
+          </Text>
+          <TextArea
+            rows={3}
+            placeholder="每行一条，例如：npm test 通过"
+            value={acceptanceCriteria}
+            disabled={busy}
+            onChange={(e) => setAcceptanceCriteria(e.target.value)}
           />
         </div>
         {canSave && (
@@ -563,6 +639,7 @@ export function NodePropsPanel({
   progress,
   busy,
   onAssignMilestone,
+  onSetStoryPriority,
   onAddFeature,
   onAddStory,
   onUpdateFeature,
@@ -744,7 +821,17 @@ export function NodePropsPanel({
     .sort((a, b) => b.entryDate.localeCompare(a.entryDate));
 
   const detailItems = [
-    { key: "priority", label: "优先级", children: `P${story.priority}` },
+    {
+      key: "priority",
+      label: "优先级",
+      children: (
+        <PriorityEditor
+          story={story}
+          busy={busy}
+          onSetPriority={onSetStoryPriority}
+        />
+      ),
+    },
     {
       key: "status",
       label: "状态",
@@ -814,21 +901,6 @@ export function NodePropsPanel({
                   <li key={id}>
                     <code>{id}</code>
                   </li>
-                ))}
-              </ul>
-            ),
-          },
-        ]
-      : []),
-    ...(story.acceptanceCriteria.length > 0
-      ? [
-          {
-            key: "ac",
-            label: "验收标准",
-            children: (
-              <ul className="props-list">
-                {story.acceptanceCriteria.map((c, i) => (
-                  <li key={i}>{c}</li>
                 ))}
               </ul>
             ),

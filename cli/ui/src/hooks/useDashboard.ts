@@ -8,11 +8,17 @@ const REFRESH_ACTIVE_MS = 1500;
 function isLoopActive(data: DashboardData | null): boolean {
   if (!data) return false;
   if (data.status.activeRun?.status === "running") return true;
+  if ((data.status.activeRuns?.length ?? 0) > 0) return true;
   if (data.loopRunner?.running) return true;
-  if (data.runLive?.phase === "invoking" || data.runLive?.phase === "starting") {
-    return true;
-  }
-  return false;
+  const lives =
+    data.runLiveWorkers && data.runLiveWorkers.length > 0
+      ? data.runLiveWorkers
+      : data.runLive
+        ? [data.runLive]
+        : [];
+  return lives.some(
+    (l) => l.phase === "invoking" || l.phase === "starting"
+  );
 }
 
 export function useDashboard() {

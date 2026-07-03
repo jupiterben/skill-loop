@@ -31,6 +31,8 @@ export interface UserStory {
   sortOrder: number;
   removalRequestedAt: string | null;
   archivedAt: string | null;
+  claimedBy?: string | null;
+  claimedAt?: string | null;
 }
 
 export type TreeNodeKind = "feature" | "story";
@@ -82,6 +84,7 @@ export interface ProgressEntry {
 export type RunLivePhase = "starting" | "invoking" | "between" | "done";
 
 export interface RunLiveState {
+  workerId?: string;
   iteration: number;
   storyId: string | null;
   tool: string;
@@ -95,6 +98,7 @@ export interface LoopRun {
   iteration: number;
   tool: string | null;
   storyId?: string | null;
+  workerId?: string | null;
   status: "running" | "completed" | "failed" | "max_iterations";
   message: string | null;
   startedAt: string;
@@ -118,6 +122,7 @@ export interface ProjectStatus {
   currentStory: UserStory | null;
   patterns: string[];
   activeRun: LoopRun | null;
+  activeRuns?: LoopRun[];
   lastProgress: ProgressEntry | null;
 }
 
@@ -127,13 +132,26 @@ export interface DashboardData {
   loopRunner?: {
     running: boolean;
     stopRequested: boolean;
+    coordinator?: {
+      workers?: number;
+      workerIds?: string[];
+      tool?: string;
+    } | null;
     state: {
       tool?: string;
       iteration?: number;
       currentStoryId?: string | null;
+      workerId?: string;
     } | null;
+    workers?: {
+      tool?: string;
+      iteration?: number;
+      currentStoryId?: string | null;
+      workerId?: string;
+    }[];
   };
   runLive?: RunLiveState | null;
+  runLiveWorkers?: RunLiveState[];
   milestones: Milestone[];
   features: Feature[];
   userStories: UserStory[];

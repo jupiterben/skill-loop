@@ -32,6 +32,7 @@ pnpm loop run                    # 默认 agent/claude，最多 10 轮
 pnpm loop run --tool agent 20    # 指定工具与轮数
 pnpm loop run --tool claude --max-iterations 5
 pnpm loop run --until-stop --tool agent   # 持续运行，另开终端 loop run stop 结束
+pnpm loop run --workers 3 --until-stop --tool agent   # 3 个并行 worker（git worktree 隔离）
 ```
 
 也可直接运行脚本（自动设置 `LOOP_PROJECT_ROOT`）：
@@ -76,8 +77,9 @@ pnpm loop end-run --run-id 1 --status completed
 | `pnpm loop add-story --title "..." --ready` | 添加并直接可执行 |
 | `pnpm loop add-feature --title "..."` | 添加 Feature 分组 |
 | `pnpm loop run [--tool agent] [N]` | 外循环自动迭代（仿 Ralph） |
+| `pnpm loop run --workers 3` | 3 个并行 Agent（worktree + Story 认领） |
 | `pnpm loop run --until-stop` | 持续外循环，直到 `loop run stop` |
-| `pnpm loop run stop` / `run status` | 停止 / 查看外循环 |
+| `pnpm loop run stop` / `run status` | 停止 / 查看外循环（`stop --worker w0` 停止单个 worker 请求） |
 | `pnpm loop start-run` / `end-run` | 记录外循环迭代（手动记账） |
 | `pnpm loop dashboard` | 后台启动看板（无控制台窗口） |
 | `pnpm loop dashboard stop` | 关闭看板 |

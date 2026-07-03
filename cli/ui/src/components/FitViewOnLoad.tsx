@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { useReactFlow } from "@xyflow/react";
 
-/** 仅在数据切换时 fitView，收起/展开不触发 */
+/** 仅在项目或 Milestone 筛选切换时 fitView；节点重排/增删/收起展开不触发 */
 export function FitViewOnLoad({ trigger }: { trigger: string }) {
   const { fitView } = useReactFlow();
 
