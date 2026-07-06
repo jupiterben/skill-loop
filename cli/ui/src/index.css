@@ -1410,6 +1410,50 @@ body {
   height: 100%;
 }
 
+.mindmap-left-split {
+  height: 100%;
+  min-height: 0;
+}
+
+.mindmap-left-split .ant-splitter-panel {
+  overflow: hidden;
+  min-height: 0;
+}
+
+.mindmap-tree-panel {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.mindmap-tree-panel__header {
+  flex-shrink: 0;
+  padding: 0.45rem 0.65rem;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--muted);
+  border-bottom: 1px solid var(--border);
+  background: color-mix(in srgb, var(--surface) 88%, transparent);
+}
+
+.mindmap-tree-panel .project-tree-view {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  padding: 0.5rem 0.55rem;
+}
+
+.mindmap-left-split__canvas .mindmap-workspace__canvas-wrap {
+  height: 100%;
+}
+
 .mindmap-workspace-splitter .ant-splitter-panel {
   overflow: hidden;
   min-height: 0;
@@ -1516,7 +1560,7 @@ body {
 }
 
 .project-tree-view {
-  min-height: 100%;
+  min-height: 0;
 }
 
 .project-tree-view__tree {

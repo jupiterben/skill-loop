@@ -19,7 +19,6 @@ import {
   Button,
   Empty,
   Input,
-  Segmented,
   Space,
   Splitter,
   Typography,
@@ -60,11 +59,6 @@ import DepEdge from "./DepEdge";
 import { Modal } from "./Modal";
 import { NodePropsPanel } from "./NodePropsPanel";
 import { ProjectTreeView } from "./ProjectTreeView";
-import {
-  loadWorkspaceView,
-  saveWorkspaceView,
-  type WorkspaceView,
-} from "../lib/treeViewData";
 import { useSplitSizes } from "../hooks/useSplitSizes";
 import { FitViewOnLoad } from "./FitViewOnLoad";
 import {
@@ -152,9 +146,6 @@ export function MindMapPanel({
   const [nodeHeights, setNodeHeights] = useState<Record<string, number>>({});
   const [dragSourceId, setDragSourceId] = useState<string | null>(null);
   const [dropTargetId, setDropTargetId] = useState<string | null>(null);
-  const [workspaceView, setWorkspaceView] = useState<WorkspaceView>(() =>
-    loadWorkspaceView()
-  );
   const didAutoSelectRoot = useRef(false);
   const canvasRef = useRef<HTMLDivElement>(null);
   const [canvasReady, setCanvasReady] = useState(false);
@@ -168,6 +159,10 @@ export function MindMapPanel({
   const { sizes: mindmapSizes, onResizeEnd: onMindmapSplitEnd } = useSplitSizes(
     "loop-mindmap-split",
     [72, 28]
+  );
+  const { sizes: treeSizes, onResizeEnd: onTreeSplitEnd } = useSplitSizes(
+    "loop-tree-split",
+    [240, 640]
   );
 
   useLayoutEffect(() => {
@@ -191,11 +186,6 @@ export function MindMapPanel({
     const wrap = el.parentElement;
     if (wrap) ro.observe(wrap);
     return () => ro.disconnect();
-  }, []);
-
-  const switchWorkspaceView = useCallback((view: WorkspaceView) => {
-    setWorkspaceView(view);
-    saveWorkspaceView(view);
   }, []);
 
   const filteredTree = useMemo(
@@ -288,9 +278,7 @@ export function MindMapPanel({
 
   const flowClassName = [
     !canvasReady && "mindmap-workspace__flow--hidden",
-    isProjectEmpty &&
-      workspaceView === "mindmap" &&
-      "mindmap-workspace__flow--behind-empty",
+    isProjectEmpty && "mindmap-workspace__flow--behind-empty",
   ]
     .filter(Boolean)
     .join(" ") || undefined;
@@ -755,19 +743,10 @@ export function MindMapPanel({
   return (
     <div className="mm-panel">
       <div className="mm-toolbar">
-        <Segmented
-          className="mm-view-tabs"
-          value={workspaceView}
-          onChange={(value) => switchWorkspaceView(value as WorkspaceView)}
-          options={[
-            { label: "脑图", value: "mindmap" },
-            { label: "树形", value: "tree" },
-          ]}
-        />
         <span className="mm-hint muted">
-          {workspaceView === "mindmap"
-            ? "项目/Feature 右侧按钮可收起展开 · Feature 双击改名 · 拖曳 Story/Feature 到 Feature 或项目根改父级 · 选中 Feature/Story 后 PageUp/PageDown 调序 · Story 出点连入点建依赖 · 方向键切换节点 · Delete 删依赖线"
-            : "树形视图展示项目 / Feature / Story 层级 · 点击节点查看属性 · 可与脑图视图互相切换并保持选中"}
+          左侧结构树与脑图同步选中 · 拖曳分隔条可调整或收起 · 右侧为节点属性
+          · 项目/Feature 右侧按钮可收起展开 · Feature 双击改名 · 拖曳 Story/Feature 改父级
+          · PageUp/PageDown 调序 · Story 出点连入点建依赖 · 方向键切换节点 · Delete 删依赖线
         </span>
       </div>
 
@@ -999,53 +978,64 @@ export function MindMapPanel({
       >
         <Splitter.Panel
           defaultSize={mindmapSizes[0] || "72%"}
-          min={240}
+          min={360}
         >
-          <div className="mindmap-workspace__canvas-wrap">
-            <div
-              ref={canvasRef}
-              className={`mindmap-workspace__canvas${
-                workspaceView === "tree" ? " mindmap-workspace__canvas--tree" : ""
-              }`}
-              tabIndex={workspaceView === "mindmap" ? 0 : -1}
-              onKeyDownCapture={
-                workspaceView === "mindmap" ? handleCanvasKeyDown : undefined
-              }
+          <Splitter
+            className="mindmap-left-split"
+            onResizeEnd={onTreeSplitEnd}
+          >
+            <Splitter.Panel
+              defaultSize={treeSizes[0] || 240}
+              min={160}
+              max={420}
+              collapsible
+              className="mindmap-left-split__tree"
             >
-            {isProjectEmpty && workspaceView === "mindmap" && (
-              <div className="mindmap-workspace__empty">
-                <Empty
-                  image={Empty.PRESENTED_IMAGE_SIMPLE}
-                  description="暂无 Feature / Story，从下方开始规划"
-                >
-                  <Space wrap>
-                    <Button
-                      type="primary"
-                      disabled={busy}
-                      onClick={handleAddFeature}
-                    >
-                      + Feature
-                    </Button>
-                    <Button disabled={busy} onClick={handleAddStory}>
-                      + Story
-                    </Button>
-                  </Space>
-                </Empty>
+              <div className="mindmap-tree-panel">
+                <div className="mindmap-tree-panel__header">结构树</div>
+                <ProjectTreeView
+                  projectTitle={projectTitle}
+                  progressPct={progressPct}
+                  tree={filteredTree}
+                  selectedId={selected?.id ?? null}
+                  runningIds={runningIds}
+                  onSelect={(id, kind) => {
+                    setSelectedDepEdgeId(null);
+                    setSelected({ id, kind });
+                  }}
+                />
               </div>
-            )}
-          {workspaceView === "tree" ? (
-            <ProjectTreeView
-              projectTitle={projectTitle}
-              progressPct={progressPct}
-              tree={filteredTree}
-              selectedId={selected?.id ?? null}
-              runningIds={runningIds}
-              onSelect={(id, kind) => {
-                setSelectedDepEdgeId(null);
-                setSelected({ id, kind });
-              }}
-            />
-          ) : flowMounted ? (
+            </Splitter.Panel>
+            <Splitter.Panel min={200} className="mindmap-left-split__canvas">
+              <div className="mindmap-workspace__canvas-wrap">
+                <div
+                  ref={canvasRef}
+                  className="mindmap-workspace__canvas"
+                  tabIndex={0}
+                  onKeyDownCapture={handleCanvasKeyDown}
+                >
+                  {isProjectEmpty && (
+                    <div className="mindmap-workspace__empty">
+                      <Empty
+                        image={Empty.PRESENTED_IMAGE_SIMPLE}
+                        description="暂无 Feature / Story，从下方开始规划"
+                      >
+                        <Space wrap>
+                          <Button
+                            type="primary"
+                            disabled={busy}
+                            onClick={handleAddFeature}
+                          >
+                            + Feature
+                          </Button>
+                          <Button disabled={busy} onClick={handleAddStory}>
+                            + Story
+                          </Button>
+                        </Space>
+                      </Empty>
+                    </div>
+                  )}
+                  {flowMounted ? (
           <ReactFlow
             className={flowClassName}
             nodes={flowNodes}
@@ -1121,9 +1111,11 @@ export function MindMapPanel({
               color="var(--mm-grid)"
             />
           </ReactFlow>
-          ) : null}
-            </div>
-          </div>
+                  ) : null}
+                </div>
+              </div>
+            </Splitter.Panel>
+          </Splitter>
         </Splitter.Panel>
 
         <Splitter.Panel

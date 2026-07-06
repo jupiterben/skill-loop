@@ -2,28 +2,6 @@ import type { TreeDataNode } from "antd";
 import type { SelectedMindMapNode, TreeNode } from "../types";
 import { MINDMAP_ROOT_ID } from "./mindmapLayout";
 
-export type WorkspaceView = "mindmap" | "tree";
-
-const WORKSPACE_VIEW_KEY = "loop-workspace-view";
-
-export function loadWorkspaceView(): WorkspaceView {
-  try {
-    const stored = localStorage.getItem(WORKSPACE_VIEW_KEY);
-    if (stored === "mindmap" || stored === "tree") return stored;
-  } catch {
-    /* ignore */
-  }
-  return "mindmap";
-}
-
-export function saveWorkspaceView(view: WorkspaceView): void {
-  try {
-    localStorage.setItem(WORKSPACE_VIEW_KEY, view);
-  } catch {
-    /* ignore */
-  }
-}
-
 export function treeNodeToSelectedKind(
   node: TreeNode
 ): SelectedMindMapNode["kind"] {
