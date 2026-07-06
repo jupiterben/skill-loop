@@ -142,6 +142,16 @@ export function MindMapPanel({
   const [nodeHeights, setNodeHeights] = useState<Record<string, number>>({});
   const [dragSourceId, setDragSourceId] = useState<string | null>(null);
   const [dropTargetId, setDropTargetId] = useState<string | null>(null);
+  const [propsPanelOpen, setPropsPanelOpen] = useState(() => {
+    try {
+      const stored = localStorage.getItem("loop-props-panel-open");
+      if (stored === "0") return false;
+      if (stored === "1") return true;
+    } catch {
+      /* ignore */
+    }
+    return true;
+  });
   const canvasRef = useRef<HTMLDivElement>(null);
   const [canvasReady, setCanvasReady] = useState(false);
   /** 首次有尺寸后保持挂载，避免折叠/展开面板时 ReactFlow 卸载导致连线丢失 */
@@ -167,6 +177,18 @@ export function MindMapPanel({
     });
     ro.observe(el);
     return () => ro.disconnect();
+  }, []);
+
+  const togglePropsPanel = useCallback(() => {
+    setPropsPanelOpen((open) => {
+      const next = !open;
+      try {
+        localStorage.setItem("loop-props-panel-open", next ? "1" : "0");
+      } catch {
+        /* ignore */
+      }
+      return next;
+    });
   }, []);
 
   const filteredTree = useMemo(
@@ -934,7 +956,9 @@ export function MindMapPanel({
         onClose={() => setErr(null)}
       />
 
-      <div className="mindmap-workspace">
+      <div
+        className={`mindmap-workspace${propsPanelOpen ? "" : " mindmap-workspace--props-collapsed"}`}
+      >
         <NodePropsPanel
           selected={selected}
           projectTitle={projectTitle}
@@ -995,14 +1019,28 @@ export function MindMapPanel({
           }
           onConfirmStory={(storyId) => run(() => api.confirmStory(storyId))}
           onUnconfirmStory={(storyId) => run(() => api.unconfirmStory(storyId))}
+          onCompleteStory={({ storyId, summary }) =>
+            run(() => api.completeStory({ storyId, summary }))
+          }
         />
 
-        <div
-          ref={canvasRef}
-          className="mindmap-workspace__canvas"
-          tabIndex={0}
-          onKeyDownCapture={handleCanvasKeyDown}
-        >
+        <div className="mindmap-workspace__canvas-wrap">
+          <Button
+            type="text"
+            size="small"
+            className="mindmap-workspace__props-toggle"
+            aria-expanded={propsPanelOpen}
+            title={propsPanelOpen ? "收起属性面板" : "展开属性面板"}
+            onClick={togglePropsPanel}
+          >
+            {propsPanelOpen ? "◀" : "▶"}
+          </Button>
+          <div
+            ref={canvasRef}
+            className="mindmap-workspace__canvas"
+            tabIndex={0}
+            onKeyDownCapture={handleCanvasKeyDown}
+          >
           {flowMounted ? (
           <ReactFlow
             className={canvasReady ? undefined : "mindmap-workspace__flow--hidden"}
@@ -1080,6 +1118,7 @@ export function MindMapPanel({
             />
           </ReactFlow>
           ) : null}
+          </div>
         </div>
       </div>
     </div>

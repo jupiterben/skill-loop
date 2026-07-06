@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   Button,
   Descriptions,
@@ -29,11 +29,8 @@ import {
 } from "../lib/deletable";
 import { MILESTONE_NONE_LABEL } from "../lib/treeFilter";
 import { MilestoneChip } from "./MilestoneChip";
-import {
-  acceptanceCriteriaEqual,
-  formatAcceptanceCriteria,
-  parseAcceptanceCriteria,
-} from "../lib/acceptanceCriteria";
+import { useSyncedStoryFields } from "../hooks/useSyncedStoryFields";
+import { PropsSectionCollapse } from "./PropsSectionCollapse";
 
 const { Text } = Typography;
 const { TextArea } = Input;
@@ -147,14 +144,22 @@ function FeatureEditor({
 }) {
   const [title, setTitle] = useState(feature.title);
   const [description, setDescription] = useState(feature.description);
-
-  useEffect(() => {
-    setTitle(feature.title);
-    setDescription(feature.description);
-  }, [feature.id, feature.title, feature.description]);
+  const featureIdRef = useRef(feature.id);
 
   const dirty =
     title.trim() !== feature.title || description !== feature.description;
+
+  useEffect(() => {
+    if (feature.id !== featureIdRef.current) {
+      featureIdRef.current = feature.id;
+      setTitle(feature.title);
+      setDescription(feature.description);
+      return;
+    }
+    if (dirty) return;
+    setTitle(feature.title);
+    setDescription(feature.description);
+  }, [feature.id, feature.title, feature.description, dirty]);
 
   return (
     <section className="props-story-form">
@@ -211,10 +216,18 @@ function PriorityEditor({
   onSetPriority?: (storyId: string, priority: number) => void;
 }) {
   const [value, setValue] = useState(story.priority);
+  const storyIdRef = useRef(story.id);
+  const dirty = value !== story.priority;
 
   useEffect(() => {
+    if (story.id !== storyIdRef.current) {
+      storyIdRef.current = story.id;
+      setValue(story.priority);
+      return;
+    }
+    if (dirty) return;
     setValue(story.priority);
-  }, [story.id, story.priority]);
+  }, [story.id, story.priority, dirty]);
 
   if (!onSetPriority) {
     return <Text>P{story.priority}</Text>;
@@ -248,42 +261,77 @@ function PriorityEditor({
   );
 }
 
-function StoryEditor({
+function StorySectionsPanel({
   story,
   busy,
+  isBlocked,
+  isDraft,
+  milestones,
+  milestone,
+  depsIn,
+  depsOut,
+  storiesById,
+  storyProgress,
   onUpdateStory,
+  onCompleteStory,
+  onAssignMilestone,
+  onSetStoryPriority,
+  onConfirmStory,
+  onUnconfirmStory,
+  onRequestRemoval,
+  onCancelRemoval,
+  onArchiveStory,
+  onDeleteStory,
+  userStories,
+  progress,
 }: {
   story: UserStory;
   busy?: boolean;
-  onUpdateStory?: (input: {
-    storyId: string;
-    title: string;
-    description: string;
-    acceptanceCriteria: string[];
-    changeNote?: string;
-    status: "draft" | "ready";
-  }) => void;
+  isBlocked: boolean;
+  isDraft: boolean;
+  milestones: Milestone[];
+  milestone: Milestone | null | undefined;
+  depsIn: string[];
+  depsOut: string[];
+  storiesById: Map<string, UserStory>;
+  storyProgress: ProgressEntry[];
+  onUpdateStory?: Props["onUpdateStory"];
+  onCompleteStory?: Props["onCompleteStory"];
+  onAssignMilestone?: Props["onAssignMilestone"];
+  onSetStoryPriority?: Props["onSetStoryPriority"];
+  onConfirmStory?: Props["onConfirmStory"];
+  onUnconfirmStory?: Props["onUnconfirmStory"];
+  onRequestRemoval?: Props["onRequestRemoval"];
+  onCancelRemoval?: Props["onCancelRemoval"];
+  onArchiveStory?: Props["onArchiveStory"];
+  onDeleteStory?: Props["onDeleteStory"];
+  userStories: UserStory[];
+  progress: ProgressEntry[];
 }) {
-  const [title, setTitle] = useState(story.title);
-  const [description, setDescription] = useState(story.description);
-  const [acceptanceCriteria, setAcceptanceCriteria] = useState(
-    () => formatAcceptanceCriteria(story.acceptanceCriteria)
-  );
-  const [changeNote, setChangeNote] = useState("");
+  const {
+    title,
+    setTitle,
+    description,
+    setDescription,
+    acceptanceCriteria,
+    setAcceptanceCriteria,
+    changeNote,
+    setChangeNote,
+    parsedAcceptanceCriteria,
+    dirty,
+    resetAfterSave,
+  } = useSyncedStoryFields(story);
 
-  useEffect(() => {
-    setTitle(story.title);
-    setDescription(story.description);
-    setAcceptanceCriteria(formatAcceptanceCriteria(story.acceptanceCriteria));
-    setChangeNote("");
-  }, [story.id, story.title, story.description, story.acceptanceCriteria]);
+  const [completeOpen, setCompleteOpen] = useState(false);
+  const [completeSummary, setCompleteSummary] = useState("");
 
-  const parsedAcceptanceCriteria = parseAcceptanceCriteria(acceptanceCriteria);
-  const dirty =
-    title.trim() !== story.title ||
-    description !== story.description ||
-    !acceptanceCriteriaEqual(parsedAcceptanceCriteria, story.acceptanceCriteria);
   const canSave = Boolean(onUpdateStory) && (dirty || story.passes);
+  const canComplete =
+    Boolean(onCompleteStory) &&
+    !story.passes &&
+    story.status === "ready" &&
+    !isBlocked &&
+    !story.removalRequestedAt;
 
   const submit = (status: "draft" | "ready") => {
     onUpdateStory?.({
@@ -294,86 +342,296 @@ function StoryEditor({
       changeNote: changeNote.trim() || undefined,
       status,
     });
+    resetAfterSave();
+  };
+
+  const submitComplete = () => {
+    const summary = completeSummary.trim();
+    if (!summary) return;
+    onCompleteStory?.({ storyId: story.id, summary });
+    setCompleteOpen(false);
+    setCompleteSummary("");
   };
 
   return (
-    <section className="props-story-form">
-      <Space direction="vertical" size="small" style={{ width: "100%" }}>
-        <div className="props-field">
-          <Text type="secondary" className="props-field__label">
-            标题
-          </Text>
-          <Input
-            value={title}
-            disabled={busy}
-            onChange={(e) => setTitle(e.target.value)}
-          />
-        </div>
-        <div className="props-field">
-          <Text type="secondary" className="props-field__label">
-            描述
-          </Text>
+    <>
+      <PropsSectionCollapse
+        storageKey="loop-props-section-basic"
+        title="基本信息"
+        defaultOpen
+      >
+        <Space direction="vertical" size="small" style={{ width: "100%" }}>
+          <div className="props-field">
+            <Text type="secondary" className="props-field__label">
+              标题
+            </Text>
+            <Input
+              value={title}
+              disabled={busy}
+              onChange={(e) => setTitle(e.target.value)}
+            />
+          </div>
+          <div className="props-field">
+            <Text type="secondary" className="props-field__label">
+              描述
+            </Text>
+            <TextArea
+              rows={4}
+              value={description}
+              disabled={busy}
+              onChange={(e) => setDescription(e.target.value)}
+            />
+          </div>
+          <div className="props-field">
+            <Text type="secondary" className="props-field__label">
+              状态
+            </Text>
+            <StoryStatusTag story={story} isBlocked={isBlocked} />
+          </div>
+          <div className="props-field">
+            <Text type="secondary" className="props-field__label">
+              优先级
+            </Text>
+            <PriorityEditor
+              story={story}
+              busy={busy}
+              onSetPriority={onSetStoryPriority}
+            />
+          </div>
+          {dirty && (
+            <Text type="warning" className="props-story-form__hint">
+              有未保存的修改；定时刷新不会覆盖当前编辑内容。
+            </Text>
+          )}
+        </Space>
+      </PropsSectionCollapse>
+
+      <PropsSectionCollapse
+        storageKey="loop-props-section-ac"
+        title="验收标准"
+        defaultOpen
+      >
+        <Space direction="vertical" size="small" style={{ width: "100%" }}>
           <TextArea
             rows={4}
-            value={description}
-            disabled={busy}
-            onChange={(e) => setDescription(e.target.value)}
-          />
-        </div>
-        <div className="props-field">
-          <Text type="secondary" className="props-field__label">
-            验收标准
-          </Text>
-          <TextArea
-            rows={3}
             placeholder="每行一条，例如：npm test 通过"
             value={acceptanceCriteria}
             disabled={busy}
             onChange={(e) => setAcceptanceCriteria(e.target.value)}
           />
-        </div>
-        {canSave && (
+          {canSave && (
+            <>
+              <div className="props-field">
+                <Text type="secondary" className="props-field__label">
+                  变更说明（写入进度日志）
+                </Text>
+                <TextArea
+                  rows={2}
+                  placeholder="可选，说明为何修改需求"
+                  value={changeNote}
+                  disabled={busy}
+                  onChange={(e) => setChangeNote(e.target.value)}
+                />
+              </div>
+              <Space direction="vertical" size="small" style={{ width: "100%" }}>
+                <Button
+                  block
+                  disabled={busy || !title.trim()}
+                  onClick={() => submit("draft")}
+                >
+                  保存为草稿
+                </Button>
+                <Button
+                  type="primary"
+                  block
+                  disabled={busy || !title.trim()}
+                  onClick={() => submit("ready")}
+                >
+                  保存为待实现
+                </Button>
+              </Space>
+              <Text type="secondary" className="props-story-form__hint">
+                {story.passes
+                  ? "修改后将重置完成状态并记入进度日志。"
+                  : "保存为草稿需确认后才可执行；保存为待实现将进入执行队列。"}
+              </Text>
+            </>
+          )}
+        </Space>
+      </PropsSectionCollapse>
+
+      <PropsSectionCollapse
+        storageKey="loop-props-section-deps"
+        title="依赖与里程碑"
+      >
+        <Space direction="vertical" size="small" style={{ width: "100%" }}>
           <div className="props-field">
             <Text type="secondary" className="props-field__label">
-              变更说明（写入进度日志）
+              Milestone 标签
             </Text>
-            <TextArea
-              rows={2}
-              placeholder="可选，说明为何修改需求"
-              value={changeNote}
-              disabled={busy}
-              onChange={(e) => setChangeNote(e.target.value)}
-            />
+            {milestones.length > 0 && onAssignMilestone ? (
+              <div className="props-milestone-chips">
+                <MilestoneChip
+                  active={!story.milestoneId}
+                  disabled={busy}
+                  onClick={() => onAssignMilestone(story.id, null)}
+                >
+                  {MILESTONE_NONE_LABEL}
+                </MilestoneChip>
+                {milestones.map((m) => (
+                  <MilestoneChip
+                    key={m.id}
+                    active={story.milestoneId === m.id}
+                    disabled={busy}
+                    onClick={() => onAssignMilestone(story.id, m.id)}
+                  >
+                    {m.title}
+                  </MilestoneChip>
+                ))}
+              </div>
+            ) : milestone ? (
+              <Text>{milestone.title}</Text>
+            ) : (
+              <Text type="secondary">—</Text>
+            )}
           </div>
-        )}
-        {canSave && (
-          <Space direction="vertical" size="small" style={{ width: "100%" }}>
-            <Button
-              block
-              disabled={busy || !title.trim()}
-              onClick={() => submit("draft")}
-            >
-              保存为草稿
-            </Button>
+          {depsIn.length > 0 && (
+            <div className="props-field">
+              <Text type="secondary" className="props-field__label">
+                依赖前置
+              </Text>
+              <ul className="props-list">
+                {depsIn.map((id) => (
+                  <li key={id}>
+                    <code>{id}</code>
+                    {storiesById.get(id)?.title && (
+                      <Text type="secondary"> {storiesById.get(id)!.title}</Text>
+                    )}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+          {depsOut.length > 0 && (
+            <div className="props-field">
+              <Text type="secondary" className="props-field__label">
+                阻塞
+              </Text>
+              <ul className="props-list">
+                {depsOut.map((id) => (
+                  <li key={id}>
+                    <code>{id}</code>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+          {story.notes && (
+            <div className="props-field">
+              <Text type="secondary" className="props-field__label">
+                备注
+              </Text>
+              <Text>{story.notes}</Text>
+            </div>
+          )}
+          {depsIn.length === 0 && depsOut.length === 0 && !story.notes && (
+            <Text type="secondary" className="props-story-form__hint">
+              在脑图中拖连线建立 Story 依赖；Milestone 用于筛选与分组。
+            </Text>
+          )}
+        </Space>
+      </PropsSectionCollapse>
+
+      <PropsSectionCollapse
+        storageKey="loop-props-section-actions"
+        title="操作"
+        defaultOpen
+      >
+        <Space direction="vertical" size="small" style={{ width: "100%" }}>
+          {isDraft && onConfirmStory && (
             <Button
               type="primary"
               block
-              disabled={busy || !title.trim()}
-              onClick={() => submit("ready")}
+              disabled={busy}
+              onClick={() => onConfirmStory(story.id)}
             >
-              保存为待实现
+              确认可执行
             </Button>
-          </Space>
-        )}
-        {canSave && (
-          <Text type="secondary" className="props-story-form__hint">
-            {story.passes
-              ? "修改后将重置完成状态并记入进度日志。"
-              : "保存为草稿需确认后才可执行；保存为待实现将进入执行队列。"}
+          )}
+          {!isDraft &&
+            !story.passes &&
+            story.status === "ready" &&
+            onUnconfirmStory && (
+              <Button
+                block
+                disabled={busy}
+                onClick={() => {
+                  confirmAction(
+                    "退回草稿",
+                    `将「${story.title}」退回草稿？退回后不会进入执行队列。`,
+                    () => onUnconfirmStory(story.id)
+                  );
+                }}
+              >
+                退回草稿
+              </Button>
+            )}
+          {canComplete && (
+            <Button
+              type="primary"
+              block
+              disabled={busy}
+              onClick={() => setCompleteOpen(true)}
+            >
+              标记完成
+            </Button>
+          )}
+          <StoryLifecycleActions
+            story={story}
+            stories={userStories}
+            progress={progress}
+            busy={busy}
+            onRequestRemoval={onRequestRemoval}
+            onCancelRemoval={onCancelRemoval}
+            onArchiveStory={onArchiveStory}
+            onDeleteStory={onDeleteStory}
+          />
+        </Space>
+      </PropsSectionCollapse>
+
+      <PropsSectionCollapse
+        storageKey="loop-props-section-progress"
+        title="进度日志"
+      >
+        <ProgressLog entries={storyProgress} showTitle={false} />
+      </PropsSectionCollapse>
+
+      <Modal
+        open={completeOpen}
+        title={`标记完成 · ${story.id}`}
+        okText="确认完成"
+        cancelText="取消"
+        okButtonProps={{ disabled: busy || !completeSummary.trim() }}
+        onOk={submitComplete}
+        onCancel={() => {
+          setCompleteOpen(false);
+          setCompleteSummary("");
+        }}
+      >
+        <Space direction="vertical" size="small" style={{ width: "100%" }}>
+          <Text type="secondary">
+            简要说明本 Story 的实现内容，将写入进度日志。
           </Text>
-        )}
-      </Space>
-    </section>
+          <TextArea
+            rows={3}
+            placeholder="例如：实现了分区属性面板与折叠持久化"
+            value={completeSummary}
+            disabled={busy}
+            onChange={(e) => setCompleteSummary(e.target.value)}
+          />
+        </Space>
+      </Modal>
+    </>
   );
 }
 
@@ -594,10 +852,16 @@ function TrashList({
   );
 }
 
-function ProgressLog({ entries }: { entries: ProgressEntry[] }) {
+function ProgressLog({
+  entries,
+  showTitle = true,
+}: {
+  entries: ProgressEntry[];
+  showTitle?: boolean;
+}) {
   return (
     <section className="props-progress">
-      <h4 className="props-progress__title">进度日志</h4>
+      {showTitle && <h4 className="props-progress__title">进度日志</h4>}
       {entries.length === 0 ? (
         <Text type="secondary" className="props-progress__empty">
           暂无记录
@@ -644,6 +908,7 @@ export function NodePropsPanel({
   onAddStory,
   onUpdateFeature,
   onUpdateStory,
+  onCompleteStory,
   onDeleteStory,
   archivedStories = [],
   onRequestRemoval,
@@ -830,100 +1095,8 @@ export function NodePropsPanel({
     .filter((e) => e.storyId === story.id)
     .sort((a, b) => b.entryDate.localeCompare(a.entryDate));
 
-  const detailItems = [
-    {
-      key: "priority",
-      label: "优先级",
-      children: (
-        <PriorityEditor
-          story={story}
-          busy={busy}
-          onSetPriority={onSetStoryPriority}
-        />
-      ),
-    },
-    {
-      key: "status",
-      label: "状态",
-      children: <StoryStatusTag story={story} isBlocked={isBlocked} />,
-    },
-    {
-      key: "milestone",
-      label: "Milestone 标签",
-      children:
-        milestones.length > 0 && onAssignMilestone ? (
-          <div className="props-milestone-chips">
-            <MilestoneChip
-              active={!story.milestoneId}
-              disabled={busy}
-              onClick={() => onAssignMilestone(story.id, null)}
-            >
-              {MILESTONE_NONE_LABEL}
-            </MilestoneChip>
-            {milestones.map((m) => (
-              <MilestoneChip
-                key={m.id}
-                active={story.milestoneId === m.id}
-                disabled={busy}
-                onClick={() => onAssignMilestone(story.id, m.id)}
-              >
-                {m.title}
-              </MilestoneChip>
-            ))}
-          </div>
-        ) : milestone ? (
-          milestone.title
-        ) : (
-          "—"
-        ),
-    },
-    ...(depsIn.length > 0
-      ? [
-          {
-            key: "depsIn",
-            label: "依赖前置",
-            children: (
-              <ul className="props-list">
-                {depsIn.map((id) => (
-                  <li key={id}>
-                    <code>{id}</code>
-                    {storiesById.get(id)?.title && (
-                      <Text type="secondary">
-                        {" "}
-                        {storiesById.get(id)!.title}
-                      </Text>
-                    )}
-                  </li>
-                ))}
-              </ul>
-            ),
-          },
-        ]
-      : []),
-    ...(depsOut.length > 0
-      ? [
-          {
-            key: "depsOut",
-            label: "阻塞",
-            children: (
-              <ul className="props-list">
-                {depsOut.map((id) => (
-                  <li key={id}>
-                    <code>{id}</code>
-                  </li>
-                ))}
-              </ul>
-            ),
-          },
-        ]
-      : []),
-    ...(story.notes
-      ? [{ key: "notes", label: "备注", children: story.notes }]
-      : []),
-  ];
-
   return (
-    <aside className="props-panel">
+    <aside className="props-panel props-panel--story">
       <header className="props-panel__head">
         <span
           className={`props-panel__kind props-panel__kind--story${story.passes ? " props-panel__kind--done" : isDraft ? " props-panel__kind--draft" : isBlocked ? " props-panel__kind--blocked" : isPendingRemoval ? " props-panel__kind--pending-removal" : ""}`}
@@ -932,63 +1105,32 @@ export function NodePropsPanel({
         </span>
         <h3 className="props-panel__title">{story.title}</h3>
         <code className="props-panel__id">{story.id}</code>
-        {isDraft && onConfirmStory && (
-          <Button
-            type="primary"
-            size="small"
-            className="props-panel__confirm"
-            disabled={busy}
-            onClick={() => onConfirmStory(story.id)}
-          >
-            确认可执行
-          </Button>
-        )}
-        {!isDraft &&
-          !story.passes &&
-          story.status === "ready" &&
-          onUnconfirmStory && (
-            <Button
-              size="small"
-              className="props-panel__confirm"
-              disabled={busy}
-              onClick={() => {
-                confirmAction(
-                  "退回草稿",
-                  `将「${story.title}」退回草稿？退回后不会进入执行队列。`,
-                  () => onUnconfirmStory(story.id)
-                );
-              }}
-            >
-              退回草稿
-            </Button>
-          )}
       </header>
 
-      <StoryEditor
+      <StorySectionsPanel
         story={story}
         busy={busy}
+        isBlocked={isBlocked}
+        isDraft={isDraft}
+        milestones={milestones}
+        milestone={milestone}
+        depsIn={depsIn}
+        depsOut={depsOut}
+        storiesById={storiesById}
+        storyProgress={storyProgress}
         onUpdateStory={onUpdateStory}
-      />
-
-      <StoryLifecycleActions
-        story={story}
-        stories={userStories}
-        progress={progress}
-        busy={busy}
+        onCompleteStory={onCompleteStory}
+        onAssignMilestone={onAssignMilestone}
+        onSetStoryPriority={onSetStoryPriority}
+        onConfirmStory={onConfirmStory}
+        onUnconfirmStory={onUnconfirmStory}
         onRequestRemoval={onRequestRemoval}
         onCancelRemoval={onCancelRemoval}
         onArchiveStory={onArchiveStory}
         onDeleteStory={onDeleteStory}
+        userStories={userStories}
+        progress={progress}
       />
-
-      <Descriptions
-        className="props-dl"
-        column={1}
-        size="small"
-        items={detailItems}
-      />
-
-      <ProgressLog entries={storyProgress} />
     </aside>
   );
 }

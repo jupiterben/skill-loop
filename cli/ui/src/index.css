@@ -1265,9 +1265,54 @@ body {
   background: var(--bg);
 }
 
+.mindmap-workspace--props-collapsed {
+  grid-template-columns: 0 1fr;
+}
+
+.mindmap-workspace--props-collapsed > .props-panel {
+  overflow: hidden;
+  visibility: hidden;
+  pointer-events: none;
+}
+
 .mindmap-workspace > .props-panel,
-.mindmap-workspace > .mindmap-workspace__canvas {
+.mindmap-workspace > .mindmap-workspace__canvas-wrap {
   min-height: 0;
+}
+
+.mindmap-workspace__canvas-wrap {
+  position: relative;
+  min-width: 0;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.mindmap-workspace__props-toggle {
+  position: absolute;
+  left: 0;
+  top: 50%;
+  z-index: 2;
+  transform: translate(-50%, -50%);
+  width: 1.25rem;
+  min-width: 1.25rem;
+  height: 2.5rem;
+  padding: 0;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  background: var(--surface2);
+  color: var(--muted);
+  line-height: 1;
+}
+
+.mindmap-workspace__props-toggle:hover {
+  color: var(--text);
+  background: var(--surface);
+}
+
+.mindmap-workspace--props-collapsed .mindmap-workspace__props-toggle {
+  transform: translate(0, -50%);
+  left: 0.35rem;
 }
 
 .mindmap-workspace__canvas {
@@ -1288,6 +1333,43 @@ body {
 .mindmap-workspace__canvas .react-flow.mindmap-workspace__flow--hidden {
   visibility: hidden;
   pointer-events: none;
+}
+
+.props-panel--story {
+  gap: 0;
+}
+
+.props-section {
+  border-bottom: 1px solid var(--border);
+  background: var(--surface);
+}
+
+.props-section .ant-collapse-item {
+  border: none !important;
+}
+
+.props-section .ant-collapse-header {
+  padding: 0.55rem 0.75rem !important;
+  align-items: center !important;
+  background: var(--surface2);
+}
+
+.props-section .ant-collapse-content-box {
+  padding: 0.65rem 0.75rem 0.75rem !important;
+}
+
+.props-section__title {
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.props-section__body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
 }
 
 .props-panel {

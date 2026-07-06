@@ -83,6 +83,11 @@ export const api = {
     changeNote?: string;
     status?: "draft" | "ready";
   }) => post("/api/stories/update", input),
+  completeStory: (input: {
+    storyId: string;
+    summary: string;
+    learnings?: string[];
+  }) => post("/api/stories/complete", input),
   addDependency: (from: string, to: string) =>
     post("/api/dependencies", { from, to }),
   removeDependency: (from: string, to: string) =>
