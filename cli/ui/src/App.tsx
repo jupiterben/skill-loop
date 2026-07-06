@@ -15,6 +15,7 @@ import { api } from "./lib/api";
 export function App() {
   const { data, error, refresh } = useDashboard();
   const [confirmBusy, setConfirmBusy] = useState(false);
+  const [patternsBusy, setPatternsBusy] = useState(false);
 
   const handleConfirmStory = useCallback(
     async (storyId: string) => {
@@ -24,6 +25,45 @@ export function App() {
         await refresh();
       } finally {
         setConfirmBusy(false);
+      }
+    },
+    [refresh]
+  );
+
+  const handleAddPattern = useCallback(
+    async (content: string) => {
+      setPatternsBusy(true);
+      try {
+        await api.addPattern(content);
+        await refresh();
+      } finally {
+        setPatternsBusy(false);
+      }
+    },
+    [refresh]
+  );
+
+  const handleUpdatePattern = useCallback(
+    async (index: number, content: string) => {
+      setPatternsBusy(true);
+      try {
+        await api.updatePattern(index, content);
+        await refresh();
+      } finally {
+        setPatternsBusy(false);
+      }
+    },
+    [refresh]
+  );
+
+  const handleDeletePattern = useCallback(
+    async (index: number) => {
+      setPatternsBusy(true);
+      try {
+        await api.deletePattern(index);
+        await refresh();
+      } finally {
+        setPatternsBusy(false);
       }
     },
     [refresh]
@@ -101,7 +141,13 @@ export function App() {
             loopRunner={data.loopRunner}
           />
           <ProgressPanel progress={progress} />
-          <PatternsPanel patterns={patterns} />
+          <PatternsPanel
+            patterns={patterns}
+            busy={patternsBusy}
+            onAdd={handleAddPattern}
+            onUpdate={handleUpdatePattern}
+            onDelete={handleDeletePattern}
+          />
           <RunsPanel runs={runs} />
         </aside>
 

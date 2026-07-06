@@ -93,4 +93,8 @@ export const api = {
     maxIterations?: number;
   }) => post("/api/loop-run/start", input ?? {}),
   stopLoopRun: () => post("/api/loop-run/stop", {}),
+  addPattern: (content: string) => post("/api/patterns", { content }),
+  updatePattern: (index: number, content: string) =>
+    post("/api/patterns/update", { index, content }),
+  deletePattern: (index: number) => post("/api/patterns/delete", { index }),
 };

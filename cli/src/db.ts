@@ -29,6 +29,12 @@ import {
   normalizeUserStory,
   wouldCreateDependencyCycle,
 } from "./tree.js";
+import {
+  defaultFixStoryTitle,
+  formatBugAc,
+  hasBugAc,
+  normalizeBugDescription,
+} from "./bug-ac.js";
 import type {
   Feature,
   LoopRun,
@@ -927,6 +933,87 @@ export class LoopStateDb {
     return { story: updated, progressEntry };
   }
 
+  /** 将缺陷写入 Story AC 反例；若源 Story 已完成则新建修复 Story */
+  reportBug(
+    projectName: string,
+    storyId: string,
+    description: string,
+    opts?: {
+      ready?: boolean;
+      changeNote?: string;
+      fixTitle?: string;
+    }
+  ): {
+    action: "appended" | "created";
+    bugAc: string;
+    story: UserStory;
+    createdStory?: UserStory;
+    progressEntry: ProgressEntry | null;
+  } {
+    this.assertProject(projectName);
+    const plain = normalizeBugDescription(description);
+    const story = this.getStories(projectName).find((s) => s.id === storyId);
+    if (!story) throw new Error(`找不到 UserStory: ${storyId}`);
+    if (story.archivedAt) throw new Error("已归档 Story 不能添加 Bug");
+
+    const status: UserStory["status"] = opts?.ready ? "ready" : "draft";
+
+    if (story.passes) {
+      const bugAc = formatBugAc(plain, true);
+      const fixTitle = opts?.fixTitle?.trim() || defaultFixStoryTitle(plain);
+      const createdStory = this.addStory(projectName, {
+        parentId: story.parentId,
+        milestoneId: story.milestoneId,
+        dependsOn: [],
+        title: fixTitle,
+        description: `修复 ${storyId}「${story.title}」的回归问题：${plain}`,
+        acceptanceCriteria: [bugAc, "npm test 通过"],
+        priority: Math.min(story.priority - 1, -1),
+        notes: "",
+        status,
+      });
+      const note =
+        opts?.changeNote?.trim() ??
+        `Bug 修复 Story：${createdStory.id}（关联 ${storyId}）`;
+      const progressEntry = this.appendProgress(projectName, {
+        storyId: createdStory.id,
+        entryDate: new Date().toISOString().slice(0, 10),
+        summary: note,
+        learnings: [],
+      });
+      return {
+        action: "created",
+        bugAc,
+        story,
+        createdStory,
+        progressEntry,
+      };
+    }
+
+    const bugAc = formatBugAc(plain, false);
+    if (hasBugAc(story.acceptanceCriteria, plain)) {
+      throw new Error(`Story ${storyId} 已存在相同或相近的 Bug 反例 AC`);
+    }
+
+    const { story: updated, progressEntry } = this.updateStory(
+      projectName,
+      storyId,
+      {
+        acceptanceCriteria: [...story.acceptanceCriteria, bugAc],
+        changeNote:
+          opts?.changeNote?.trim() ?? `追加 Bug 反例 AC：${bugAc}`,
+        status,
+      }
+    );
+
+    return {
+      action: "appended",
+      bugAc,
+      story: updated,
+      progressEntry,
+    };
+  }
+
   completeStoryWithProgress(
     projectName: string,
     storyId: string,
@@ -1098,10 +1185,46 @@ export class LoopStateDb {
 
   addPattern(projectName: string, content: string): void {
     this.assertProject(projectName);
+    const trimmed = content.trim();
+    if (!trimmed) throw new Error("pattern 内容不能为空");
     const file = readJsonFile<PatternsFile>(getPatternsFile(this.projectRoot), {
       items: [],
     });
-    file.items.push(content);
+    file.items.push(trimmed);
+    writeJsonFile(getPatternsFile(this.projectRoot), file);
+    this.touchProject();
+  }
+
+  updatePattern(projectName: string, index: number, content: string): void {
+    this.assertProject(projectName);
+    const trimmed = content.trim();
+    if (!trimmed) throw new Error("pattern 内容不能为空");
+    if (!Number.isInteger(index) || index < 0) {
+      throw new Error("index 必须为非负整数");
+    }
+    const file = readJsonFile<PatternsFile>(getPatternsFile(this.projectRoot), {
+      items: [],
+    });
+    if (index >= file.items.length) {
+      throw new Error(`无效 index: ${index}`);
+    }
+    file.items[index] = trimmed;
+    writeJsonFile(getPatternsFile(this.projectRoot), file);
+    this.touchProject();
+  }
+
+  deletePattern(projectName: string, index: number): void {
+    this.assertProject(projectName);
+    if (!Number.isInteger(index) || index < 0) {
+      throw new Error("index 必须为非负整数");
+    }
+    const file = readJsonFile<PatternsFile>(getPatternsFile(this.projectRoot), {
+      items: [],
+    });
+    if (index >= file.items.length) {
+      throw new Error(`无效 index: ${index}`);
+    }
+    file.items.splice(index, 1);
     writeJsonFile(getPatternsFile(this.projectRoot), file);
     this.touchProject();
   }

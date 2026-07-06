@@ -163,6 +163,26 @@ const COMMANDS: Record<string, Handler> = {
     });
   },
 
+  bug(db, _root, parsed) {
+    const storyId =
+      parsed.positional[0] ?? flagStr(parsed.flags, "story-id", "id");
+    const description =
+      parsed.positional.slice(1).join(" ").trim() ||
+      flagStr(parsed.flags, "description", "desc", "message") ||
+      "";
+    if (!storyId) {
+      fail(
+        '用法: loop bug <US-xxx> "缺陷描述" [--ready] [--title "修复标题"] [--change-note "..."]'
+      );
+    }
+    if (!description) fail("缺少缺陷描述");
+    return db.reportBug(projectName(db, parsed), storyId, description, {
+      ready: parsed.flags.ready === true,
+      changeNote: flagStr(parsed.flags, "change-note", "note"),
+      fixTitle: flagStr(parsed.flags, "title"),
+    });
+  },
+
   "update-feature"(db, _root, parsed) {
     const featureId =
       parsed.positional[0] ?? flagStr(parsed.flags, "feature-id", "id");
@@ -270,6 +290,33 @@ const COMMANDS: Record<string, Handler> = {
     return { ok: true, patterns: db.getPatterns(name) };
   },
 
+  "update-pattern"(db, _root, parsed) {
+    const index = flagNum(parsed.flags, "index");
+    if (index === undefined || index < 0 || !Number.isInteger(index)) {
+      fail("用法: loop-cli update-pattern --index 0 \"新模式描述\"");
+    }
+    const content =
+      flagStr(parsed.flags, "content") ?? parsed.positional.join(" ");
+    if (!content) fail("用法: loop-cli update-pattern --index 0 \"新模式描述\"");
+    const name = projectName(db, parsed);
+    db.updatePattern(name, index, content);
+    return { ok: true, patterns: db.getPatterns(name) };
+  },
+
+  "delete-pattern"(db, _root, parsed) {
+    const index =
+      flagNum(parsed.flags, "index") ??
+      (parsed.positional[0] !== undefined
+        ? Number(parsed.positional[0])
+        : undefined);
+    if (index === undefined || index < 0 || !Number.isInteger(index)) {
+      fail("用法: loop-cli delete-pattern --index 0");
+    }
+    const name = projectName(db, parsed);
+    db.deletePattern(name, index);
+    return { ok: true, patterns: db.getPatterns(name) };
+  },
+
   "start-run"(db, _root, parsed) {
     const iteration = flagNum(parsed.flags, "iteration");
     if (!iteration || iteration < 1) fail("缺少 --iteration（正整数）");
@@ -341,7 +388,7 @@ function printHelp(): void {
   console.log(`loop-cli — Loop 工程迭代状态 CLI（通过 Shell 调用，无需 MCP）
 
 环境变量:
-  LOOP_PROJECT_ROOT   项目根目录（状态在 .loop/）
+  LOOP_PROJECT_ROOT   项目根目录（状态在 loop-data/）
 
 用法:
   loop-cli <command> [options]
@@ -358,7 +405,10 @@ function printHelp(): void {
   unconfirm-story <US-xxx>             未开发的 Story 退回草稿
   progress --summary "..." [--story-id US-xxx] [--learning "..."]
   add-pattern "可复用模式"
+  update-pattern --index 0 "更新后的模式"
+  delete-pattern --index 0
   add-story --title "..." [--ready] [--parent-id FT-001] [--depends-on US-001] [--ac "..."]
+  bug <US-xxx> "缺陷描述" [--ready] [--title "修复标题"] [--change-note "..."]
   add-feature --title "..." [--parent-id FT-001]
   update-story <US-xxx> [--title "..."] [--description "..."] [--ac "..."] --status draft|ready [--change-note "..."]
   update-feature <FT-xxx> [--title "..."] [--description "..."]
@@ -400,6 +450,7 @@ function printHelp(): void {
   pnpm loop status
   pnpm loop next
   pnpm loop complete US-003
+  pnpm loop bug US-001 "拖拽后节点弹回原位"
   pnpm loop progress --story-id US-003 --summary "实现登录页"
   pnpm loop run --tool agent 10
   pnpm loop run --until-stop --tool agent

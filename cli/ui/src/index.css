@@ -587,11 +587,34 @@ body {
 
 .pattern-list {
   margin: 0;
-  padding-left: 1.1rem;
   font-size: 0.85rem;
 }
 
-.pattern-list li { margin-bottom: 0.35rem; }
+.pattern-list__item {
+  align-items: flex-start !important;
+  gap: 0.35rem;
+}
+
+.pattern-list__text {
+  flex: 1;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.patterns-panel__body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.patterns-panel__add-btn {
+  margin-bottom: 0.25rem;
+}
+
+.patterns-panel__empty {
+  display: block;
+  padding: 0.25rem 0;
+}
 
 .progress-entry {
   padding: 0.75rem 0;

@@ -337,6 +337,36 @@ export async function handleApiMutation(
       return true;
     }
 
+    if (req.method === "POST" && pathname === "/api/patterns") {
+      const content = String(body.content ?? "").trim();
+      if (!content) throw new Error("content 必填");
+      db.addPattern(projectName, content);
+      json(res, { ok: true, patterns: db.getPatterns(projectName) });
+      return true;
+    }
+
+    if (req.method === "POST" && pathname === "/api/patterns/update") {
+      const index = Number(body.index);
+      const content = String(body.content ?? "").trim();
+      if (!Number.isInteger(index) || index < 0) {
+        throw new Error("index 必须为非负整数");
+      }
+      if (!content) throw new Error("content 必填");
+      db.updatePattern(projectName, index, content);
+      json(res, { ok: true, patterns: db.getPatterns(projectName) });
+      return true;
+    }
+
+    if (req.method === "POST" && pathname === "/api/patterns/delete") {
+      const index = Number(body.index);
+      if (!Number.isInteger(index) || index < 0) {
+        throw new Error("index 必须为非负整数");
+      }
+      db.deletePattern(projectName, index);
+      json(res, { ok: true, patterns: db.getPatterns(projectName) });
+      return true;
+    }
+
     if (req.method === "POST" && pathname === "/api/loop-run/start") {
       const { startLoopRunBackground } = await import("./loop-run-launcher.js");
       const untilStop =
