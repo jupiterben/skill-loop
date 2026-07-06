@@ -43,7 +43,7 @@ function LiveOutput({
   }, [runLive.output, runLive.updatedAt]);
 
   return (
-    <>
+    <div className="agent-live">
       <div className="agent-live__meta">
         <Tag color={phaseColor(runLive.phase)}>
           {showPulse && <span className="agent-live__pulse" aria-hidden />}
@@ -65,7 +65,7 @@ function LiveOutput({
           <span className="agent-live__placeholder">等待 Agent 输出…</span>
         )}
       </pre>
-    </>
+    </div>
   );
 }
 

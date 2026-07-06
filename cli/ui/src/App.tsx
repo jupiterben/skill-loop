@@ -8,6 +8,7 @@ import { PatternsPanel } from "./components/PatternsPanel";
 import { ProjectSpecPanel } from "./features/project-spec/ProjectSpecPanel";
 import { ProgressPanel } from "./components/ProgressPanel";
 import { RunsPanel } from "./components/RunsPanel";
+import { WorkspaceStatusBar } from "./components/WorkspaceStatusBar";
 import { CollapsiblePanel } from "./components/CollapsiblePanel";
 import { ErrorAlert } from "./components/ErrorAlert";
 import { useDashboard } from "./hooks/useDashboard";
@@ -163,10 +164,8 @@ export function App() {
           <ProjectCard
             status={status}
             draftStories={draftStories}
-            userStories={userStories}
             onConfirmStory={handleConfirmStory}
             busy={confirmBusy}
-            loopRunner={data.loopRunner}
           />
           <ProgressPanel progress={progress} />
           <PatternsPanel
@@ -187,51 +186,63 @@ export function App() {
         </aside>
 
         <div className="app-workspace">
-          <CollapsiblePanel
-            storageKey="loop-mindmap-panel-open"
-            defaultOpen
-            title="脑图编辑"
-            variant="workspace"
-            className="workspace-panel--mindmap"
-            bodyClassName="workspace-panel__body--fill"
-          >
-            <MindMapPanel
-              projectTitle={status.project}
-              progressPct={pct}
-              tree={tree}
-              features={features}
-              userStories={userStories}
-              archivedStories={archivedStories}
-              milestones={milestones}
-              dependencies={dependencies}
-              progress={progress}
-              onRefresh={refresh}
-              runningStoryId={
-                runningStoryIds.size === 1
-                  ? [...runningStoryIds][0]!
-                  : status.currentStory?.id ??
-                    status.activeRun?.storyId ??
-                    data.loopRunner?.state?.currentStoryId ??
-                    null
-              }
-              runningStoryIds={[...runningStoryIds]}
-            />
-          </CollapsiblePanel>
+          <div className="app-workspace__split">
+            <div className="app-workspace__input">
+              <CollapsiblePanel
+                storageKey="loop-mindmap-panel-open"
+                defaultOpen
+                title="用户输入"
+                variant="workspace"
+                className="workspace-panel--input"
+                bodyClassName="workspace-panel__body--fill"
+              >
+                <MindMapPanel
+                  projectTitle={status.project}
+                  progressPct={pct}
+                  tree={tree}
+                  features={features}
+                  userStories={userStories}
+                  archivedStories={archivedStories}
+                  milestones={milestones}
+                  dependencies={dependencies}
+                  progress={progress}
+                  onRefresh={refresh}
+                  runningStoryId={
+                    runningStoryIds.size === 1
+                      ? [...runningStoryIds][0]!
+                      : status.currentStory?.id ??
+                        status.activeRun?.storyId ??
+                        data.loopRunner?.state?.currentStoryId ??
+                        null
+                  }
+                  runningStoryIds={[...runningStoryIds]}
+                />
+              </CollapsiblePanel>
+            </div>
 
-          <CollapsiblePanel
-            storageKey="loop-agent-panel-open"
-            defaultOpen={loopRunning}
-            title="Agent 输出"
-            variant="workspace"
-            className="workspace-panel--agent"
-            bodyClassName="workspace-panel__body--agent"
-          >
-            <AgentLivePanel
-              runLive={data.runLive}
-              runLiveWorkers={data.runLiveWorkers}
-              isRunning={loopRunning}
-            />
-          </CollapsiblePanel>
+            <div className="app-workspace__output">
+              <CollapsiblePanel
+                storageKey="loop-agent-panel-open"
+                defaultOpen={loopRunning}
+                title="运行结果"
+                variant="workspace"
+                className="workspace-panel--output"
+                bodyClassName="workspace-panel__body--agent"
+              >
+                <AgentLivePanel
+                  runLive={data.runLive}
+                  runLiveWorkers={data.runLiveWorkers}
+                  isRunning={loopRunning}
+                />
+              </CollapsiblePanel>
+            </div>
+          </div>
+
+          <WorkspaceStatusBar
+            status={status}
+            userStories={userStories}
+            loopRunner={data.loopRunner}
+          />
         </div>
       </div>
     </div>
