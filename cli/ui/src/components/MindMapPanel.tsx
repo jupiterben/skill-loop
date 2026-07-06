@@ -1000,71 +1000,6 @@ export function MindMapPanel({
       <div
         className={`mindmap-workspace${propsPanelOpen ? "" : " mindmap-workspace--props-collapsed"}`}
       >
-        <NodePropsPanel
-          selected={selected}
-          projectTitle={projectTitle}
-          progressPct={progressPct}
-          features={features}
-          userStories={userStories}
-          milestones={milestones}
-          dependencies={dependencies}
-          progress={progress}
-          busy={busy}
-          archivedStories={archivedStories}
-          onSelectArchived={(storyId) =>
-            setSelected({ id: storyId, kind: "archived" })
-          }
-          onRequestRemoval={(storyId, reason) =>
-            run(() => api.requestStoryRemoval(storyId, reason))
-          }
-          onCancelRemoval={(storyId) =>
-            run(() => api.cancelStoryRemoval(storyId))
-          }
-          onArchiveStory={(storyId, reason) =>
-            run(async () => {
-              await api.archiveStory(storyId, reason);
-              setSelected(null);
-            })
-          }
-          onRestoreStory={(storyId) =>
-            run(async () => {
-              await api.restoreStory(storyId);
-              setSelected(null);
-            })
-          }
-          onPurgeStory={(storyId) =>
-            run(async () => {
-              await api.purgeStory(storyId);
-              setSelected(null);
-            })
-          }
-          onAssignMilestone={(storyId, mid) =>
-            run(() => api.setStoryMilestone(storyId, mid))
-          }
-          onSetStoryPriority={(storyId, priority) =>
-            run(() => api.setStoryPriority(storyId, priority))
-          }
-          onAddFeature={handleAddFeature}
-          onAddStory={handleAddStory}
-          onUpdateFeature={(input) =>
-            run(() => api.updateFeature(input))
-          }
-          onUpdateStory={(input) =>
-            run(() => api.updateStory(input))
-          }
-          onDeleteStory={(storyId) =>
-            run(async () => {
-              await api.deleteStory(storyId);
-              setSelected(null);
-            })
-          }
-          onConfirmStory={(storyId) => run(() => api.confirmStory(storyId))}
-          onUnconfirmStory={(storyId) => run(() => api.unconfirmStory(storyId))}
-          onCompleteStory={({ storyId, summary }) =>
-            run(() => api.completeStory({ storyId, summary }))
-          }
-        />
-
         <div className="mindmap-workspace__canvas-wrap">
           <Button
             type="text"
@@ -1074,7 +1009,7 @@ export function MindMapPanel({
             title={propsPanelOpen ? "收起属性面板" : "展开属性面板"}
             onClick={togglePropsPanel}
           >
-            {propsPanelOpen ? "◀" : "▶"}
+            {propsPanelOpen ? "▶" : "◀"}
           </Button>
           <div
             ref={canvasRef}
@@ -1177,6 +1112,71 @@ export function MindMapPanel({
           ) : null}
           </div>
         </div>
+
+        <NodePropsPanel
+          selected={selected}
+          projectTitle={projectTitle}
+          progressPct={progressPct}
+          features={features}
+          userStories={userStories}
+          milestones={milestones}
+          dependencies={dependencies}
+          progress={progress}
+          busy={busy}
+          archivedStories={archivedStories}
+          onSelectArchived={(storyId) =>
+            setSelected({ id: storyId, kind: "archived" })
+          }
+          onRequestRemoval={(storyId, reason) =>
+            run(() => api.requestStoryRemoval(storyId, reason))
+          }
+          onCancelRemoval={(storyId) =>
+            run(() => api.cancelStoryRemoval(storyId))
+          }
+          onArchiveStory={(storyId, reason) =>
+            run(async () => {
+              await api.archiveStory(storyId, reason);
+              setSelected(null);
+            })
+          }
+          onRestoreStory={(storyId) =>
+            run(async () => {
+              await api.restoreStory(storyId);
+              setSelected(null);
+            })
+          }
+          onPurgeStory={(storyId) =>
+            run(async () => {
+              await api.purgeStory(storyId);
+              setSelected(null);
+            })
+          }
+          onAssignMilestone={(storyId, mid) =>
+            run(() => api.setStoryMilestone(storyId, mid))
+          }
+          onSetStoryPriority={(storyId, priority) =>
+            run(() => api.setStoryPriority(storyId, priority))
+          }
+          onAddFeature={handleAddFeature}
+          onAddStory={handleAddStory}
+          onUpdateFeature={(input) =>
+            run(() => api.updateFeature(input))
+          }
+          onUpdateStory={(input) =>
+            run(() => api.updateStory(input))
+          }
+          onDeleteStory={(storyId) =>
+            run(async () => {
+              await api.deleteStory(storyId);
+              setSelected(null);
+            })
+          }
+          onConfirmStory={(storyId) => run(() => api.confirmStory(storyId))}
+          onUnconfirmStory={(storyId) => run(() => api.unconfirmStory(storyId))}
+          onCompleteStory={({ storyId, summary }) =>
+            run(() => api.completeStory({ storyId, summary }))
+          }
+        />
       </div>
     </div>
   );
