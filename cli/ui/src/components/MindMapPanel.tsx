@@ -166,7 +166,10 @@ export function MindMapPanel({
     if (!el) return;
 
     const sync = () => {
-      const ready = el.clientWidth > 0 && el.clientHeight > 0;
+      const width = el.clientWidth;
+      const height = el.clientHeight;
+      const wrapHeight = el.parentElement?.clientHeight ?? 0;
+      const ready = width > 0 && (height > 0 || wrapHeight > 0);
       setCanvasReady(ready);
       if (ready) setFlowMounted(true);
     };
@@ -176,6 +179,8 @@ export function MindMapPanel({
       requestAnimationFrame(sync);
     });
     ro.observe(el);
+    const wrap = el.parentElement;
+    if (wrap) ro.observe(wrap);
     return () => ro.disconnect();
   }, []);
 
