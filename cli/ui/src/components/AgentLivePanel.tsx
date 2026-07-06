@@ -69,6 +69,18 @@ function LiveOutput({
   );
 }
 
+function IdlePlaceholder({ isRunning }: { isRunning?: boolean }) {
+  return (
+    <div className="agent-live__idle">
+      <Text type="secondary" className="agent-live__placeholder">
+        {isRunning
+          ? "外循环已启动，等待 Agent 输出…"
+          : "运行 loop run 后，Agent 实时输出将显示在此"}
+      </Text>
+    </div>
+  );
+}
+
 interface Props {
   runLive: RunLiveState | null | undefined;
   runLiveWorkers?: RunLiveState[];
@@ -92,45 +104,36 @@ export function AgentLivePanel({ runLive, runLiveWorkers, isRunning }: Props) {
     }
   }, [workers, activeKey]);
 
-  if (!workers.length) return null;
+  if (!workers.length) {
+    return <IdlePlaceholder isRunning={isRunning} />;
+  }
 
   if (workers.length === 1) {
     const single = workers[0]!;
-    return (
-      <section className="card card--agent-live" aria-live="polite">
-        <div className="agent-live__head">
-          <h2>Agent 输出</h2>
-        </div>
-        <LiveOutput runLive={single} isRunning={isRunning} />
-      </section>
-    );
+    return <LiveOutput runLive={single} isRunning={isRunning} />;
   }
 
   return (
-    <section className="card card--agent-live" aria-live="polite">
-      <div className="agent-live__head">
-        <h2>Agent 输出（{workers.length} workers）</h2>
-      </div>
-      <Tabs
-        activeKey={activeKey}
-        onChange={setActiveKey}
-        size="small"
-        items={workers.map((w, index) => {
-          const key =
-            w.workerId ??
-            (w.storyId ? `${w.storyId}-${index}` : String(w.iteration));
-          return {
-            key,
-            label: (
-              <span>
-                {w.workerId ?? key}
-                {w.storyId ? ` · ${w.storyId}` : ""}
-              </span>
-            ),
-            children: <LiveOutput runLive={w} isRunning={isRunning} />,
-          };
-        })}
-      />
-    </section>
+    <Tabs
+      activeKey={activeKey}
+      onChange={setActiveKey}
+      size="small"
+      className="agent-live__tabs"
+      items={workers.map((w, index) => {
+        const key =
+          w.workerId ??
+          (w.storyId ? `${w.storyId}-${index}` : String(w.iteration));
+        return {
+          key,
+          label: (
+            <span>
+              {w.workerId ?? key}
+              {w.storyId ? ` · ${w.storyId}` : ""}
+            </span>
+          ),
+          children: <LiveOutput runLive={w} isRunning={isRunning} />,
+        };
+      })}
+    />
   );
 }

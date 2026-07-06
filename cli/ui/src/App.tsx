@@ -1,10 +1,13 @@
 import { useCallback, useState } from "react";
 import { Spin } from "antd";
+import { AppToolbar } from "./components/AppToolbar";
 import { ProjectCard } from "./components/ProjectCard";
 import { MindMapPanel } from "./components/MindMapPanel";
 import { AgentLivePanel } from "./components/AgentLivePanel";
 import { PatternsPanel } from "./components/PatternsPanel";
+import { ProgressPanel } from "./components/ProgressPanel";
 import { RunsPanel } from "./components/RunsPanel";
+import { CollapsiblePanel } from "./components/CollapsiblePanel";
 import { ErrorAlert } from "./components/ErrorAlert";
 import { useDashboard } from "./hooks/useDashboard";
 import { api } from "./lib/api";
@@ -28,7 +31,7 @@ export function App() {
 
   if (error && !data) {
     return (
-      <div className="layout">
+      <div className="app-shell app-shell--centered">
         <ErrorAlert
           title="无法加载仪表盘"
           description={
@@ -44,8 +47,8 @@ export function App() {
 
   if (!data) {
     return (
-      <div className="layout layout--loading">
-        <Spin size="large" description="加载中…" />
+      <div className="app-shell app-shell--centered">
+        <Spin size="large" description="加载 Loop Dashboard…" />
       </div>
     );
   }
@@ -71,7 +74,8 @@ export function App() {
   );
 
   return (
-    <div className="layout layout--mindmap">
+    <div className="app-shell">
+      <AppToolbar status={status} />
       {error && (
         <ErrorAlert
           className="app-error-banner"
@@ -86,50 +90,69 @@ export function App() {
           }
         />
       )}
-      <aside className="sidebar">
-        <ProjectCard
-          status={status}
-          draftStories={draftStories}
-          userStories={userStories}
-          onConfirmStory={handleConfirmStory}
-          busy={confirmBusy}
-          loopRunner={data.loopRunner}
-        />
-        <PatternsPanel patterns={patterns} />
-        <RunsPanel runs={runs} />
-      </aside>
-
-      <main className="main">
-        <section className="card card--mindmap">
-          <h2>脑图编辑</h2>
-          <MindMapPanel
-            projectTitle={status.project}
-            progressPct={pct}
-            tree={tree}
-            features={features}
+      <div className="app-body">
+        <aside className="app-sidebar">
+          <ProjectCard
+            status={status}
+            draftStories={draftStories}
             userStories={userStories}
-            archivedStories={archivedStories}
-            milestones={milestones}
-            dependencies={dependencies}
-            progress={progress}
-            onRefresh={refresh}
-            runningStoryId={
-              runningStoryIds.size === 1
-                ? [...runningStoryIds][0]!
-                : status.currentStory?.id ??
-                  status.activeRun?.storyId ??
-                  data.loopRunner?.state?.currentStoryId ??
-                  null
-            }
-            runningStoryIds={[...runningStoryIds]}
+            onConfirmStory={handleConfirmStory}
+            busy={confirmBusy}
+            loopRunner={data.loopRunner}
           />
-        </section>
-        <AgentLivePanel
-          runLive={data.runLive}
-          runLiveWorkers={data.runLiveWorkers}
-          isRunning={loopRunning}
-        />
-      </main>
+          <ProgressPanel progress={progress} />
+          <PatternsPanel patterns={patterns} />
+          <RunsPanel runs={runs} />
+        </aside>
+
+        <div className="app-workspace">
+          <CollapsiblePanel
+            storageKey="loop-mindmap-panel-open"
+            defaultOpen
+            title="脑图编辑"
+            variant="workspace"
+            className="workspace-panel--mindmap"
+            bodyClassName="workspace-panel__body--fill"
+          >
+            <MindMapPanel
+              projectTitle={status.project}
+              progressPct={pct}
+              tree={tree}
+              features={features}
+              userStories={userStories}
+              archivedStories={archivedStories}
+              milestones={milestones}
+              dependencies={dependencies}
+              progress={progress}
+              onRefresh={refresh}
+              runningStoryId={
+                runningStoryIds.size === 1
+                  ? [...runningStoryIds][0]!
+                  : status.currentStory?.id ??
+                    status.activeRun?.storyId ??
+                    data.loopRunner?.state?.currentStoryId ??
+                    null
+              }
+              runningStoryIds={[...runningStoryIds]}
+            />
+          </CollapsiblePanel>
+
+          <CollapsiblePanel
+            storageKey="loop-agent-panel-open"
+            defaultOpen={loopRunning}
+            title="Agent 输出"
+            variant="workspace"
+            className="workspace-panel--agent"
+            bodyClassName="workspace-panel__body--agent"
+          >
+            <AgentLivePanel
+              runLive={data.runLive}
+              runLiveWorkers={data.runLiveWorkers}
+              isRunning={loopRunning}
+            />
+          </CollapsiblePanel>
+        </div>
+      </div>
     </div>
   );
 }

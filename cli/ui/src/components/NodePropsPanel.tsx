@@ -662,10 +662,13 @@ export function NodePropsPanel({
     return (
       <aside className="props-panel props-panel--empty">
         <Text type="secondary" className="props-panel__hint">
-          点击项目或 Feature 节点可添加子项
-          <br />
-          点击 Story 查看属性与进度
+          从下方添加首个 Feature / Story，或点击脑图节点查看详情
         </Text>
+        <AddActions
+          busy={busy}
+          onAddFeature={onAddFeature}
+          onAddStory={onAddStory}
+        />
       </aside>
     );
   }
@@ -719,7 +722,14 @@ export function NodePropsPanel({
           <span className="props-panel__kind props-panel__kind--feature">
             Feature
           </span>
+          <h3 className="props-panel__title">{f.title}</h3>
+          <code className="props-panel__id">{f.id}</code>
         </header>
+        <AddActions
+          busy={busy}
+          onAddFeature={onAddFeature}
+          onAddStory={onAddStory}
+        />
         <FeatureEditor
           feature={f}
           busy={busy}
