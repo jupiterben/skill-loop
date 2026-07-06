@@ -356,8 +356,8 @@ function StorySectionsPanel({
   return (
     <>
       <PropsSectionCollapse
-        storageKey="loop-props-section-basic"
-        title="基本信息"
+        storageKey="loop-props-section-edit"
+        title="编辑"
         defaultOpen
       >
         <Space direction="vertical" size="small" style={{ width: "100%" }}>
@@ -384,6 +384,18 @@ function StorySectionsPanel({
           </div>
           <div className="props-field">
             <Text type="secondary" className="props-field__label">
+              验收标准
+            </Text>
+            <TextArea
+              rows={4}
+              placeholder="每行一条，例如：npm test 通过"
+              value={acceptanceCriteria}
+              disabled={busy}
+              onChange={(e) => setAcceptanceCriteria(e.target.value)}
+            />
+          </div>
+          <div className="props-field">
+            <Text type="secondary" className="props-field__label">
               状态
             </Text>
             <StoryStatusTag story={story} isBlocked={isBlocked} />
@@ -403,22 +415,6 @@ function StorySectionsPanel({
               有未保存的修改；定时刷新不会覆盖当前编辑内容。
             </Text>
           )}
-        </Space>
-      </PropsSectionCollapse>
-
-      <PropsSectionCollapse
-        storageKey="loop-props-section-ac"
-        title="验收标准"
-        defaultOpen
-      >
-        <Space direction="vertical" size="small" style={{ width: "100%" }}>
-          <TextArea
-            rows={4}
-            placeholder="每行一条，例如：npm test 通过"
-            value={acceptanceCriteria}
-            disabled={busy}
-            onChange={(e) => setAcceptanceCriteria(e.target.value)}
-          />
           {canSave && (
             <>
               <div className="props-field">
@@ -457,6 +453,62 @@ function StorySectionsPanel({
               </Text>
             </>
           )}
+
+          <div className="props-story-form__actions">
+            <Text type="secondary" className="props-field__label">
+              操作
+            </Text>
+            <Space direction="vertical" size="small" style={{ width: "100%" }}>
+              {isDraft && onConfirmStory && (
+                <Button
+                  type="primary"
+                  block
+                  disabled={busy}
+                  onClick={() => onConfirmStory(story.id)}
+                >
+                  确认可执行
+                </Button>
+              )}
+              {!isDraft &&
+                !story.passes &&
+                story.status === "ready" &&
+                onUnconfirmStory && (
+                  <Button
+                    block
+                    disabled={busy}
+                    onClick={() => {
+                      confirmAction(
+                        "退回草稿",
+                        `将「${story.title}」退回草稿？退回后不会进入执行队列。`,
+                        () => onUnconfirmStory(story.id)
+                      );
+                    }}
+                  >
+                    退回草稿
+                  </Button>
+                )}
+              {canComplete && (
+                <Button
+                  type="primary"
+                  block
+                  disabled={busy}
+                  onClick={() => setCompleteOpen(true)}
+                >
+                  标记完成
+                </Button>
+              )}
+              <StoryLifecycleActions
+                story={story}
+                stories={userStories}
+                progress={progress}
+                busy={busy}
+                onRequestRemoval={onRequestRemoval}
+                onCancelRemoval={onCancelRemoval}
+                onArchiveStory={onArchiveStory}
+                onDeleteStory={onDeleteStory}
+              />
+            </Space>
+          </div>
         </Space>
       </PropsSectionCollapse>
 
@@ -539,63 +591,6 @@ function StorySectionsPanel({
               在脑图中拖连线建立 Story 依赖；Milestone 用于筛选与分组。
             </Text>
           )}
-        </Space>
-      </PropsSectionCollapse>
-
-      <PropsSectionCollapse
-        storageKey="loop-props-section-actions"
-        title="操作"
-        defaultOpen
-      >
-        <Space direction="vertical" size="small" style={{ width: "100%" }}>
-          {isDraft && onConfirmStory && (
-            <Button
-              type="primary"
-              block
-              disabled={busy}
-              onClick={() => onConfirmStory(story.id)}
-            >
-              确认可执行
-            </Button>
-          )}
-          {!isDraft &&
-            !story.passes &&
-            story.status === "ready" &&
-            onUnconfirmStory && (
-              <Button
-                block
-                disabled={busy}
-                onClick={() => {
-                  confirmAction(
-                    "退回草稿",
-                    `将「${story.title}」退回草稿？退回后不会进入执行队列。`,
-                    () => onUnconfirmStory(story.id)
-                  );
-                }}
-              >
-                退回草稿
-              </Button>
-            )}
-          {canComplete && (
-            <Button
-              type="primary"
-              block
-              disabled={busy}
-              onClick={() => setCompleteOpen(true)}
-            >
-              标记完成
-            </Button>
-          )}
-          <StoryLifecycleActions
-            story={story}
-            stories={userStories}
-            progress={progress}
-            busy={busy}
-            onRequestRemoval={onRequestRemoval}
-            onCancelRemoval={onCancelRemoval}
-            onArchiveStory={onArchiveStory}
-            onDeleteStory={onDeleteStory}
-          />
         </Space>
       </PropsSectionCollapse>
 

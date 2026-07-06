@@ -1946,6 +1946,15 @@ body {
   line-height: 1.45;
 }
 
+.props-story-form__actions {
+  margin-top: 0.35rem;
+  padding-top: 0.65rem;
+  border-top: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+}
+
 .props-progress__title {
   margin: 0 0 0.5rem;
   font-size: 0.68rem;
