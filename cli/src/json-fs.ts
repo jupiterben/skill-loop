@@ -80,15 +80,3 @@ export function deleteEntity(dir: string, id: string): void {
   const path = join(dir, `${id}.json`);
   if (existsSync(path)) unlinkSync(path);
 }
-
-export function replaceEntities<T extends { id: string }>(
-  dir: string,
-  entities: T[]
-): void {
-  if (existsSync(dir)) {
-    for (const file of listEntityFiles(dir)) {
-      unlinkSync(join(dir, file));
-    }
-  }
-  for (const e of entities) writeEntity(dir, e);
-}

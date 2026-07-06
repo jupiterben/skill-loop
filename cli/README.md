@@ -45,8 +45,6 @@ pnpm loop complete US-003
 | `loop progress --summary "..."` | 追加进度 |
 | `loop add-pattern "..."` | 添加模式 |
 | `loop init` | 初始化 `.loop/` 项目元数据 |
-| `loop import` / `pnpm sync` | prd.json → `.loop/`（可选） |
-| `loop export` / `pnpm sync:export` | `.loop/` → prd.json（可选） |
 | `loop start-run` / `loop end-run` | 外循环记录 |
 | `loop dashboard` / `dashboard start` | 后台启动看板 |
 | `loop dashboard stop` / `stop-dashboard` | 关闭看板 |
@@ -61,7 +59,6 @@ pnpm loop complete US-003
 |------|------|
 | `LOOP_PROJECT_ROOT` | **必填**，目标项目根目录 |
 | `LOOP_STATE_DIR` | 可选，状态目录，默认 `{root}/.loop` |
-| `LOOP_SPEC_DIR` | 可选，prd.json / progress.txt 目录，默认与状态目录相同 |
 | `LOOP_DASHBOARD_PORT` | 可选，看板端口，默认 `3460` |
 | `LOOP_PROJECT_NAME` | 可选，多项目时指定项目名 |
 
@@ -111,8 +108,6 @@ pnpm build:ui     # 构建到 public/
 └── dashboard.json   # 看板进程状态（运行时）
 ```
 
-`prd.json` / `progress.txt` 仅在手动 `loop export` 时生成，不是日常存储的一部分。
-
 `.loop/` 建议加入 `.gitignore`。
 
 ## 目录结构
@@ -126,7 +121,7 @@ pnpm build:ui     # 构建到 public/
 │   ├── dashboard.ts  # 看板入口
 │   ├── server.ts     # HTTP API
 │   ├── db.ts         # JSON 数据层
-│   └── sync.ts       # prd.json 同步（可选）
+│   └── ...
 └── package.json
 ```
 

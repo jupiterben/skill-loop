@@ -41,10 +41,14 @@ while [[ $# -gt 0 ]]; do
 done
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-CLI_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
+CLI_DIR="$(cd "$SCRIPT_DIR/cli" && pwd)"
 
 if [[ -z "${LOOP_PROJECT_ROOT:-}" ]]; then
-  export LOOP_PROJECT_ROOT="$(cd "$CLI_DIR/../../../.." && pwd)"
+  if [[ "$SCRIPT_DIR" == *"/.cursor/skills/loop" ]]; then
+    export LOOP_PROJECT_ROOT="$(cd "$SCRIPT_DIR/../../.." && pwd)"
+  else
+    export LOOP_PROJECT_ROOT="$SCRIPT_DIR"
+  fi
 fi
 
 cd "$CLI_DIR"

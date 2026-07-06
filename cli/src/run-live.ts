@@ -138,8 +138,17 @@ export function getAllRunLiveForDashboard(
   projectRoot: string
 ): RunLiveState[] {
   const items: RunLiveState[] = [];
-  const legacy = readRunLive(projectRoot);
-  if (legacy) items.push(legacy);
+  const seen = new Set<string>();
+
+  const push = (live: RunLiveState | null) => {
+    if (!live) return;
+    const key = live.workerId ?? `legacy:${live.storyId ?? live.iteration}`;
+    if (seen.has(key)) return;
+    seen.add(key);
+    items.push(live);
+  };
+
+  push(readRunLive(projectRoot));
 
   const dir = getWorkerRunsDir(projectRoot);
   if (!existsSync(dir)) return items;
@@ -147,10 +156,7 @@ export function getAllRunLiveForDashboard(
   for (const file of readdirSync(dir)) {
     if (!file.endsWith("-live.json")) continue;
     const workerId = file.replace(/-live\.json$/, "");
-    const live = readRunLive(projectRoot, workerId);
-    if (live && !items.some((x) => x.workerId === workerId)) {
-      items.push(live);
-    }
+    push(readRunLive(projectRoot, workerId));
   }
   return items;
 }

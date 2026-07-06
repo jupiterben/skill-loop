@@ -14,13 +14,16 @@ import {
   repeatValues,
   type ParsedCli,
 } from "./cli-args.js";
-import { getProjectRoot, getStateDir } from "./paths.js";
-import { exportToFiles, importFromFiles } from "./sync.js";
+import { getProjectRoot } from "./paths.js";
 import { runLoop } from "./loop-run.js";
 import {
   getLoopRunStatus,
   requestLoopRunStop,
 } from "./run-process.js";
+import {
+  getAllRunLiveForDashboard,
+  readRunLive,
+} from "./run-live.js";
 
 function output(data: unknown): void {
   console.log(JSON.stringify(data, null, 2));
@@ -81,16 +84,6 @@ const COMMANDS: Record<string, Handler> = {
     const description = flagStr(parsed.flags, "description", "desc") ?? "";
     db.upsertProject({ name: project, branchName, description });
     return { ok: true, project, branchName, description };
-  },
-
-  import(db, projectRoot) {
-    const result = importFromFiles(db, projectRoot);
-    return { ok: true, stateDir: getStateDir(projectRoot), ...result };
-  },
-
-  export(db, projectRoot) {
-    const paths = exportToFiles(db, projectRoot);
-    return { ok: true, ...paths };
   },
 
   complete(db, _root, parsed) {
@@ -342,8 +335,6 @@ const ALIASES: Record<string, string> = {
   "unconfirm": "unconfirm-story",
   "append-progress": "progress",
   "update-milestone": "update-milestone",
-  sync: "import",
-  "sync-export": "export",
 };
 
 function printHelp(): void {
@@ -351,7 +342,6 @@ function printHelp(): void {
 
 环境变量:
   LOOP_PROJECT_ROOT   项目根目录（状态在 .loop/）
-  LOOP_SPEC_DIR       可选，prd.json / progress.txt 目录（默认 .loop/）
 
 用法:
   loop-cli <command> [options]
@@ -384,6 +374,7 @@ function printHelp(): void {
                       持续外循环，直到 loop run stop
   run stop [--worker w0]              请求停止外循环（或单个 worker）
   run status                          查看外循环运行状态
+  run output [--worker w0] [--text]   读取当前 Agent live 输出
   next-stories [--limit 3]            查看可并行执行的 Story 列表
   claim-story <US-xxx> --worker-id w0 认领 Story（并行模式）
   release-claim <US-xxx> [--worker-id w0]
@@ -395,10 +386,6 @@ function printHelp(): void {
 迭代记账:
   start-run --iteration 1 [--tool cursor]
   end-run --run-id 1 --status completed [--message "..."]
-
-同步:
-  import | sync                        prd.json → .loop/
-  export | sync-export                 .loop/ → prd.json
 
 其他:
   init --project NAME [--branch main] [--description "..."]
@@ -439,11 +426,49 @@ async function handleRunCommand(
     return;
   }
 
+  if (sub === "output") {
+    const workerId = flagStr(parsed.flags, "worker-id", "worker");
+    const textOnly = parsed.flags.text === true;
+
+    if (workerId) {
+      const live = readRunLive(projectRoot, workerId);
+      if (!live) fail(`无 live 输出（worker: ${workerId}）`);
+      if (textOnly) {
+        process.stdout.write(live.output);
+        return;
+      }
+      output(live);
+      return;
+    }
+
+    const workers = getAllRunLiveForDashboard(projectRoot);
+    if (!workers.length) {
+      if (textOnly) return;
+      output({ message: "外循环未运行或尚无 live 输出", workers: [] });
+      return;
+    }
+
+    if (textOnly) {
+      if (workers.length === 1) {
+        process.stdout.write(workers[0]!.output);
+        return;
+      }
+      for (const w of workers) {
+        const label = w.workerId ?? w.storyId ?? String(w.iteration);
+        process.stdout.write(`\n=== ${label} ===\n${w.output}`);
+      }
+      return;
+    }
+
+    output({ workers });
+    return;
+  }
+
   const untilStop =
     parsed.flags["until-stop"] === true || parsed.flags.forever === true;
 
   if (sub && !untilStop && !/^\d+$/.test(sub)) {
-    fail(`未知 run 子命令: ${sub}（支持 stop | status）`);
+    fail(`未知 run 子命令: ${sub}（支持 stop | status | output）`);
   }
 
   const maxFromFlag =

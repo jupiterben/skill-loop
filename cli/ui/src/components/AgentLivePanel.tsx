@@ -115,8 +115,10 @@ export function AgentLivePanel({ runLive, runLiveWorkers, isRunning }: Props) {
         activeKey={activeKey}
         onChange={setActiveKey}
         size="small"
-        items={workers.map((w) => {
-          const key = w.workerId ?? w.storyId ?? String(w.iteration);
+        items={workers.map((w, index) => {
+          const key =
+            w.workerId ??
+            (w.storyId ? `${w.storyId}-${index}` : String(w.iteration));
           return {
             key,
             label: (

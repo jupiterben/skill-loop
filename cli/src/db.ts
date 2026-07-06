@@ -3,7 +3,6 @@ import { join } from "node:path";
 import {
   readEntities,
   readJsonFile,
-  replaceEntities,
   writeEntity,
   writeJsonFile,
   deleteEntity,
@@ -106,11 +105,6 @@ export class LoopStateDb {
     return 1;
   }
 
-  replaceMilestones(_projectName: string, milestones: Milestone[]): void {
-    replaceEntities(getMilestonesDir(this.projectRoot), milestones);
-    this.touchProject();
-  }
-
   getMilestones(_projectName: string): Milestone[] {
     return readEntities<Milestone>(getMilestonesDir(this.projectRoot)).sort(
       (a, b) => a.sortOrder - b.sortOrder || a.id.localeCompare(b.id)
@@ -172,11 +166,6 @@ export class LoopStateDb {
     if (!this.getMilestones(projectName).some((m) => m.id === milestoneId)) {
       throw new Error(`找不到 Milestone: ${milestoneId}`);
     }
-  }
-
-  replaceFeatures(_projectName: string, features: Feature[]): void {
-    replaceEntities(getFeaturesDir(this.projectRoot), features);
-    this.touchProject();
   }
 
   getFeatures(_projectName: string): Feature[] {
@@ -671,11 +660,6 @@ export class LoopStateDb {
     this.touchProject();
   }
 
-  replaceStories(_projectName: string, stories: UserStory[]): void {
-    replaceEntities(getStoriesDir(this.projectRoot), stories);
-    this.touchProject();
-  }
-
   getStories(_projectName: string): UserStory[] {
     return readEntities<UserStory>(getStoriesDir(this.projectRoot))
       .map(normalizeUserStory)
@@ -1106,13 +1090,6 @@ export class LoopStateDb {
     );
   }
 
-  replacePatterns(_projectName: string, patterns: string[]): void {
-    writeJsonFile(getPatternsFile(this.projectRoot), {
-      items: patterns,
-    } satisfies PatternsFile);
-    this.touchProject();
-  }
-
   getPatterns(_projectName: string): string[] {
     return readJsonFile<PatternsFile>(getPatternsFile(this.projectRoot), {
       items: [],
@@ -1145,16 +1122,6 @@ export class LoopStateDb {
     return saved;
   }
 
-  replaceProgress(_projectName: string, entries: ProgressEntry[]): void {
-    writeJsonFile(getProgressFile(this.projectRoot), {
-      entries,
-      nextId: entries.length
-        ? Math.max(...entries.map((e) => e.id ?? 0)) + 1
-        : 1,
-    } satisfies ProgressFile);
-    this.touchProject();
-  }
-
   getProgress(_projectName: string, limit = 20): ProgressEntry[] {
     const file = readJsonFile<ProgressFile>(getProgressFile(this.projectRoot), {
       entries: [],
@@ -1177,14 +1144,14 @@ export class LoopStateDb {
         nextId: 1,
       });
       const now = new Date().toISOString();
-      if (!workerId) {
-        for (const stale of file.runs) {
-          if (stale.status === "running") {
-            stale.status = "completed";
-            stale.message = stale.message ?? "superseded by new run";
-            stale.endedAt = now;
-          }
+      for (const stale of file.runs) {
+        if (stale.status !== "running") continue;
+        if (workerId) {
+          if (stale.workerId !== workerId) continue;
         }
+        stale.status = "completed";
+        stale.message = stale.message ?? "superseded by new run";
+        stale.endedAt = now;
       }
       const run: LoopRun = {
         id: file.nextId++,

@@ -35,12 +35,14 @@ pnpm loop run --until-stop --tool agent   # 持续运行，另开终端 loop run
 pnpm loop run --workers 3 --until-stop --tool agent   # 3 个并行 worker（git worktree 隔离）
 ```
 
-也可直接运行脚本（自动设置 `LOOP_PROJECT_ROOT`）：
+也可直接运行根目录快捷脚本（自动设置 `LOOP_PROJECT_ROOT`）：
 
 ```powershell
-.\.cursor\skills\loop\cli\scripts\loop.ps1 -Tool agent -MaxIterations 10
-.\.cursor\skills\loop\cli\scripts\loop.ps1 -Tool agent -UntilStop
+.\loop.ps1 -Tool agent -MaxIterations 10
+.\loop.ps1 -Tool agent -UntilStop
 ```
+
+Skill 安装后路径为 `.cursor/skills/loop/loop.ps1`，同样可用。
 
 提示词：`.loop/AGENT.md`（可覆盖）或 CLI 内置 `templates/AGENT.md`。
 
@@ -79,7 +81,7 @@ pnpm loop end-run --run-id 1 --status completed
 | `pnpm loop run [--tool agent] [N]` | 外循环自动迭代（仿 Ralph） |
 | `pnpm loop run --workers 3` | 3 个并行 Agent（worktree + Story 认领） |
 | `pnpm loop run --until-stop` | 持续外循环，直到 `loop run stop` |
-| `pnpm loop run stop` / `run status` | 停止 / 查看外循环（`stop --worker w0` 停止单个 worker 请求） |
+| `pnpm loop run stop` / `run status` / `run output` | 停止 / 状态 / 读取 Agent live 输出（`--worker w0`、`--text` 纯文本） |
 | `pnpm loop start-run` / `end-run` | 记录外循环迭代（手动记账） |
 | `pnpm loop dashboard` | 后台启动看板（无控制台窗口） |
 | `pnpm loop dashboard stop` | 关闭看板 |

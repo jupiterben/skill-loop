@@ -2,6 +2,7 @@ import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import type { LoopStateDb } from "./db.js";
 import { getPackageRoot } from "./config.js";
+import { invokeClaudeProcess } from "./claude-invoke.js";
 import { getProjectName } from "./get-project-name.js";
 import { getStateDir } from "./paths.js";
 import { resolveRunTool } from "./loop-run.js";
@@ -59,37 +60,13 @@ async function invokeTool(
   const { spawn } = await import("node:child_process");
 
   if (tool === "claude") {
-    const child = spawn(
-      "claude",
-      ["--dangerously-skip-permissions", "--print"],
-      {
-        cwd,
-        shell: process.platform === "win32",
-        stdio: ["pipe", "pipe", "pipe"],
-      }
-    );
-    child.stdin?.write(prompt);
-    child.stdin?.end();
-    return new Promise((resolve, reject) => {
-      let output = "";
-      child.stdout?.on("data", (chunk) => {
-        const text = String(chunk);
-        output += text;
-        if (text.trim()) process.stdout.write(text);
-      });
-      child.stderr?.on("data", (chunk) => {
-        const text = String(chunk);
-        output += text;
-        if (text.trim()) process.stderr.write(text);
-      });
-      child.on("error", reject);
-      child.on("close", (code) => {
-        if (code !== 0 && !output.trim()) {
-          reject(new Error(`claude 退出码 ${code ?? "unknown"}`));
-          return;
-        }
-        resolve(output);
-      });
+    return invokeClaudeProcess(prompt, {
+      cwd,
+      handlers: {
+        onDisplay: (text) => {
+          if (text.trim()) process.stdout.write(text);
+        },
+      },
     });
   }
 

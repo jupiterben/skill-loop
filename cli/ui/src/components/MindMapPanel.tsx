@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState, type KeyboardEvent, type MouseEvent } from "react";
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type KeyboardEvent, type MouseEvent } from "react";
 import {
   ReactFlow,
   Background,
@@ -143,10 +143,28 @@ export function MindMapPanel({
   const [dragSourceId, setDragSourceId] = useState<string | null>(null);
   const [dropTargetId, setDropTargetId] = useState<string | null>(null);
   const canvasRef = useRef<HTMLDivElement>(null);
+  const [canvasReady, setCanvasReady] = useState(false);
   const flowRef = useRef<Pick<ReactFlowInstance, "getNodes" | "setNodes"> | null>(
     null
   );
   const flowNodesLayoutRef = useRef<Node<MindMapNodeData>[]>([]);
+
+  useLayoutEffect(() => {
+    const el = canvasRef.current;
+    if (!el) return;
+
+    const sync = () => {
+      const ready = el.clientWidth > 0 && el.clientHeight > 0;
+      setCanvasReady(ready);
+    };
+
+    sync();
+    const ro = new ResizeObserver(() => {
+      requestAnimationFrame(sync);
+    });
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
 
   const filteredTree = useMemo(
     () => filterTreeByMilestone(tree, userStories, milestoneFilter),
@@ -985,6 +1003,7 @@ export function MindMapPanel({
           tabIndex={0}
           onKeyDownCapture={handleCanvasKeyDown}
         >
+          {canvasReady ? (
           <ReactFlow
             nodes={flowNodes}
             edges={flowEdges}
@@ -1059,6 +1078,7 @@ export function MindMapPanel({
               color="var(--mm-grid)"
             />
           </ReactFlow>
+          ) : null}
         </div>
       </div>
     </div>

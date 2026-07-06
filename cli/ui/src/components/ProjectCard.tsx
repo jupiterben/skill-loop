@@ -73,19 +73,19 @@ export function ProjectCard({
       : status.activeRun?.status === "running"
         ? [status.activeRun]
         : [];
-  const executingStories = executingRuns
+  const executingRunItems = executingRuns
     .map((run) => {
       const id = run.storyId;
       if (!id) return null;
-      return (
+      const story =
         userStories.find((s) => s.id === id) ??
-        status.currentStory?.id === id
+        (status.currentStory?.id === id
           ? status.currentStory
-          : ({ id, title: id } as UserStory)
-      );
+          : ({ id, title: id } as UserStory));
+      return { run, story };
     })
-    .filter(Boolean) as UserStory[];
-  const executing = status.currentStory ?? executingStories[0] ?? null;
+    .filter(Boolean) as { run: LoopRun; story: UserStory }[];
+  const executing = status.currentStory ?? executingRunItems[0]?.story ?? null;
   const isRunning =
     status.activeRun?.status === "running" || loopRunner?.running === true;
 
@@ -138,15 +138,13 @@ export function ProjectCard({
         size="small"
         format={() => `${completed} / ${total} (${pct}%)`}
       />
-      {isRunning && executingStories.length > 1 ? (
+      {isRunning && executingRunItems.length > 1 ? (
         <div className="executing-story-list">
-          {executingStories.map((story) => (
+          {executingRunItems.map(({ run, story }) => (
             <ExecutingStory
-              key={story.id}
+              key={run.id ?? `${run.workerId ?? "run"}-${run.startedAt}`}
               story={story}
-              activeRun={
-                executingRuns.find((r) => r.storyId === story.id) ?? null
-              }
+              activeRun={run}
               stopRequested={loopRunner?.stopRequested}
             />
           ))}
@@ -154,7 +152,7 @@ export function ProjectCard({
       ) : isRunning && executing ? (
         <ExecutingStory
           story={executing}
-          activeRun={status.activeRun}
+          activeRun={executingRunItems[0]?.run ?? status.activeRun}
           stopRequested={loopRunner?.stopRequested}
         />
       ) : isRunning ? (

@@ -11,11 +11,20 @@ param(
 
 $ErrorActionPreference = "Stop"
 
-if (-not $env:LOOP_PROJECT_ROOT) {
-    $env:LOOP_PROJECT_ROOT = (Resolve-Path (Join-Path $PSScriptRoot "..\..\..\..\..")).Path
+function Get-LoopProjectRoot {
+    param([string]$ScriptRoot)
+    $normalized = $ScriptRoot -replace '\\', '/'
+    if ($normalized -match '/\.cursor/skills/loop$') {
+        return (Resolve-Path (Join-Path $ScriptRoot "../../..")).Path
+    }
+    return $ScriptRoot
 }
 
-$CliDir = Join-Path $PSScriptRoot ".."
+if (-not $env:LOOP_PROJECT_ROOT) {
+    $env:LOOP_PROJECT_ROOT = Get-LoopProjectRoot -ScriptRoot $PSScriptRoot
+}
+
+$CliDir = Join-Path $PSScriptRoot "cli"
 Push-Location $CliDir
 try {
     if ($UntilStop) {

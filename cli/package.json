@@ -12,9 +12,7 @@
     "dev": "vite --config ui/vite.config.ts",
     "dashboard": "tsx src/cli.ts dashboard",
     "dashboard:fg": "tsx src/cli.ts dashboard --foreground",
-    "loop": "tsx src/cli.ts",
-    "sync": "tsx src/cli.ts import",
-    "sync:export": "tsx src/cli.ts export"
+    "loop": "tsx src/cli.ts"
   },
   "dependencies": {
     "@xyflow/react": "12.11.1",

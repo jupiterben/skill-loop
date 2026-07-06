@@ -28,6 +28,7 @@ import {
   initRunLive,
   patchRunLivePhase,
 } from "./run-live.js";
+import { invokeClaudeProcess } from "./claude-invoke.js";
 import {
   cleanupAllWorktrees,
   createWorktree,
@@ -178,23 +179,16 @@ async function invokeToolWithPrompt(
   patchRunLivePhase(projectRoot, "invoking", workerId);
 
   if (tool === "claude") {
-    const child = spawn(
-      "claude",
-      ["--dangerously-skip-permissions", "--print"],
-      {
-        cwd,
-        env,
-        shell: process.platform === "win32",
-        stdio: ["pipe", "pipe", "pipe"],
-      }
-    );
-    child.stdin?.write(prompt);
-    child.stdin?.end();
-    const { output, code } = await streamProcessOutput(projectRoot, child, workerId);
-    if (code !== 0 && !output.trim()) {
-      throw new Error(`claude 退出码 ${code ?? "unknown"}`);
-    }
-    return output;
+    return invokeClaudeProcess(prompt, {
+      cwd,
+      env,
+      handlers: {
+        onDisplay: (text) => {
+          appendRunLiveOutput(projectRoot, text, workerId);
+          if (text.trim()) process.stdout.write(text);
+        },
+      },
+    });
   }
 
   if (tool === "amp") {

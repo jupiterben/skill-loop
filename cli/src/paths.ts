@@ -13,20 +13,6 @@ export function getStateDir(projectRoot: string): string {
   return dir;
 }
 
-/** PRD / 进度文本目录，默认与 `.loop/` 相同 */
-export function getSpecDir(projectRoot: string): string {
-  const custom = process.env.LOOP_SPEC_DIR?.trim();
-  return custom ?? getStateDir(projectRoot);
-}
-
-export function getPrdPath(projectRoot: string): string {
-  return join(getSpecDir(projectRoot), "prd.json");
-}
-
-export function getProgressPath(projectRoot: string): string {
-  return join(getSpecDir(projectRoot), "progress.txt");
-}
-
 export function getProjectFile(projectRoot: string): string {
   return join(getStateDir(projectRoot), "project.json");
 }

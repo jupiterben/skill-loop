@@ -66,15 +66,6 @@ export interface StoryDependency {
   to: string;
 }
 
-export interface Prd {
-  project: string;
-  branchName: string;
-  description: string;
-  milestones: Milestone[];
-  features: Feature[];
-  userStories: UserStory[];
-}
-
 export interface ProgressEntry {
   id?: number;
   storyId: string | null;
