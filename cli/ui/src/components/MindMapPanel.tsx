@@ -56,6 +56,12 @@ import MindMapNode from "./MindMapNode";
 import DepEdge from "./DepEdge";
 import { Modal } from "./Modal";
 import { NodePropsPanel } from "./NodePropsPanel";
+import { ProjectTreeView } from "./ProjectTreeView";
+import {
+  loadWorkspaceView,
+  saveWorkspaceView,
+  type WorkspaceView,
+} from "../lib/treeViewData";
 import { FitViewOnLoad } from "./FitViewOnLoad";
 import {
   buildMindMapNavIndex,
@@ -152,6 +158,9 @@ export function MindMapPanel({
     }
     return true;
   });
+  const [workspaceView, setWorkspaceView] = useState<WorkspaceView>(() =>
+    loadWorkspaceView()
+  );
   const canvasRef = useRef<HTMLDivElement>(null);
   const [canvasReady, setCanvasReady] = useState(false);
   /** 首次有尺寸后保持挂载，避免折叠/展开面板时 ReactFlow 卸载导致连线丢失 */
@@ -194,6 +203,11 @@ export function MindMapPanel({
       }
       return next;
     });
+  }, []);
+
+  const switchWorkspaceView = useCallback((view: WorkspaceView) => {
+    setWorkspaceView(view);
+    saveWorkspaceView(view);
   }, []);
 
   const filteredTree = useMemo(
@@ -734,8 +748,30 @@ export function MindMapPanel({
   return (
     <div className="mm-panel">
       <div className="mm-toolbar">
+        <div className="mm-view-tabs mm-tabs" role="tablist" aria-label="工作区视图">
+          <button
+            type="button"
+            role="tab"
+            aria-selected={workspaceView === "mindmap"}
+            className={`mm-tab${workspaceView === "mindmap" ? " mm-tab--active" : ""}`}
+            onClick={() => switchWorkspaceView("mindmap")}
+          >
+            脑图
+          </button>
+          <button
+            type="button"
+            role="tab"
+            aria-selected={workspaceView === "tree"}
+            className={`mm-tab${workspaceView === "tree" ? " mm-tab--active" : ""}`}
+            onClick={() => switchWorkspaceView("tree")}
+          >
+            树形
+          </button>
+        </div>
         <span className="mm-hint muted">
-          项目/Feature 右侧按钮可收起展开 · Feature 双击改名 · 拖曳 Story/Feature 到 Feature 或项目根改父级 · 选中 Feature/Story 后 PageUp/PageDown 调序 · Story 出点连入点建依赖 · 方向键切换节点 · Delete 删依赖线
+          {workspaceView === "mindmap"
+            ? "项目/Feature 右侧按钮可收起展开 · Feature 双击改名 · 拖曳 Story/Feature 到 Feature 或项目根改父级 · 选中 Feature/Story 后 PageUp/PageDown 调序 · Story 出点连入点建依赖 · 方向键切换节点 · Delete 删依赖线"
+            : "树形视图展示项目 / Feature / Story 层级 · 点击节点查看属性 · 可与脑图视图互相切换并保持选中"}
         </span>
       </div>
 
@@ -1042,11 +1078,27 @@ export function MindMapPanel({
           </Button>
           <div
             ref={canvasRef}
-            className="mindmap-workspace__canvas"
-            tabIndex={0}
-            onKeyDownCapture={handleCanvasKeyDown}
+            className={`mindmap-workspace__canvas${
+              workspaceView === "tree" ? " mindmap-workspace__canvas--tree" : ""
+            }`}
+            tabIndex={workspaceView === "mindmap" ? 0 : -1}
+            onKeyDownCapture={
+              workspaceView === "mindmap" ? handleCanvasKeyDown : undefined
+            }
           >
-          {flowMounted ? (
+          {workspaceView === "tree" ? (
+            <ProjectTreeView
+              projectTitle={projectTitle}
+              progressPct={progressPct}
+              tree={filteredTree}
+              selectedId={selected?.id ?? null}
+              runningIds={runningIds}
+              onSelect={(id, kind) => {
+                setSelectedDepEdgeId(null);
+                setSelected({ id, kind });
+              }}
+            />
+          ) : flowMounted ? (
           <ReactFlow
             className={canvasReady ? undefined : "mindmap-workspace__flow--hidden"}
             nodes={flowNodes}

@@ -1440,6 +1440,74 @@ body {
   outline: none;
 }
 
+.mindmap-workspace__canvas--tree {
+  overflow: auto;
+  padding: 0.65rem 0.75rem;
+  background: var(--surface2);
+}
+
+.project-tree-view {
+  min-height: 100%;
+}
+
+.project-tree-view__tree {
+  background: transparent;
+  color: var(--text);
+}
+
+.project-tree-view__tree .ant-tree-node-content-wrapper {
+  min-height: 1.75rem;
+}
+
+.project-tree-view__tree .ant-tree-node-content-wrapper.ant-tree-node-selected {
+  background: rgba(91, 156, 245, 0.16);
+}
+
+.project-tree-view__title {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  flex-wrap: wrap;
+}
+
+.project-tree-view__label {
+  color: var(--text);
+}
+
+.project-tree-view__meta {
+  font-size: 0.72rem;
+  color: var(--muted);
+}
+
+.project-tree-view__running {
+  font-size: 0.68rem;
+  color: var(--running);
+  border: 1px solid color-mix(in srgb, var(--running) 55%, transparent);
+  border-radius: 999px;
+  padding: 0 0.35rem;
+}
+
+.project-tree-view__title--root .project-tree-view__label {
+  font-weight: 600;
+  color: var(--accent);
+}
+
+.project-tree-view__title--feature .project-tree-view__label {
+  color: #9ec5ff;
+}
+
+.project-tree-view__title--done .project-tree-view__label {
+  color: #7fd4a8;
+}
+
+.project-tree-view__title--draft .project-tree-view__label {
+  color: #b8c0cc;
+}
+
+.project-tree-view__title--blocked .project-tree-view__label {
+  color: #e8b86d;
+}
+
 .mindmap-workspace__canvas .react-flow {
   position: absolute;
   inset: 0;
@@ -1951,6 +2019,17 @@ body {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
   gap: 1rem;
+}
+
+.mm-toolbar {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+  margin-bottom: 0.65rem;
+}
+
+.mm-view-tabs {
+  margin-bottom: 0;
 }
 
 .mm-tabs {
