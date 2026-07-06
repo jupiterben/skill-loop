@@ -973,28 +973,10 @@ body {
   min-height: 0;
 }
 
-.workspace-panel--input.workspace-panel--open,
-.workspace-panel--mindmap.workspace-panel--open {
-  min-height: min(520px, calc(100vh - 14rem));
-}
-
-.workspace-panel--output {
-  flex-shrink: 0;
-}
-
 .workspace-panel--output.workspace-panel--open,
 .workspace-panel--agent.workspace-panel--open {
   flex: 1;
   min-height: 0;
-}
-
-.workspace-panel--agent {
-  flex-shrink: 0;
-}
-
-.workspace-panel--agent.workspace-panel--open {
-  flex: 0 1 min(35vh, 260px);
-  min-height: 140px;
 }
 
 .workspace-panel--collapsed {
@@ -1028,7 +1010,15 @@ body {
   max-height: none;
   min-height: 0;
   height: 100%;
+  overflow: hidden;
   padding: 0.65rem 0.85rem 0.85rem !important;
+}
+
+.workspace-panel__body--agent > * {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
 }
 
 .progress-panel {
@@ -1442,7 +1432,8 @@ body {
 .mindmap-workspace__empty {
   position: absolute;
   inset: 0;
-  z-index: 3;
+  /* 高于 react-flow renderer (z-index 4) 与 selection (6)，否则空态按钮被画布拦截 */
+  z-index: 10;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1595,6 +1586,10 @@ body {
 
 .mindmap-workspace__canvas .react-flow.mindmap-workspace__flow--hidden {
   visibility: hidden;
+  pointer-events: none;
+}
+
+.mindmap-workspace__canvas .react-flow.mindmap-workspace__flow--behind-empty {
   pointer-events: none;
 }
 

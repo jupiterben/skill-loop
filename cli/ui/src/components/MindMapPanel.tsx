@@ -286,6 +286,15 @@ export function MindMapPanel({
 
   const isProjectEmpty = features.length === 0 && userStories.length === 0;
 
+  const flowClassName = [
+    !canvasReady && "mindmap-workspace__flow--hidden",
+    isProjectEmpty &&
+      workspaceView === "mindmap" &&
+      "mindmap-workspace__flow--behind-empty",
+  ]
+    .filter(Boolean)
+    .join(" ") || undefined;
+
   const openCreate = useCallback(
     (type: "feature" | "story", parentId?: string) => {
       setCreateTitle("");
@@ -1038,7 +1047,7 @@ export function MindMapPanel({
             />
           ) : flowMounted ? (
           <ReactFlow
-            className={canvasReady ? undefined : "mindmap-workspace__flow--hidden"}
+            className={flowClassName}
             nodes={flowNodes}
             edges={flowEdges}
             nodeTypes={nodeTypes}
