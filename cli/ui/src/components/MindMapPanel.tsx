@@ -17,8 +17,11 @@ import {
 import "@xyflow/react/dist/style.css";
 import {
   Button,
+  Empty,
   Input,
+  Segmented,
   Space,
+  Splitter,
   Typography,
 } from "antd";
 import { ErrorAlert } from "./ErrorAlert";
@@ -62,6 +65,7 @@ import {
   saveWorkspaceView,
   type WorkspaceView,
 } from "../lib/treeViewData";
+import { useSplitSizes } from "../hooks/useSplitSizes";
 import { FitViewOnLoad } from "./FitViewOnLoad";
 import {
   buildMindMapNavIndex,
@@ -148,19 +152,10 @@ export function MindMapPanel({
   const [nodeHeights, setNodeHeights] = useState<Record<string, number>>({});
   const [dragSourceId, setDragSourceId] = useState<string | null>(null);
   const [dropTargetId, setDropTargetId] = useState<string | null>(null);
-  const [propsPanelOpen, setPropsPanelOpen] = useState(() => {
-    try {
-      const stored = localStorage.getItem("loop-props-panel-open");
-      if (stored === "0") return false;
-      if (stored === "1") return true;
-    } catch {
-      /* ignore */
-    }
-    return true;
-  });
   const [workspaceView, setWorkspaceView] = useState<WorkspaceView>(() =>
     loadWorkspaceView()
   );
+  const didAutoSelectRoot = useRef(false);
   const canvasRef = useRef<HTMLDivElement>(null);
   const [canvasReady, setCanvasReady] = useState(false);
   /** 首次有尺寸后保持挂载，避免折叠/展开面板时 ReactFlow 卸载导致连线丢失 */
@@ -169,6 +164,11 @@ export function MindMapPanel({
     null
   );
   const flowNodesLayoutRef = useRef<Node<MindMapNodeData>[]>([]);
+
+  const { sizes: mindmapSizes, onResizeEnd: onMindmapSplitEnd } = useSplitSizes(
+    "loop-mindmap-split",
+    [72, 28]
+  );
 
   useLayoutEffect(() => {
     const el = canvasRef.current;
@@ -191,18 +191,6 @@ export function MindMapPanel({
     const wrap = el.parentElement;
     if (wrap) ro.observe(wrap);
     return () => ro.disconnect();
-  }, []);
-
-  const togglePropsPanel = useCallback(() => {
-    setPropsPanelOpen((open) => {
-      const next = !open;
-      try {
-        localStorage.setItem("loop-props-panel-open", next ? "1" : "0");
-      } catch {
-        /* ignore */
-      }
-      return next;
-    });
   }, []);
 
   const switchWorkspaceView = useCallback((view: WorkspaceView) => {
@@ -267,6 +255,14 @@ export function MindMapPanel({
     return map;
   }, [nodes]);
 
+  useEffect(() => {
+    if (selected || didAutoSelectRoot.current) return;
+    const rootNode = nodes.find((n) => n.data.kind === "root");
+    if (!rootNode) return;
+    didAutoSelectRoot.current = true;
+    setSelected({ id: rootNode.id, kind: "root" });
+  }, [selected, nodes]);
+
   const run = useCallback(
     async (fn: () => Promise<unknown>) => {
       setBusy(true);
@@ -287,6 +283,8 @@ export function MindMapPanel({
     if (selected?.kind === "feature") return selected.id;
     return undefined;
   }, [selected]);
+
+  const isProjectEmpty = features.length === 0 && userStories.length === 0;
 
   const openCreate = useCallback(
     (type: "feature" | "story", parentId?: string) => {
@@ -748,26 +746,15 @@ export function MindMapPanel({
   return (
     <div className="mm-panel">
       <div className="mm-toolbar">
-        <div className="mm-view-tabs mm-tabs" role="tablist" aria-label="工作区视图">
-          <button
-            type="button"
-            role="tab"
-            aria-selected={workspaceView === "mindmap"}
-            className={`mm-tab${workspaceView === "mindmap" ? " mm-tab--active" : ""}`}
-            onClick={() => switchWorkspaceView("mindmap")}
-          >
-            脑图
-          </button>
-          <button
-            type="button"
-            role="tab"
-            aria-selected={workspaceView === "tree"}
-            className={`mm-tab${workspaceView === "tree" ? " mm-tab--active" : ""}`}
-            onClick={() => switchWorkspaceView("tree")}
-          >
-            树形
-          </button>
-        </div>
+        <Segmented
+          className="mm-view-tabs"
+          value={workspaceView}
+          onChange={(value) => switchWorkspaceView(value as WorkspaceView)}
+          options={[
+            { label: "脑图", value: "mindmap" },
+            { label: "树形", value: "tree" },
+          ]}
+        />
         <span className="mm-hint muted">
           {workspaceView === "mindmap"
             ? "项目/Feature 右侧按钮可收起展开 · Feature 双击改名 · 拖曳 Story/Feature 到 Feature 或项目根改父级 · 选中 Feature/Story 后 PageUp/PageDown 调序 · Story 出点连入点建依赖 · 方向键切换节点 · Delete 删依赖线"
@@ -997,30 +984,46 @@ export function MindMapPanel({
         onClose={() => setErr(null)}
       />
 
-      <div
-        className={`mindmap-workspace${propsPanelOpen ? "" : " mindmap-workspace--props-collapsed"}`}
+      <Splitter
+        className="mindmap-workspace-splitter"
+        onResizeEnd={onMindmapSplitEnd}
       >
-        <div className="mindmap-workspace__canvas-wrap">
-          <Button
-            type="text"
-            size="small"
-            className="mindmap-workspace__props-toggle"
-            aria-expanded={propsPanelOpen}
-            title={propsPanelOpen ? "收起属性面板" : "展开属性面板"}
-            onClick={togglePropsPanel}
-          >
-            {propsPanelOpen ? "▶" : "◀"}
-          </Button>
-          <div
-            ref={canvasRef}
-            className={`mindmap-workspace__canvas${
-              workspaceView === "tree" ? " mindmap-workspace__canvas--tree" : ""
-            }`}
-            tabIndex={workspaceView === "mindmap" ? 0 : -1}
-            onKeyDownCapture={
-              workspaceView === "mindmap" ? handleCanvasKeyDown : undefined
-            }
-          >
+        <Splitter.Panel
+          defaultSize={mindmapSizes[0] || "72%"}
+          min={240}
+        >
+          <div className="mindmap-workspace__canvas-wrap">
+            <div
+              ref={canvasRef}
+              className={`mindmap-workspace__canvas${
+                workspaceView === "tree" ? " mindmap-workspace__canvas--tree" : ""
+              }`}
+              tabIndex={workspaceView === "mindmap" ? 0 : -1}
+              onKeyDownCapture={
+                workspaceView === "mindmap" ? handleCanvasKeyDown : undefined
+              }
+            >
+            {isProjectEmpty && workspaceView === "mindmap" && (
+              <div className="mindmap-workspace__empty">
+                <Empty
+                  image={Empty.PRESENTED_IMAGE_SIMPLE}
+                  description="暂无 Feature / Story，从下方开始规划"
+                >
+                  <Space wrap>
+                    <Button
+                      type="primary"
+                      disabled={busy}
+                      onClick={handleAddFeature}
+                    >
+                      + Feature
+                    </Button>
+                    <Button disabled={busy} onClick={handleAddStory}>
+                      + Story
+                    </Button>
+                  </Space>
+                </Empty>
+              </div>
+            )}
           {workspaceView === "tree" ? (
             <ProjectTreeView
               projectTitle={projectTitle}
@@ -1110,10 +1113,17 @@ export function MindMapPanel({
             />
           </ReactFlow>
           ) : null}
+            </div>
           </div>
-        </div>
+        </Splitter.Panel>
 
-        <NodePropsPanel
+        <Splitter.Panel
+          defaultSize={mindmapSizes[1] || 280}
+          min={200}
+          max={480}
+          collapsible
+        >
+          <NodePropsPanel
           selected={selected}
           projectTitle={projectTitle}
           progressPct={progressPct}
@@ -1177,7 +1187,8 @@ export function MindMapPanel({
             run(() => api.completeStory({ storyId, summary }))
           }
         />
-      </div>
+        </Splitter.Panel>
+      </Splitter>
     </div>
   );
 }

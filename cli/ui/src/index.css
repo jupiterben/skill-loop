@@ -167,10 +167,23 @@ body {
 
 .app-body {
   flex: 1;
-  display: grid;
-  grid-template-columns: 300px 1fr;
   min-height: 0;
   overflow: hidden;
+}
+
+.app-body-splitter {
+  flex: 1;
+  min-height: 0;
+  height: 100%;
+}
+
+.app-body-splitter .ant-splitter-panel {
+  overflow: hidden;
+}
+
+.app-body-splitter__sidebar,
+.app-body-splitter__workspace {
+  height: 100%;
 }
 
 .app-sidebar {
@@ -190,8 +203,28 @@ body {
   gap: 0;
   padding: 0.5rem;
   min-height: 0;
+  height: 100%;
   overflow: hidden;
   background: var(--bg);
+}
+
+.app-workspace-splitter {
+  flex: 1;
+  min-height: 0;
+}
+
+.app-workspace-splitter .ant-splitter-panel {
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.app-workspace-splitter .ant-splitter-panel > .workspace-panel {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
 }
 
 .app-workspace__split {
@@ -908,6 +941,8 @@ body {
 .panel-accordion__body,
 .sidebar-accordion__body {
   overflow-y: auto;
+  flex: 1;
+  min-height: 0;
   max-height: min(36vh, 280px);
   padding: 0 0.85rem 0.85rem;
   font-size: 0.82rem;
@@ -1371,14 +1406,53 @@ body {
 
 .mindmap-workspace {
   flex: 1;
-  min-height: min(520px, calc(100vh - 12rem));
-  display: grid;
-  grid-template-columns: 1fr 280px;
-  grid-template-rows: minmax(0, 1fr);
-  border: 1px solid var(--border);
-  border-radius: 8px;
+  min-height: 0;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
   overflow: hidden;
   background: var(--bg);
+}
+
+.mindmap-workspace-splitter {
+  flex: 1;
+  min-height: 0;
+  height: 100%;
+}
+
+.mindmap-workspace-splitter .ant-splitter-panel {
+  overflow: hidden;
+  min-height: 0;
+}
+
+.mindmap-workspace-splitter .ant-splitter-panel > .props-panel {
+  height: 100%;
+  min-height: 0;
+}
+
+.mindmap-workspace__canvas-wrap {
+  position: relative;
+  min-width: 0;
+  min-height: 0;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.mindmap-workspace__empty {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  background: color-mix(in srgb, var(--surface2) 92%, transparent);
+  pointer-events: auto;
+}
+
+.mindmap-workspace__empty .ant-empty-description {
+  color: var(--muted);
 }
 
 .mindmap-workspace--props-collapsed {
@@ -1435,9 +1509,13 @@ body {
   flex: 1;
   min-width: 0;
   min-height: 0;
+  height: 100%;
   position: relative;
   overflow: hidden;
   outline: none;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--bg);
 }
 
 .mindmap-workspace__canvas--tree {
@@ -2720,19 +2798,16 @@ body {
 }
 
 @media (max-width: 1100px) {
-  .app-body {
-    grid-template-columns: 1fr;
-    overflow-y: auto;
+  .app-body-splitter {
+    min-height: 0;
   }
 
   .app-sidebar {
-    border-right: none;
-    border-bottom: 1px solid var(--border);
-    max-height: 40vh;
+    max-height: none;
   }
 
   .app-workspace {
-    min-height: 55vh;
+    min-height: 0;
   }
 
   .app-workspace__split {

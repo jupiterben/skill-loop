@@ -1,5 +1,6 @@
 import { useCallback, useState } from "react";
-import { Spin } from "antd";
+import { Splitter, Spin } from "antd";
+import { useSplitSizes } from "./hooks/useSplitSizes";
 import { AppToolbar } from "./components/AppToolbar";
 import { ProjectCard } from "./components/ProjectCard";
 import { MindMapPanel } from "./components/MindMapPanel";
@@ -142,6 +143,13 @@ export function App() {
     ].filter(Boolean) as string[]
   );
 
+  const { sizes: bodySizes, onResizeEnd: onBodySplitEnd } = useSplitSizes(
+    "loop-body-split",
+    [300, 720]
+  );
+  const { sizes: workspaceSizes, onResizeEnd: onWorkspaceSplitEnd } =
+    useSplitSizes("loop-workspace-split", [58, 42]);
+
   return (
     <div className="app-shell">
       <AppToolbar status={status} />
@@ -159,92 +167,116 @@ export function App() {
           }
         />
       )}
-      <div className="app-body">
-        <aside className="app-sidebar">
-          <ProjectCard
-            status={status}
-            draftStories={draftStories}
-            onConfirmStory={handleConfirmStory}
-            busy={confirmBusy}
-          />
-          <ProgressPanel progress={progress} />
-          <PatternsPanel
-            patterns={patterns}
-            busy={patternsBusy}
-            onAdd={handleAddPattern}
-            onUpdate={handleUpdatePattern}
-            onDelete={handleDeletePattern}
-          />
-          <ProjectSpecPanel
-            projectSpec={projectSpec}
-            templates={projectSpecTemplates}
-            busy={specBusy}
-            onSave={handleSaveProjectSpec}
-            onApplyTemplate={handleApplyProjectSpecTemplate}
-          />
-          <RunsPanel runs={runs} />
-        </aside>
+      <Splitter
+        className="app-body-splitter"
+        onResizeEnd={onBodySplitEnd}
+      >
+        <Splitter.Panel
+          defaultSize={bodySizes[0] || 300}
+          min={220}
+          max={480}
+          collapsible
+          className="app-body-splitter__sidebar"
+        >
+          <aside className="app-sidebar">
+            <ProjectCard
+              status={status}
+              draftStories={draftStories}
+              onConfirmStory={handleConfirmStory}
+              busy={confirmBusy}
+            />
+            <ProgressPanel progress={progress} />
+            <PatternsPanel
+              patterns={patterns}
+              busy={patternsBusy}
+              onAdd={handleAddPattern}
+              onUpdate={handleUpdatePattern}
+              onDelete={handleDeletePattern}
+            />
+            <ProjectSpecPanel
+              projectSpec={projectSpec}
+              templates={projectSpecTemplates}
+              busy={specBusy}
+              onSave={handleSaveProjectSpec}
+              onApplyTemplate={handleApplyProjectSpecTemplate}
+            />
+            <RunsPanel runs={runs} />
+          </aside>
+        </Splitter.Panel>
 
-        <div className="app-workspace">
-          <div className="app-workspace__split">
-            <div className="app-workspace__input">
-              <CollapsiblePanel
-                storageKey="loop-mindmap-panel-open"
-                defaultOpen
-                title="用户输入"
-                variant="workspace"
-                className="workspace-panel--input"
-                bodyClassName="workspace-panel__body--fill"
+        <Splitter.Panel min={360} className="app-body-splitter__workspace">
+          <div className="app-workspace">
+            <Splitter
+              className="app-workspace-splitter"
+              orientation="vertical"
+              onResizeEnd={onWorkspaceSplitEnd}
+            >
+              <Splitter.Panel
+                defaultSize={workspaceSizes[0] || "58%"}
+                min={240}
               >
-                <MindMapPanel
-                  projectTitle={status.project}
-                  progressPct={pct}
-                  tree={tree}
-                  features={features}
-                  userStories={userStories}
-                  archivedStories={archivedStories}
-                  milestones={milestones}
-                  dependencies={dependencies}
-                  progress={progress}
-                  onRefresh={refresh}
-                  runningStoryId={
-                    runningStoryIds.size === 1
-                      ? [...runningStoryIds][0]!
-                      : status.currentStory?.id ??
-                        status.activeRun?.storyId ??
-                        data.loopRunner?.state?.currentStoryId ??
-                        null
-                  }
-                  runningStoryIds={[...runningStoryIds]}
-                />
-              </CollapsiblePanel>
-            </div>
+                <CollapsiblePanel
+                  storageKey="loop-mindmap-panel-open"
+                  defaultOpen
+                  title="用户输入"
+                  variant="workspace"
+                  className="workspace-panel--input"
+                  bodyClassName="workspace-panel__body--fill"
+                >
+                  <MindMapPanel
+                    projectTitle={status.project}
+                    progressPct={pct}
+                    tree={tree}
+                    features={features}
+                    userStories={userStories}
+                    archivedStories={archivedStories}
+                    milestones={milestones}
+                    dependencies={dependencies}
+                    progress={progress}
+                    onRefresh={refresh}
+                    runningStoryId={
+                      runningStoryIds.size === 1
+                        ? [...runningStoryIds][0]!
+                        : status.currentStory?.id ??
+                          status.activeRun?.storyId ??
+                          data.loopRunner?.state?.currentStoryId ??
+                          null
+                    }
+                    runningStoryIds={[...runningStoryIds]}
+                  />
+                </CollapsiblePanel>
+              </Splitter.Panel>
 
-            <div className="app-workspace__output">
-              <CollapsiblePanel
-                storageKey="loop-agent-panel-open"
-                defaultOpen={loopRunning}
-                title="运行结果"
-                variant="workspace"
-                className="workspace-panel--output"
-                bodyClassName="workspace-panel__body--agent"
+              <Splitter.Panel
+                defaultSize={workspaceSizes[1] || "42%"}
+                min={160}
+                collapsible
               >
-                <AgentLivePanel
-                  runLive={data.runLive}
-                  runLiveWorkers={data.runLiveWorkers}
-                  isRunning={loopRunning}
-                />
-              </CollapsiblePanel>
-            </div>
+                <CollapsiblePanel
+                  storageKey="loop-agent-panel-open"
+                  defaultOpen={loopRunning}
+                  title="运行结果"
+                  variant="workspace"
+                  className="workspace-panel--output"
+                  bodyClassName="workspace-panel__body--agent"
+                >
+                  <AgentLivePanel
+                    runLive={data.runLive}
+                    runLiveWorkers={data.runLiveWorkers}
+                    isRunning={loopRunning}
+                  />
+                </CollapsiblePanel>
+              </Splitter.Panel>
+            </Splitter>
+
+            <WorkspaceStatusBar
+              status={status}
+              userStories={userStories}
+              loopRunner={data.loopRunner}
+            />
           </div>
-
-          <WorkspaceStatusBar
-            status={status}
-            userStories={userStories}
-            loopRunner={data.loopRunner}
-          />
-        </div>
-      </div>
+        </Splitter.Panel>
+      </Splitter>
     </div>
   );
 }
