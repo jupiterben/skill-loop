@@ -167,6 +167,7 @@ function placeNodes(
         id: `tree:${parentId}->${item.id}`,
         source: parentId,
         target: item.id,
+        sourceHandle: "tree",
         type: "smoothstep",
         selectable: false,
         deletable: false,

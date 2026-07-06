@@ -144,6 +144,8 @@ export function MindMapPanel({
   const [dropTargetId, setDropTargetId] = useState<string | null>(null);
   const canvasRef = useRef<HTMLDivElement>(null);
   const [canvasReady, setCanvasReady] = useState(false);
+  /** 首次有尺寸后保持挂载，避免折叠/展开面板时 ReactFlow 卸载导致连线丢失 */
+  const [flowMounted, setFlowMounted] = useState(false);
   const flowRef = useRef<Pick<ReactFlowInstance, "getNodes" | "setNodes"> | null>(
     null
   );
@@ -156,6 +158,7 @@ export function MindMapPanel({
     const sync = () => {
       const ready = el.clientWidth > 0 && el.clientHeight > 0;
       setCanvasReady(ready);
+      if (ready) setFlowMounted(true);
     };
 
     sync();
@@ -410,7 +413,12 @@ export function MindMapPanel({
       const rf = flowRef.current;
       setDragSourceId(null);
       setDropTargetId(null);
-      rf?.setNodes(flowNodesLayoutRef.current);
+      rf?.setNodes((current) =>
+        current.map((n) => {
+          const layout = flowNodesLayoutRef.current.find((ln) => ln.id === n.id);
+          return layout ? { ...n, position: layout.position } : n;
+        })
+      );
 
       if (busy || isConnecting) return;
 
@@ -995,8 +1003,9 @@ export function MindMapPanel({
           tabIndex={0}
           onKeyDownCapture={handleCanvasKeyDown}
         >
-          {canvasReady ? (
+          {flowMounted ? (
           <ReactFlow
+            className={canvasReady ? undefined : "mindmap-workspace__flow--hidden"}
             nodes={flowNodes}
             edges={flowEdges}
             nodeTypes={nodeTypes}

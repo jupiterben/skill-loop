@@ -1243,6 +1243,11 @@ body {
   height: 100%;
 }
 
+.mindmap-workspace__canvas .react-flow.mindmap-workspace__flow--hidden {
+  visibility: hidden;
+  pointer-events: none;
+}
+
 .props-panel {
   border-right: 1px solid var(--border);
   background: var(--surface);

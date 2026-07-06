@@ -10,6 +10,7 @@
     "build": "tsc && pnpm build:ui",
     "build:ui": "vite build --config ui/vite.config.ts",
     "dev": "vite --config ui/vite.config.ts",
+    "test": "vitest run --config ui/vitest.config.ts",
     "dashboard": "tsx src/cli.ts dashboard",
     "dashboard:fg": "tsx src/cli.ts dashboard --foreground",
     "loop": "tsx src/cli.ts"
@@ -27,6 +28,7 @@
     "react-dom": "19.1.1",
     "tsx": "4.20.5",
     "typescript": "^6.0.3",
-    "vite": "8.1.3"
+    "vite": "8.1.3",
+    "vitest": "^4.1.9"
   }
 }
