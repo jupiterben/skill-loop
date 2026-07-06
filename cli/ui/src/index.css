@@ -616,6 +616,25 @@ body {
   padding: 0.25rem 0;
 }
 
+.project-spec-panel__body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.project-spec-panel__preview {
+  display: block;
+  font-size: 0.85rem;
+  white-space: pre-wrap;
+  word-break: break-word;
+  line-height: 1.45;
+}
+
+.project-spec-panel__meta {
+  display: block;
+  font-size: 0.75rem;
+}
+
 .progress-entry {
   padding: 0.75rem 0;
   border-bottom: 1px solid var(--border);

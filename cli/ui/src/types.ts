@@ -126,6 +126,19 @@ export interface ProjectStatus {
   lastProgress: ProgressEntry | null;
 }
 
+export interface ProjectSpec {
+  content: string;
+  templateId: string | null;
+  updatedAt: string | null;
+}
+
+export interface ProjectSpecTemplate {
+  id: string;
+  title: string;
+  description: string;
+  content: string;
+}
+
 export interface DashboardData {
   projectName: string;
   status: ProjectStatus;
@@ -159,6 +172,8 @@ export interface DashboardData {
   tree: TreeNode[];
   dependencies: StoryDependency[];
   patterns: string[];
+  projectSpec: ProjectSpec;
+  projectSpecTemplates: ProjectSpecTemplate[];
   progress: ProgressEntry[];
   runs: LoopRun[];
 }

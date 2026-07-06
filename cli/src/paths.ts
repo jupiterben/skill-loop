@@ -8,7 +8,7 @@ export function getProjectRoot(): string {
 
 export function getStateDir(projectRoot: string): string {
   const custom = process.env.LOOP_STATE_DIR?.trim();
-  const dir = custom ?? join(projectRoot, ".loop");
+  const dir = custom ?? join(projectRoot, "loop-data");
   if (!existsSync(dir)) mkdirSync(dir, { recursive: true });
   return dir;
 }
@@ -37,6 +37,10 @@ export function getStoriesDir(projectRoot: string): string {
 
 export function getPatternsFile(projectRoot: string): string {
   return join(getStateDir(projectRoot), "patterns.json");
+}
+
+export function getProjectSpecFile(projectRoot: string): string {
+  return join(getStateDir(projectRoot), "project-spec.json");
 }
 
 export function getProgressFile(projectRoot: string): string {

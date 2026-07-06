@@ -14,6 +14,7 @@ import {
   getPatternsFile,
   getProgressFile,
   getProjectFile,
+  getProjectSpecFile,
   getRunsFile,
   getStateDir,
   getStoriesDir,
@@ -35,6 +36,12 @@ import {
   hasBugAc,
   normalizeBugDescription,
 } from "./bug-ac.js";
+import {
+  emptyProjectSpec,
+  getProjectSpecTemplate,
+  PROJECT_SPEC_TEMPLATES,
+  type ProjectSpec,
+} from "./project-spec-templates.js";
 import type {
   Feature,
   LoopRun,
@@ -1227,6 +1234,51 @@ export class LoopStateDb {
     file.items.splice(index, 1);
     writeJsonFile(getPatternsFile(this.projectRoot), file);
     this.touchProject();
+  }
+
+  getProjectSpec(_projectName: string): ProjectSpec {
+    return readJsonFile<ProjectSpec>(
+      getProjectSpecFile(this.projectRoot),
+      emptyProjectSpec()
+    );
+  }
+
+  updateProjectSpec(projectName: string, content: string): ProjectSpec {
+    this.assertProject(projectName);
+    const spec: ProjectSpec = {
+      content,
+      templateId: null,
+      updatedAt: new Date().toISOString(),
+    };
+    writeJsonFile(getProjectSpecFile(this.projectRoot), spec);
+    this.touchProject();
+    return spec;
+  }
+
+  applyProjectSpecTemplate(
+    projectName: string,
+    templateId: string,
+    options?: { append?: boolean }
+  ): ProjectSpec {
+    this.assertProject(projectName);
+    const template = getProjectSpecTemplate(templateId);
+    if (!template) throw new Error(`未知模板: ${templateId}`);
+    const current = this.getProjectSpec(projectName);
+    const content = options?.append
+      ? [current.content.trim(), template.content.trim()].filter(Boolean).join("\n\n")
+      : template.content;
+    const spec: ProjectSpec = {
+      content,
+      templateId,
+      updatedAt: new Date().toISOString(),
+    };
+    writeJsonFile(getProjectSpecFile(this.projectRoot), spec);
+    this.touchProject();
+    return spec;
+  }
+
+  getProjectSpecTemplates(): typeof PROJECT_SPEC_TEMPLATES {
+    return PROJECT_SPEC_TEMPLATES;
   }
 
   appendProgress(

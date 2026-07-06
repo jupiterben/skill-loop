@@ -6,7 +6,7 @@ import { buildStoryDependencies } from "./tree.js";
 import { getLoopRunStatus } from "./run-process.js";
 import { getRunLiveForDashboard, getAllRunLiveForDashboard } from "./run-live.js";
 
-export const API_VERSION = 7;
+export const API_VERSION = 8;
 
 function json(res: ServerResponse, data: unknown, status = 200): void {
   res.writeHead(status, {
@@ -53,6 +53,8 @@ export async function handleDashboardApiRequest(
         tree: db.getTree(projectName),
         dependencies: buildStoryDependencies(allStories),
         patterns: db.getPatterns(projectName),
+        projectSpec: db.getProjectSpec(projectName),
+        projectSpecTemplates: db.getProjectSpecTemplates(),
         progress: db.getProgress(projectName, 30),
         runs: db.getRuns(projectName, 20),
       });

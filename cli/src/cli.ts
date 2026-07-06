@@ -317,6 +317,39 @@ const COMMANDS: Record<string, Handler> = {
     return { ok: true, patterns: db.getPatterns(name) };
   },
 
+  spec(db, _root, parsed) {
+    const name = projectName(db, parsed);
+    return db.getProjectSpec(name);
+  },
+
+  "update-spec"(db, _root, parsed) {
+    const content =
+      flagStr(parsed.flags, "content") ?? parsed.positional.join("\n");
+    if (!content && content !== "") {
+      fail('用法: loop-cli update-spec "规范内容" 或 --content "..."');
+    }
+    const name = projectName(db, parsed);
+    const spec = db.updateProjectSpec(name, content);
+    return { ok: true, projectSpec: spec };
+  },
+
+  "spec-templates"(db) {
+    return db.getProjectSpecTemplates();
+  },
+
+  "apply-spec-template"(db, _root, parsed) {
+    const templateId =
+      parsed.positional[0] ?? flagStr(parsed.flags, "template-id", "id");
+    if (!templateId) {
+      fail("用法: loop-cli apply-spec-template <template-id> [--append]");
+    }
+    const name = projectName(db, parsed);
+    const spec = db.applyProjectSpecTemplate(name, templateId, {
+      append: parsed.flags.append === true,
+    });
+    return { ok: true, projectSpec: spec };
+  },
+
   "start-run"(db, _root, parsed) {
     const iteration = flagNum(parsed.flags, "iteration");
     if (!iteration || iteration < 1) fail("缺少 --iteration（正整数）");
@@ -397,6 +430,8 @@ function printHelp(): void {
   status [--project NAME]              总览进度
   next                                 下一待做 Story
   patterns                             Codebase Patterns
+  spec                                 项目规范内容
+  spec-templates                       项目规范模板列表
   prd | tree                           完整 PRD / 脑图树
 
 写入:
@@ -407,6 +442,8 @@ function printHelp(): void {
   add-pattern "可复用模式"
   update-pattern --index 0 "更新后的模式"
   delete-pattern --index 0
+  update-spec "规范内容" | --content "..."
+  apply-spec-template <id> [--append]   应用规范模板（general / typescript-react 等）
   add-story --title "..." [--ready] [--parent-id FT-001] [--depends-on US-001] [--ac "..."]
   bug <US-xxx> "缺陷描述" [--ready] [--title "修复标题"] [--change-note "..."]
   add-feature --title "..." [--parent-id FT-001]

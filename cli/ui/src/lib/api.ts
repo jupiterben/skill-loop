@@ -97,4 +97,8 @@ export const api = {
   updatePattern: (index: number, content: string) =>
     post("/api/patterns/update", { index, content }),
   deletePattern: (index: number) => post("/api/patterns/delete", { index }),
+  updateProjectSpec: (content: string) =>
+    post("/api/project-spec", { content }),
+  applyProjectSpecTemplate: (templateId: string, append = false) =>
+    post("/api/project-spec/template", { templateId, append }),
 };

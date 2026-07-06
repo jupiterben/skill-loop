@@ -367,6 +367,24 @@ export async function handleApiMutation(
       return true;
     }
 
+    if (req.method === "POST" && pathname === "/api/project-spec") {
+      const content = String(body.content ?? "");
+      const spec = db.updateProjectSpec(projectName, content);
+      json(res, { ok: true, projectSpec: spec });
+      return true;
+    }
+
+    if (req.method === "POST" && pathname === "/api/project-spec/template") {
+      const templateId = String(body.templateId ?? "").trim();
+      if (!templateId) throw new Error("templateId 必填");
+      const append = body.append === true;
+      const spec = db.applyProjectSpecTemplate(projectName, templateId, {
+        append,
+      });
+      json(res, { ok: true, projectSpec: spec });
+      return true;
+    }
+
     if (req.method === "POST" && pathname === "/api/loop-run/start") {
       const { startLoopRunBackground } = await import("./loop-run-launcher.js");
       const untilStop =

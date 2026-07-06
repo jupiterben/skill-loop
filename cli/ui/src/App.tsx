@@ -5,6 +5,7 @@ import { ProjectCard } from "./components/ProjectCard";
 import { MindMapPanel } from "./components/MindMapPanel";
 import { AgentLivePanel } from "./components/AgentLivePanel";
 import { PatternsPanel } from "./components/PatternsPanel";
+import { ProjectSpecPanel } from "./features/project-spec/ProjectSpecPanel";
 import { ProgressPanel } from "./components/ProgressPanel";
 import { RunsPanel } from "./components/RunsPanel";
 import { CollapsiblePanel } from "./components/CollapsiblePanel";
@@ -16,6 +17,7 @@ export function App() {
   const { data, error, refresh } = useDashboard();
   const [confirmBusy, setConfirmBusy] = useState(false);
   const [patternsBusy, setPatternsBusy] = useState(false);
+  const [specBusy, setSpecBusy] = useState(false);
 
   const handleConfirmStory = useCallback(
     async (storyId: string) => {
@@ -69,6 +71,32 @@ export function App() {
     [refresh]
   );
 
+  const handleSaveProjectSpec = useCallback(
+    async (content: string) => {
+      setSpecBusy(true);
+      try {
+        await api.updateProjectSpec(content);
+        await refresh();
+      } finally {
+        setSpecBusy(false);
+      }
+    },
+    [refresh]
+  );
+
+  const handleApplyProjectSpecTemplate = useCallback(
+    async (templateId: string, append: boolean) => {
+      setSpecBusy(true);
+      try {
+        await api.applyProjectSpecTemplate(templateId, append);
+        await refresh();
+      } finally {
+        setSpecBusy(false);
+      }
+    },
+    [refresh]
+  );
+
   if (error && !data) {
     return (
       <div className="app-shell app-shell--centered">
@@ -93,7 +121,7 @@ export function App() {
     );
   }
 
-  const { status, tree, features, userStories, archivedStories, milestones, dependencies, patterns, progress, runs } = data;
+  const { status, tree, features, userStories, archivedStories, milestones, dependencies, patterns, projectSpec, projectSpecTemplates, progress, runs } = data;
   const draftStories = userStories.filter(
     (s) => !s.passes && s.status === "draft"
   );
@@ -147,6 +175,13 @@ export function App() {
             onAdd={handleAddPattern}
             onUpdate={handleUpdatePattern}
             onDelete={handleDeletePattern}
+          />
+          <ProjectSpecPanel
+            projectSpec={projectSpec}
+            templates={projectSpecTemplates}
+            busy={specBusy}
+            onSave={handleSaveProjectSpec}
+            onApplyTemplate={handleApplyProjectSpecTemplate}
           />
           <RunsPanel runs={runs} />
         </aside>

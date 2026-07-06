@@ -242,7 +242,29 @@ export function normalizeDashboard(raw: Record<string, unknown>): DashboardData 
     patterns: Array.isArray(raw.patterns)
       ? (raw.patterns as string[])
       : normalizedStatus.patterns,
+    projectSpec: normalizeProjectSpec(raw.projectSpec),
+    projectSpecTemplates: Array.isArray(raw.projectSpecTemplates)
+      ? (raw.projectSpecTemplates as DashboardData["projectSpecTemplates"])
+      : [],
     progress: Array.isArray(raw.progress) ? raw.progress : [],
     runs: Array.isArray(raw.runs) ? raw.runs : [],
+  };
+}
+
+function normalizeProjectSpec(raw: unknown): DashboardData["projectSpec"] {
+  if (!raw || typeof raw !== "object") {
+    return { content: "", templateId: null, updatedAt: null };
+  }
+  const spec = raw as Record<string, unknown>;
+  return {
+    content: String(spec.content ?? ""),
+    templateId:
+      spec.templateId === null || spec.templateId === undefined
+        ? null
+        : String(spec.templateId),
+    updatedAt:
+      spec.updatedAt === null || spec.updatedAt === undefined
+        ? null
+        : String(spec.updatedAt),
   };
 }
