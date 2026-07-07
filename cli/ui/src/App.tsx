@@ -10,16 +10,22 @@ import { ProjectSpecPanel } from "./features/project-spec/ProjectSpecPanel";
 import { ProgressPanel } from "./components/ProgressPanel";
 import { RunsPanel } from "./components/RunsPanel";
 import { WorkspaceStatusBar } from "./components/WorkspaceStatusBar";
-import { CollapsiblePanel } from "./components/CollapsiblePanel";
 import { ErrorAlert } from "./components/ErrorAlert";
 import { useDashboard } from "./hooks/useDashboard";
 import { api } from "./lib/api";
+import { isLoopProcessRunning, resolveRunningStoryIds } from "./lib/runningStories";
 
 export function App() {
   const { data, error, refresh } = useDashboard();
   const [confirmBusy, setConfirmBusy] = useState(false);
   const [patternsBusy, setPatternsBusy] = useState(false);
   const [specBusy, setSpecBusy] = useState(false);
+  const { sizes: bodySizes, onResizeEnd: onBodySplitEnd } = useSplitSizes(
+    "loop-body-split",
+    [300, 720]
+  );
+  const { sizes: workspaceSizes, onResizeEnd: onWorkspaceSplitEnd } =
+    useSplitSizes("loop-workspace-split", [72, 28]);
 
   const handleConfirmStory = useCallback(
     async (storyId: string) => {
@@ -130,25 +136,8 @@ export function App() {
   const pct = status.totalStories
     ? Math.round((status.completedStories / status.totalStories) * 100)
     : 0;
-  const loopRunning =
-    status.activeRun?.status === "running" ||
-    (status.activeRuns?.length ?? 0) > 0 ||
-    data.loopRunner?.running === true;
-  const runningStoryIds = new Set(
-    [
-      status.currentStory?.id,
-      ...(status.activeRuns?.map((r) => r.storyId) ?? []),
-      ...(data.loopRunner?.workers?.map((w) => w.currentStoryId) ?? []),
-      data.loopRunner?.state?.currentStoryId,
-    ].filter(Boolean) as string[]
-  );
-
-  const { sizes: bodySizes, onResizeEnd: onBodySplitEnd } = useSplitSizes(
-    "loop-body-split",
-    [300, 720]
-  );
-  const { sizes: workspaceSizes, onResizeEnd: onWorkspaceSplitEnd } =
-    useSplitSizes("loop-workspace-split", [58, 42]);
+  const loopRunning = isLoopProcessRunning(data);
+  const runningStoryIds = resolveRunningStoryIds(data);
 
   return (
     <div className="app-shell">
@@ -212,17 +201,10 @@ export function App() {
               onResizeEnd={onWorkspaceSplitEnd}
             >
               <Splitter.Panel
-                defaultSize={workspaceSizes[0] || "58%"}
+                defaultSize={workspaceSizes[0] || "72%"}
                 min={240}
               >
-                <CollapsiblePanel
-                  storageKey="loop-mindmap-panel-open"
-                  defaultOpen
-                  title="用户输入"
-                  variant="workspace"
-                  className="workspace-panel--input"
-                  bodyClassName="workspace-panel__body--fill"
-                >
+                <div className="app-workspace__main">
                   <MindMapPanel
                     projectTitle={status.project}
                     progressPct={pct}
@@ -244,28 +226,20 @@ export function App() {
                     }
                     runningStoryIds={[...runningStoryIds]}
                   />
-                </CollapsiblePanel>
+                </div>
               </Splitter.Panel>
 
               <Splitter.Panel
-                defaultSize={workspaceSizes[1] || "42%"}
-                min={160}
-                collapsible
+                defaultSize={workspaceSizes[1] || "28%"}
+                min={120}
               >
-                <CollapsiblePanel
-                  storageKey="loop-agent-panel-open"
-                  defaultOpen={loopRunning}
-                  title="运行结果"
-                  variant="workspace"
-                  className="workspace-panel--output"
-                  bodyClassName="workspace-panel__body--agent"
-                >
+                <div className="app-workspace__agent">
                   <AgentLivePanel
                     runLive={data.runLive}
                     runLiveWorkers={data.runLiveWorkers}
                     isRunning={loopRunning}
                   />
-                </CollapsiblePanel>
+                </div>
               </Splitter.Panel>
             </Splitter>
 
