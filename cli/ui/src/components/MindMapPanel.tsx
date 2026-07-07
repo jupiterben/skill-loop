@@ -17,7 +17,6 @@ import {
 import "@xyflow/react/dist/style.css";
 import {
   Button,
-  Empty,
   Input,
   Space,
   Splitter,
@@ -742,14 +741,6 @@ export function MindMapPanel({
 
   return (
     <div className="mm-panel">
-      <div className="mm-toolbar">
-        <span className="mm-hint muted">
-          左侧结构树与脑图同步选中 · 拖曳分隔条可调整或收起 · 右侧为节点属性
-          · 项目/Feature 右侧按钮可收起展开 · Feature 双击改名 · 拖曳 Story/Feature 改父级
-          · PageUp/PageDown 调序 · Story 出点连入点建依赖 · 方向键切换节点 · Delete 删依赖线
-        </span>
-      </div>
-
       <div
         className={`mm-milestone-bar${filterActive ? " mm-milestone-bar--filtered" : ""}`}
       >
@@ -1016,23 +1007,18 @@ export function MindMapPanel({
                 >
                   {isProjectEmpty && (
                     <div className="mindmap-workspace__empty">
-                      <Empty
-                        image={Empty.PRESENTED_IMAGE_SIMPLE}
-                        description="暂无 Feature / Story，从下方开始规划"
-                      >
-                        <Space wrap>
-                          <Button
-                            type="primary"
-                            disabled={busy}
-                            onClick={handleAddFeature}
-                          >
-                            + Feature
-                          </Button>
-                          <Button disabled={busy} onClick={handleAddStory}>
-                            + Story
-                          </Button>
-                        </Space>
-                      </Empty>
+                      <Space wrap>
+                        <Button
+                          type="primary"
+                          disabled={busy}
+                          onClick={handleAddFeature}
+                        >
+                          + Feature
+                        </Button>
+                        <Button disabled={busy} onClick={handleAddStory}>
+                          + Story
+                        </Button>
+                      </Space>
                     </div>
                   )}
                   {flowMounted ? (
