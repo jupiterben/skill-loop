@@ -1,0 +1,22 @@
+{
+  "id": "US-004",
+  "milestoneId": null,
+  "parentId": "FT-002",
+  "dependsOn": [],
+  "title": "编辑修改项目规范",
+  "description": "作为用户： 我需要可以修改 项目规范 需要有一些 优秀的项目规范模板可以使用",
+  "acceptanceCriteria": [
+    "实现功能",
+    "npm test 通过"
+  ],
+  "priority": 0,
+  "passes": true,
+  "everCompleted": true,
+  "status": "ready",
+  "notes": "",
+  "sortOrder": 0,
+  "removalRequestedAt": null,
+  "archivedAt": null,
+  "claimedBy": null,
+  "claimedAt": null
+}

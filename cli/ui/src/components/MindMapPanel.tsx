@@ -112,12 +112,22 @@ export function MindMapPanel({
   runningStoryId = null,
   runningStoryIds = [],
 }: Props) {
-  const runningIds = new Set(
-    [
-      ...runningStoryIds,
-      ...(runningStoryId ? [runningStoryId] : []),
-    ].filter(Boolean)
+  const completedStoryIds = useMemo(
+    () => new Set(userStories.filter((s) => s.passes).map((s) => s.id)),
+    [userStories]
   );
+  const runningIds = useMemo(() => {
+    const ids = new Set(
+      [
+        ...runningStoryIds,
+        ...(runningStoryId ? [runningStoryId] : []),
+      ].filter(Boolean)
+    );
+    for (const id of ids) {
+      if (completedStoryIds.has(id)) ids.delete(id);
+    }
+    return ids;
+  }, [runningStoryIds, runningStoryId, completedStoryIds]);
   const [selected, setSelected] = useState<SelectedMindMapNode | null>(null);
   const [selectedDepEdgeId, setSelectedDepEdgeId] = useState<string | null>(null);
   const [isConnecting, setIsConnecting] = useState(false);

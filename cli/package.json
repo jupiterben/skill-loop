@@ -3,27 +3,34 @@
   "version": "0.2.0",
   "description": "CLI + dashboard for Loop Engineering project runtime state (JSON file store)",
   "type": "module",
+  "main": "./dist/cli.js",
   "bin": {
     "loop-cli": "./dist/cli.js"
   },
+  "files": [
+    "dist",
+    "public",
+    "templates",
+    "loop-cli.config.json"
+  ],
   "scripts": {
     "build": "tsc && pnpm build:ui",
     "build:ui": "vite build --config ui/vite.config.ts",
     "dev": "vite --config ui/vite.config.ts",
+    "prepack": "pnpm build",
     "test": "vitest run --config ui/vitest.config.ts",
-    "dashboard": "tsx src/cli.ts dashboard",
-    "dashboard:fg": "tsx src/cli.ts dashboard --foreground",
-    "loop": "tsx src/cli.ts"
-  },
-  "dependencies": {
-    "@xyflow/react": "12.11.1",
-    "antd": "6.5.0"
+    "dashboard": "node dist/cli.js dashboard",
+    "dashboard:fg": "node dist/cli.js dashboard --foreground",
+    "loop": "node dist/cli.js",
+    "loop:dev": "tsx src/cli.ts"
   },
   "devDependencies": {
     "@types/node": "26.1.0",
     "@types/react": "19.1.12",
     "@types/react-dom": "19.1.9",
     "@vitejs/plugin-react": "6.0.3",
+    "@xyflow/react": "12.11.1",
+    "antd": "6.5.0",
     "react": "19.1.1",
     "react-dom": "19.1.1",
     "tsx": "4.20.5",

@@ -4,8 +4,6 @@ import { CollapsiblePanel } from "./CollapsiblePanel";
 
 const { Text } = Typography;
 
-const STORAGE_KEY = "loop-progress-panel-open";
-
 function ProgressList({ entries }: { entries: ProgressEntry[] }) {
   if (!entries.length) {
     return (
@@ -46,12 +44,28 @@ function ProgressList({ entries }: { entries: ProgressEntry[] }) {
 
 interface Props {
   progress: ProgressEntry[];
+  /** 独占右侧面板时使用，不再折叠 */
+  standalone?: boolean;
 }
 
-export function ProgressPanel({ progress }: Props) {
+export function ProgressPanel({ progress, standalone = false }: Props) {
+  if (standalone) {
+    return (
+      <div className="progress-panel progress-panel--standalone">
+        <header className="progress-panel__head">
+          <h3 className="progress-panel__title">进度记录</h3>
+          <span className="progress-panel__count">{progress.length}</span>
+        </header>
+        <div className="progress-panel__body">
+          <ProgressList entries={progress} />
+        </div>
+      </div>
+    );
+  }
+
   return (
     <CollapsiblePanel
-      storageKey={STORAGE_KEY}
+      storageKey="loop-progress-panel-open"
       defaultOpen
       title="进度记录"
       count={progress.length}

@@ -1,0 +1,5 @@
+{
+  "content": "# Loop Agent 协作规范\n\n## 迭代流程\n- 每轮只实现一个 Story，完成后再 `loop complete`\n- 编码前先 `loop patterns`，发现约定用 `loop add-pattern`\n- 状态仅通过 loop-cli 读写，不手改 `loop-data/` JSON\n\n## Story 与 AC\n- 所有 acceptanceCriteria（含「不应出现」反例）均须满足\n- 新建 Story 默认 draft，需 `confirm-story` 后才可执行\n- Bug 用 `loop bug US-xxx \"描述\"` 记录，不单独建 Bug 实体\n\n## 质量与提交\n- 提交格式：`feat: [US-xxx] - 标题` 或 `fix: [US-xxx] - 标题`\n- 并行 worker 按 Feature 隔离文件，减少 merge 冲突\n- 全部 Story 完成且 `loop status` 中 `isComplete` 为 true 才输出 COMPLETE\n",
+  "templateId": "loop-agent",
+  "updatedAt": "2026-07-06T06:57:21.729Z"
+}

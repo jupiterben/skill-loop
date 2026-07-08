@@ -5,7 +5,7 @@
 ## 环境
 
 - 项目根目录：当前工作区（`LOOP_PROJECT_ROOT`）
-- 状态目录：`.loop/`（**不要**手改其中的 JSON 文件）
+- 状态目录：`loop-data/`（**不要**手改其中的 JSON 文件）
 - CLI：在 `.cursor/skills/loop/cli` 下执行 `pnpm loop <command>`
 - 并行模式（可选）：`LOOP_WORKER_ID`（如 `w0`）、`LOOP_CLAIMED_STORY_ID`（协调器预分配的 Story）
 
@@ -18,9 +18,9 @@
    - 否则：`pnpm loop next` — 获取下一个待实现 Story
 4. 若未返回 Story，则本轮结束（见停止条件）
 5. 如有需要，根据 status 中的 `branchName` 切换到正确 git 分支
-6. 实现**这一个**用户 Story
+6. 实现**这一个**用户 Story（**含 AC 中的反例**：`不应出现：…` / `❌ …` 也必须满足）
 7. 运行项目质量检查（test、lint、typecheck — 按项目要求）
-8. 检查通过后提交：`feat: [Story ID] - [Story Title]`
+8. 检查通过后提交：`feat: [Story ID] - [Story Title]`（若本轮主要是修 AC 反例，可用 `fix:`）
 9. `pnpm loop complete <US-xxx>`（并行时协调器已设置 `LOOP_WORKER_ID`，无需额外参数）
 10. `pnpm loop progress --story-id <US-xxx> --summary "..."`（如有收获可加 `--learning "..."`）
 11. 发现可复用约定时：`pnpm loop add-pattern "..."`
@@ -72,9 +72,10 @@
 
 - 新建 Story 默认为 **draft** — 仅 **ready** 状态的 Story 会被 `next` / `loop run` 选中
 - 用户通过 Dashboard 或 `pnpm loop confirm-story US-xxx` 确认 Story
+- **Bug 不单独建类型**：开发中用 `pnpm loop bug US-xxx "描述"` 追加 AC 反例；已完成 Story 的回归会自动新建修复 Story
 - 并行外循环会为每个 worker 创建独立 git worktree，完成后自动合并回主分支
 - 并行时务必遵守上文 **按 Feature 隔离文件**，减少 merge 冲突
 - **不要**实现或完成非本 worker 认领的 Story
-- 状态管理**仅使用 loop-cli** — 切勿手改 `.loop/` 内 JSON
+- 状态管理**仅使用 loop-cli** — 切勿手改 `loop-data/` 内 JSON
 - 频繁提交
 - 编码前先阅读 patterns

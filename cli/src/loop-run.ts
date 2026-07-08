@@ -28,6 +28,13 @@ import {
   initRunLive,
   patchRunLivePhase,
 } from "./run-live.js";
+
+function clearLoopRunCurrentStory(projectRoot: string): void {
+  const runState = readLoopRunState(projectRoot);
+  if (runState?.currentStoryId) {
+    writeLoopRunState(projectRoot, { ...runState, currentStoryId: null });
+  }
+}
 import { invokeClaudeProcess } from "./claude-invoke.js";
 import {
   cleanupAllWorktrees,
@@ -223,6 +230,32 @@ async function invokeToolWithPrompt(
 function sleep(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
+
+const waitStatusLine = {
+  lastLen: 0,
+  lastPlainMessage: "",
+  write(base: string): void {
+    if (process.stderr.isTTY) {
+      const time = new Date().toLocaleTimeString("zh-CN", { hour12: false });
+      const message = `${base} (${time})`;
+      const padded = message.padEnd(this.lastLen, " ");
+      process.stderr.write(`\r${padded}`);
+      this.lastLen = message.length;
+      return;
+    }
+    if (base !== this.lastPlainMessage) {
+      console.error(base);
+      this.lastPlainMessage = base;
+    }
+  },
+  clear(): void {
+    if (process.stderr.isTTY && this.lastLen > 0) {
+      process.stderr.write(`\r${" ".repeat(this.lastLen)}\r`);
+      this.lastLen = 0;
+    }
+    this.lastPlainMessage = "";
+  },
+};
 
 function buildWorkerEnv(
   base: NodeJS.ProcessEnv,
@@ -439,6 +472,7 @@ async function runParallelLoop(
   });
 
   const finish = (result: LoopRunResult): LoopRunResult => {
+    waitStatusLine.clear();
     releaseAllClaims(db, projectName);
     clearAllRunLive(projectRoot);
     clearCoordinatorState(projectRoot);
@@ -478,7 +512,7 @@ async function runParallelLoop(
         });
       }
 
-      if (db.getStatus(projectName).isComplete) {
+      if (!untilStop && db.getStatus(projectName).isComplete) {
         return finish({
           completed: true,
           iterations: batch - 1,
@@ -496,7 +530,7 @@ async function runParallelLoop(
 
       const stories = db.getNextStories(projectName, workers);
       if (!stories.length) {
-        if (db.getStatus(projectName).isComplete) {
+        if (!untilStop && db.getStatus(projectName).isComplete) {
           return finish({
             completed: true,
             iterations: batch - 1,
@@ -507,11 +541,16 @@ async function runParallelLoop(
             reason: "所有 Story 已完成",
           });
         }
-        console.error("无可并行 Story，等待…");
+        waitStatusLine.write(
+          db.getStatus(projectName).isComplete
+            ? "所有 Story 已完成，继续监听…"
+            : "无可并行 Story，等待…"
+        );
         await sleep(sleepMs);
         continue;
       }
 
+      waitStatusLine.clear();
       console.error("");
       console.error("===============================================================");
       console.error(
@@ -534,19 +573,25 @@ async function runParallelLoop(
       );
 
       if (results.some((r) => r.completed)) {
-        console.error("");
-        console.error(`Loop 完成！（第 ${batch} 批）`);
-        return finish({
-          completed: true,
-          iterations: batch,
-          maxIterations,
-          untilStop,
-          tool,
-          workers,
-          reason: "agent 返回 COMPLETE 或全部 Story 已完成",
-        });
+        if (!untilStop) {
+          console.error("");
+          console.error(`Loop 完成！（第 ${batch} 批）`);
+          return finish({
+            completed: true,
+            iterations: batch,
+            maxIterations,
+            untilStop,
+            tool,
+            workers,
+            reason: "agent 返回 COMPLETE 或全部 Story 已完成",
+          });
+        }
+        waitStatusLine.write("所有 Story 已完成，继续监听…");
+        await sleep(sleepMs);
+        continue;
       }
 
+      waitStatusLine.clear();
       console.error(`第 ${batch} 批结束，继续…`);
       await sleep(sleepMs);
     }
@@ -603,6 +648,7 @@ async function runSequentialLoop(
   });
 
   const finish = (result: LoopRunResult): LoopRunResult => {
+    waitStatusLine.clear();
     releaseAllClaims(db, projectName);
     patchRunLivePhase(projectRoot, "done");
     clearLoopRunState(projectRoot);
@@ -637,7 +683,7 @@ async function runSequentialLoop(
         });
       }
 
-      if (db.getStatus(projectName).isComplete) {
+      if (!untilStop && db.getStatus(projectName).isComplete) {
         return finish({
           completed: true,
           iterations: i - 1,
@@ -653,18 +699,24 @@ async function runSequentialLoop(
         break;
       }
 
+      const currentStory = db.getNextStory(projectName);
+      if (!currentStory) {
+        clearLoopRunCurrentStory(projectRoot);
+        waitStatusLine.write(
+          db.getStatus(projectName).isComplete
+            ? "所有 Story 已完成，继续监听…"
+            : "无可执行 Story，等待…"
+        );
+        await sleep(sleepMs);
+        continue;
+      }
+
+      waitStatusLine.clear();
       const iterLabel = untilStop ? `${i} (∞)` : `${i} / ${maxIterations}`;
       console.error("");
       console.error("===============================================================");
       console.error(` Loop 迭代 ${iterLabel} (${tool})`);
       console.error("===============================================================");
-
-      const currentStory = db.getNextStory(projectName);
-      if (!currentStory) {
-        console.error("无可执行 Story，等待…");
-        await sleep(sleepMs);
-        continue;
-      }
 
       const result = await runWorkerIteration(db, projectRoot, projectName, {
         workerId: "w0",
@@ -686,20 +738,28 @@ async function runSequentialLoop(
       }
 
       if (result.completed) {
-        console.error("");
-        console.error(`Loop 完成！（第 ${i} 轮）`);
-        return finish({
-          completed: true,
-          iterations: i,
-          maxIterations,
-          untilStop,
-          tool,
-          workers: 1,
-          reason: "agent 返回 COMPLETE 或全部 Story 已完成",
-        });
+        if (!untilStop) {
+          console.error("");
+          console.error(`Loop 完成！（第 ${i} 轮）`);
+          return finish({
+            completed: true,
+            iterations: i,
+            maxIterations,
+            untilStop,
+            tool,
+            workers: 1,
+            reason: "agent 返回 COMPLETE 或全部 Story 已完成",
+          });
+        }
+        waitStatusLine.write("所有 Story 已完成，继续监听…");
+        clearLoopRunCurrentStory(projectRoot);
+        await sleep(sleepMs);
+        continue;
       }
 
+      waitStatusLine.clear();
       console.error(`第 ${i} 轮结束，继续下一轮…`);
+      clearLoopRunCurrentStory(projectRoot);
       await sleep(sleepMs);
     }
 
@@ -749,7 +809,7 @@ export async function runLoop(
   releaseAllClaims(db, projectName);
 
   const status = db.getStatus(projectName);
-  if (status.isComplete) {
+  if (status.isComplete && !untilStop) {
     return {
       completed: true,
       iterations: 0,

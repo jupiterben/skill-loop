@@ -21,8 +21,8 @@ export function App() {
   const [patternsBusy, setPatternsBusy] = useState(false);
   const [specBusy, setSpecBusy] = useState(false);
   const { sizes: bodySizes, onResizeEnd: onBodySplitEnd } = useSplitSizes(
-    "loop-body-split",
-    [300, 720]
+    "loop-body-split-v2",
+    [280, 720, 300]
   );
   const { sizes: workspaceSizes, onResizeEnd: onWorkspaceSplitEnd } =
     useSplitSizes("loop-workspace-split", [72, 28]);
@@ -161,27 +161,13 @@ export function App() {
         onResizeEnd={onBodySplitEnd}
       >
         <Splitter.Panel
-          defaultSize={bodySizes[0] || 300}
+          defaultSize={bodySizes[0] || 280}
           min={220}
-          max={480}
+          max={420}
           collapsible
-          className="app-body-splitter__sidebar"
+          className="app-body-splitter__sidebar app-body-splitter__sidebar--left"
         >
-          <aside className="app-sidebar">
-            <ProjectCard
-              status={status}
-              draftStories={draftStories}
-              onConfirmStory={handleConfirmStory}
-              busy={confirmBusy}
-            />
-            <ProgressPanel progress={progress} />
-            <PatternsPanel
-              patterns={patterns}
-              busy={patternsBusy}
-              onAdd={handleAddPattern}
-              onUpdate={handleUpdatePattern}
-              onDelete={handleDeletePattern}
-            />
+          <aside className="app-sidebar app-sidebar--left">
             <ProjectSpecPanel
               projectSpec={projectSpec}
               templates={projectSpecTemplates}
@@ -189,12 +175,26 @@ export function App() {
               onSave={handleSaveProjectSpec}
               onApplyTemplate={handleApplyProjectSpecTemplate}
             />
-            <RunsPanel runs={runs} />
+            <PatternsPanel
+              patterns={patterns}
+              busy={patternsBusy}
+              onAdd={handleAddPattern}
+              onUpdate={handleUpdatePattern}
+              onDelete={handleDeletePattern}
+            />
           </aside>
         </Splitter.Panel>
 
         <Splitter.Panel min={360} className="app-body-splitter__workspace">
           <div className="app-workspace">
+            {draftStories.length > 0 && (
+              <ProjectCard
+                status={status}
+                draftStories={draftStories}
+                onConfirmStory={handleConfirmStory}
+                busy={confirmBusy}
+              />
+            )}
             <Splitter
               className="app-workspace-splitter"
               orientation="vertical"
@@ -216,14 +216,6 @@ export function App() {
                     dependencies={dependencies}
                     progress={progress}
                     onRefresh={refresh}
-                    runningStoryId={
-                      runningStoryIds.size === 1
-                        ? [...runningStoryIds][0]!
-                        : status.currentStory?.id ??
-                          status.activeRun?.storyId ??
-                          data.loopRunner?.state?.currentStoryId ??
-                          null
-                    }
                     runningStoryIds={[...runningStoryIds]}
                   />
                 </div>
@@ -239,6 +231,7 @@ export function App() {
                     runLiveWorkers={data.runLiveWorkers}
                     isRunning={loopRunning}
                   />
+                  <RunsPanel runs={runs} />
                 </div>
               </Splitter.Panel>
             </Splitter>
@@ -249,6 +242,18 @@ export function App() {
               loopRunner={data.loopRunner}
             />
           </div>
+        </Splitter.Panel>
+
+        <Splitter.Panel
+          defaultSize={bodySizes[2] || 300}
+          min={220}
+          max={480}
+          collapsible={{ start: true }}
+          className="app-body-splitter__sidebar app-body-splitter__sidebar--right"
+        >
+          <aside className="app-sidebar app-sidebar--right">
+            <ProgressPanel progress={progress} standalone />
+          </aside>
         </Splitter.Panel>
       </Splitter>
     </div>

@@ -1,0 +1,22 @@
+{
+  "id": "US-009",
+  "milestoneId": null,
+  "parentId": "FT-003",
+  "dependsOn": [],
+  "title": "主区域面板",
+  "description": "不需要 展开收缩  不需要显示用户输入  需要自动拉伸 不需要提示",
+  "acceptanceCriteria": [
+    "实现功能",
+    "npm test 通过"
+  ],
+  "priority": 0,
+  "passes": true,
+  "everCompleted": true,
+  "status": "ready",
+  "notes": "",
+  "sortOrder": 0,
+  "removalRequestedAt": null,
+  "archivedAt": null,
+  "claimedBy": null,
+  "claimedAt": null
+}

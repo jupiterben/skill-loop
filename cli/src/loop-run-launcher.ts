@@ -1,9 +1,4 @@
-import { spawn } from "node:child_process";
-import { randomBytes } from "node:crypto";
-import { unlinkSync, writeFileSync } from "node:fs";
-import { tmpdir } from "node:os";
-import { join } from "node:path";
-import { getPackageRoot } from "./config.js";
+import { resolveDistEntry, spawnDetachedNodeProcess } from "./runtime-entry.js";
 import {
   getLoopRunStatus,
   isPidAlive,
@@ -19,74 +14,6 @@ export type StartLoopRunOptions = {
 
 function sleep(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
-}
-
-function quotePsSingle(value: string): string {
-  return value.replace(/'/g, "''");
-}
-
-async function spawnLoopRunChild(
-  packageRoot: string,
-  entry: string,
-  cliArgs: string[],
-  env: NodeJS.ProcessEnv
-): Promise<void> {
-  const node = process.execPath;
-  const tsx = join(packageRoot, "node_modules", "tsx", "dist", "cli.mjs");
-  const argList = [tsx, entry, ...cliArgs].map(quotePsSingle);
-
-  if (process.platform === "win32") {
-    const scriptPath = join(
-      tmpdir(),
-      `loop-run-${randomBytes(4).toString("hex")}.ps1`
-    );
-    const lines = [
-      `$env:LOOP_PROJECT_ROOT = '${quotePsSingle(String(env.LOOP_PROJECT_ROOT ?? ""))}'`,
-      `Start-Process -FilePath '${quotePsSingle(node)}' ` +
-        `-ArgumentList @(${argList.map((a) => `'${a}'`).join(",")}) ` +
-        `-WorkingDirectory '${quotePsSingle(packageRoot)}' ` +
-        `-WindowStyle Hidden | Out-Null`,
-    ];
-    writeFileSync(scriptPath, lines.join("\n"), "utf8");
-
-    await new Promise<void>((resolve, reject) => {
-      const child = spawn(
-        "powershell.exe",
-        [
-          "-NoProfile",
-          "-NonInteractive",
-          "-ExecutionPolicy",
-          "Bypass",
-          "-WindowStyle",
-          "Hidden",
-          "-File",
-          scriptPath,
-        ],
-        { stdio: "ignore", windowsHide: true, env }
-      );
-      child.once("error", reject);
-      child.once("close", (code) => {
-        if (code === 0) resolve();
-        else reject(new Error(`外循环启动脚本失败 (exit ${code ?? "unknown"})`));
-      });
-    });
-
-    try {
-      unlinkSync(scriptPath);
-    } catch {
-      /* ignore */
-    }
-    return;
-  }
-
-  const child = spawn(node, [tsx, entry, ...cliArgs], {
-    detached: true,
-    stdio: "ignore",
-    windowsHide: true,
-    env,
-    cwd: packageRoot,
-  });
-  child.unref();
 }
 
 async function waitForLoopRunStart(
@@ -146,14 +73,13 @@ export async function startLoopRunBackground(
     cliArgs.push("--workers", String(workers));
   }
 
-  const packageRoot = getPackageRoot();
-  const entry = join(packageRoot, "src", "cli.ts");
+  const entry = resolveDistEntry("cli");
   const childEnv: NodeJS.ProcessEnv = {
     ...process.env,
     LOOP_PROJECT_ROOT: projectRoot,
   };
 
-  await spawnLoopRunChild(packageRoot, entry, cliArgs, childEnv);
+  await spawnDetachedNodeProcess(entry, cliArgs, childEnv, "loop-run");
 
   const status = await waitForLoopRunStart(projectRoot);
   if (!status.running) {

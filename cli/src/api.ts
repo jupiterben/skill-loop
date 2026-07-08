@@ -1,6 +1,7 @@
 import type { IncomingMessage, ServerResponse } from "node:http";
 import type { LoopStateDb } from "./db.js";
 import { getProjectName } from "./get-project-name.js";
+import { finishRunLiveForStory } from "./run-live.js";
 
 function json(res: ServerResponse, data: unknown, status = 200): void {
   res.writeHead(status, {
@@ -333,6 +334,7 @@ export async function handleApiMutation(
             ? String(body.workerId)
             : process.env.LOOP_WORKER_ID?.trim(),
       });
+      finishRunLiveForStory(projectRoot, storyId);
       json(res, { ok: true, ...result });
       return true;
     }

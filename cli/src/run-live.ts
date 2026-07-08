@@ -160,3 +160,14 @@ export function getAllRunLiveForDashboard(
   }
   return items;
 }
+
+/** Story 完成后立即结束对应 live 输出，避免 Dashboard 仍显示执行中 */
+export function finishRunLiveForStory(
+  projectRoot: string,
+  storyId: string
+): void {
+  for (const live of getAllRunLiveForDashboard(projectRoot)) {
+    if (live.storyId !== storyId || live.phase === "done") continue;
+    patchRunLivePhase(projectRoot, "done", live.workerId);
+  }
+}

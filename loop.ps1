@@ -1,7 +1,13 @@
-# Loop 外循环（Windows）— 仿 Ralph scripts/ralph/ralph.ps1
-# 用法: .\loop.ps1 [-Tool agent|claude|amp] [-MaxIterations 10] [-UntilStop]
+# Loop 快捷脚本（Windows）
+# 日常命令: .\loop.ps1 status | next | complete US-001 | dashboard | dashboard dev | help ...
+# 持续循环: .\loop.ps1 watch [-Tool agent] [-Workers 3]（监听 Story，不退出的）
+# 有限迭代: .\loop.ps1 [-Tool agent|claude|amp] [-MaxIterations 10] [-UntilStop]（须显式传参）
 
 param(
+    [Parameter(Position=0)]
+    [string]$Command = "",
+    [Parameter(ValueFromRemainingArguments = $true)]
+    [string[]]$Rest = @(),
     [ValidateSet("agent", "cursor", "claude", "amp")]
     [string]$Tool = "",
     [int]$MaxIterations = 10,
@@ -25,17 +31,33 @@ if (-not $env:LOOP_PROJECT_ROOT) {
 }
 
 $CliDir = Join-Path $PSScriptRoot "cli"
-Push-Location $CliDir
-try {
-    if ($UntilStop) {
-        $args = @("loop", "run", "--until-stop")
-    } else {
-        $args = @("loop", "run", "--max-iterations", "$MaxIterations")
+$LoopCli = Join-Path $CliDir "dist/cli.js"
+
+function Invoke-LoopCli {
+    if (-not (Test-Path $LoopCli)) {
+        Write-Error "未找到 $LoopCli，请先在 cli 目录执行: pnpm install && pnpm build"
     }
-    if ($Tool) { $args += @("--tool", $Tool) }
-    if ($Workers -gt 1) { $args += @("--workers", "$Workers") }
-    pnpm @args
+    & node $LoopCli @args
     exit $LASTEXITCODE
-} finally {
-    Pop-Location
 }
+
+if ($Command) {
+    $cliArgs = @($Command) + $Rest
+    Invoke-LoopCli @cliArgs
+}
+
+$explicitRun = $UntilStop -or $Tool -or
+    $PSBoundParameters.ContainsKey('MaxIterations') -or
+    $PSBoundParameters.ContainsKey('Workers')
+if (-not $explicitRun) {
+    Invoke-LoopCli help
+}
+
+if ($UntilStop) {
+    $runArgs = @("run", "--until-stop")
+} else {
+    $runArgs = @("run", "--max-iterations", "$MaxIterations")
+}
+if ($Tool) { $runArgs += @("--tool", $Tool) }
+if ($Workers -gt 1) { $runArgs += @("--workers", "$Workers") }
+Invoke-LoopCli @runArgs

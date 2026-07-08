@@ -4,11 +4,7 @@ import {
   unlinkSync,
   writeFileSync,
 } from "node:fs";
-import { spawn } from "node:child_process";
-import { randomBytes } from "node:crypto";
-import { join } from "node:path";
-import { tmpdir } from "node:os";
-import { getPackageRoot } from "./config.js";
+import { resolveDistEntry, spawnDetachedNodeProcess } from "./runtime-entry.js";
 import { getDashboardStateFile } from "./paths.js";
 
 export type DashboardState = {
@@ -72,79 +68,6 @@ async function waitForDashboardState(
   return readDashboardState(projectRoot);
 }
 
-function quotePsSingle(value: string): string {
-  return value.replace(/'/g, "''");
-}
-
-async function spawnDashboardChild(
-  packageRoot: string,
-  entry: string,
-  env: NodeJS.ProcessEnv
-): Promise<void> {
-  const node = process.execPath;
-  const tsx = join(packageRoot, "node_modules", "tsx", "dist", "cli.mjs");
-
-  if (process.platform === "win32") {
-    const scriptPath = join(
-      tmpdir(),
-      `loop-dashboard-${randomBytes(4).toString("hex")}.ps1`
-    );
-    const lines = [
-      `$env:LOOP_PROJECT_ROOT = '${quotePsSingle(String(env.LOOP_PROJECT_ROOT ?? ""))}'`,
-      `$env:LOOP_DASHBOARD_PORT = '${quotePsSingle(String(env.LOOP_DASHBOARD_PORT ?? "3460"))}'`,
-      `$env:LOOP_DASHBOARD_OPEN = '${quotePsSingle(String(env.LOOP_DASHBOARD_OPEN ?? "0"))}'`,
-      `$env:LOOP_DASHBOARD_QUIET = '${quotePsSingle(String(env.LOOP_DASHBOARD_QUIET ?? "1"))}'`,
-      `Start-Process -FilePath '${quotePsSingle(node)}' ` +
-        `-ArgumentList @('${quotePsSingle(tsx)}','${quotePsSingle(entry)}') ` +
-        `-WorkingDirectory '${quotePsSingle(packageRoot)}' ` +
-        `-WindowStyle Hidden | Out-Null`,
-    ];
-    writeFileSync(scriptPath, lines.join("\n"), "utf8");
-
-    await new Promise<void>((resolve, reject) => {
-      const child = spawn(
-        "powershell.exe",
-        [
-          "-NoProfile",
-          "-NonInteractive",
-          "-ExecutionPolicy",
-          "Bypass",
-          "-WindowStyle",
-          "Hidden",
-          "-File",
-          scriptPath,
-        ],
-        {
-          stdio: "ignore",
-          windowsHide: true,
-          env,
-        }
-      );
-      child.once("error", reject);
-      child.once("close", (code) => {
-        if (code === 0) resolve();
-        else reject(new Error(`Dashboard 启动脚本失败 (exit ${code ?? "unknown"})`));
-      });
-    });
-
-    try {
-      unlinkSync(scriptPath);
-    } catch {
-      /* ignore */
-    }
-    return;
-  }
-
-  const child = spawn(node, [tsx, entry], {
-    detached: true,
-    stdio: "ignore",
-    windowsHide: true,
-    env,
-    cwd: packageRoot,
-  });
-  child.unref();
-}
-
 export async function startDashboardBackground(
   projectRoot: string,
   options?: { port?: number; open?: boolean }
@@ -168,8 +91,7 @@ export async function startDashboardBackground(
   }
   if (existing) clearDashboardState(projectRoot);
 
-  const packageRoot = getPackageRoot();
-  const entry = join(packageRoot, "src", "dashboard.ts");
+  const entry = resolveDistEntry("dashboard");
   const childEnv: NodeJS.ProcessEnv = {
     ...process.env,
     LOOP_PROJECT_ROOT: projectRoot,
@@ -178,7 +100,7 @@ export async function startDashboardBackground(
     LOOP_DASHBOARD_QUIET: "1",
   };
 
-  await spawnDashboardChild(packageRoot, entry, childEnv);
+  await spawnDetachedNodeProcess(entry, [], childEnv, "loop-dashboard");
 
   const state = await waitForDashboardState(projectRoot, 15_000);
   if (state) {

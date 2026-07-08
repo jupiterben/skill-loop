@@ -1,0 +1,15 @@
+{
+  "items": [
+    "Dashboard 面板折叠用 CollapsiblePanel（variant sidebar/workspace），localStorage 持久化",
+    "脑图树边使用 sourceHandle=tree，避免与 Story 依赖 handle 冲突导致连线丢失",
+    "项目规范存 loop-data/project-spec.json，Dashboard 用 ProjectSpecPanel，模板见 project-spec-templates.ts",
+    "Story 属性面板分区用 PropsSectionCollapse + loop-props-section-* localStorage；未保存编辑用 useSyncedStoryFields 防刷新覆盖",
+    "ReactFlow 画布容器需 flex:1 + 完整 flex 高度链（含 ant-collapse-item），子元素 position:absolute 不会撑开父级",
+    "工作区视图切换用 loop-workspace-view localStorage + mm-view-tabs；树形数据由 treeViewData.buildProjectTreeData 从 filteredTree 构建",
+    "Story 属性面板编辑区用 loop-props-section-edit 合并输入与操作（props-story-form__actions），进度日志独立 loop-props-section-progress",
+    "Dashboard 主布局用 antd Splitter（sidebar/workspace/脑图属性），尺寸持久化 loop-*-split localStorage + useSplitSizes",
+    "脑图工作区左侧用嵌套 Splitter：结构树（loop-tree-split，collapsible）+ 脑图画布；右属性 loop-mindmap-split",
+    "主工作区脑图用 app-workspace__main 直接承载 MindMapPanel，勿 CollapsiblePanel/用户输入标题",
+    "主工作区脑图区勿 mm-toolbar 操作提示与 Empty 描述文案，空项目仅保留 +Feature/+Story 按钮"
+  ]
+}

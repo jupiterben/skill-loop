@@ -1,4 +1,6 @@
+node_modules
+/release
+/release.zip
+/release.tar.gz
 /cli/dist
-/cli/node_modules
 /cli/public
-/.loop

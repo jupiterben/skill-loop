@@ -1,0 +1,23 @@
+{
+  "id": "US-003",
+  "milestoneId": null,
+  "parentId": "FT-003",
+  "dependsOn": [],
+  "title": "脑图显示",
+  "description": "脑图显示",
+  "acceptanceCriteria": [
+    "实现功能",
+    "npm test 通过",
+    "不会出现连线丢失的问题"
+  ],
+  "priority": 0,
+  "passes": true,
+  "everCompleted": true,
+  "status": "ready",
+  "notes": "",
+  "sortOrder": 2,
+  "removalRequestedAt": null,
+  "archivedAt": null,
+  "claimedBy": null,
+  "claimedAt": null
+}

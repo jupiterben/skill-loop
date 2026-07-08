@@ -1,0 +1,22 @@
+{
+  "id": "US-007",
+  "milestoneId": null,
+  "parentId": "FT-003",
+  "dependsOn": [],
+  "title": "修复：脑图丢失显示",
+  "description": "修复 US-006「整体排布」的回归问题：脑图丢失显示",
+  "acceptanceCriteria": [
+    "不应再出现：脑图丢失显示",
+    "npm test 通过"
+  ],
+  "priority": 1,
+  "passes": true,
+  "everCompleted": true,
+  "status": "ready",
+  "notes": "",
+  "sortOrder": 4,
+  "removalRequestedAt": null,
+  "archivedAt": null,
+  "claimedBy": null,
+  "claimedAt": null
+}

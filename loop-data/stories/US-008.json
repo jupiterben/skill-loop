@@ -1,0 +1,22 @@
+{
+  "id": "US-008",
+  "milestoneId": null,
+  "parentId": "FT-003",
+  "dependsOn": [],
+  "title": "脑图的树形结构view",
+  "description": "作为用户，我需要一个树形 View 展示脑图结构（项目/Feature/Story）， 放在脑图组件一起 放在左侧 节点的属性 放在 右侧都 都可以收起",
+  "acceptanceCriteria": [
+    "实现功能",
+    "npm test 通过"
+  ],
+  "priority": 0,
+  "passes": true,
+  "everCompleted": true,
+  "status": "ready",
+  "notes": "",
+  "sortOrder": 1,
+  "removalRequestedAt": null,
+  "archivedAt": null,
+  "claimedBy": null,
+  "claimedAt": null
+}

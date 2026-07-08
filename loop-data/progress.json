@@ -1,0 +1,217 @@
+{
+  "entries": [
+    {
+      "storyId": "US-001",
+      "entryDate": "2026-07-06",
+      "summary": "类桌面 Dashboard：顶栏工具条、侧栏可折叠进度/Patterns/Runs、工作区可折叠脑图与 Agent 面板；空状态侧栏可直接 +Feature/+Story",
+      "learnings": [
+        "CollapsiblePanel 统一 sidebar/workspace 折叠样式；空选区 props-panel 须显式挂载 AddActions"
+      ],
+      "id": 1
+    },
+    {
+      "storyId": "US-003",
+      "entryDate": "2026-07-06",
+      "summary": "树边绑定 tree handle；ReactFlow 首次挂载后保持不卸载；拖拽结束仅重置位置；新增 mindmapLayout 连线回归测试与 pnpm test",
+      "learnings": [
+        "ReactFlow 在 canvas 尺寸为 0 时卸载会导致连线丢失；Story 节点多 handle 时树边须显式 sourceHandle=tree"
+      ],
+      "id": 2
+    },
+    {
+      "storyId": "US-002",
+      "entryDate": "2026-07-06",
+      "summary": "实现 pattern 增删改查：db/cli/API/Dashboard Patterns 面板；新增 update-pattern、delete-pattern CLI 命令",
+      "learnings": [
+        "patterns 以 index 定位，CLI 与 /api/patterns/* 返回完整 patterns 列表"
+      ],
+      "id": 3
+    },
+    {
+      "storyId": "US-005",
+      "entryDate": "2026-07-06",
+      "summary": "补充：编辑中不因刷新丢失数据\n验收标准：选中脑图 Story 节点时显示 Story 属性面板；可查看并编辑标题、描述、验收标准（AC）、状态（draft/ready）、优先级；可管理 Milestone 标签与 Story 依赖关系；支持确认/取消确认、完成、归档等 Story 操作入口；修改保存后与 loop-data 同步，pnpm dev 下可正常使用；面板风格与桌面化 Dashboard 一致，可折叠或停靠；用户编辑过程中，Dashboard 定时刷新不得覆盖或丢失未保存的编辑内容",
+      "learnings": [],
+      "id": 4
+    },
+    {
+      "storyId": "US-004",
+      "entryDate": "2026-07-06",
+      "summary": "实现项目规范编辑：loop-data/project-spec.json 存储；Dashboard 侧边栏 ProjectSpecPanel；CLI spec/update-spec/spec-templates/apply-spec-template；内置 4 套模板",
+      "learnings": [
+        "项目规范与 Patterns 分离，模板定义在 project-spec-templates.ts"
+      ],
+      "id": 5
+    },
+    {
+      "storyId": "US-005",
+      "entryDate": "2026-07-06",
+      "summary": "补充：面板分区、分区折叠、记住用户设置\n描述：作为用户，我需要在脑图中选中 Story 后，在分区化的属性面板查看并编辑 Story 字段；各分区可折叠，并记住我的布局偏好\n验收标准：选中脑图 Story 节点时显示 Story 属性面板；可查看并编辑标题、描述、验收标准（AC）、状态（draft/ready）、优先级；可管理 Milestone 标签与 Story 依赖关系；支持确认/取消确认、完成、归档等 Story 操作入口；修改保存后与 loop-data 同步，pnpm dev 下可正常使用；面板风格与桌面化 Dashboard 一致，可折叠或停靠；用户编辑过程中，Dashboard 定时刷新不得覆盖或丢失未保存的编辑内容；属性面板按功能分区展示（如基本信息、验收标准、依赖与里程碑、操作等）；各分区支持独立折叠与展开；分区折叠状态及用户面板偏好设置需持久化保存，刷新或重开 Dashboard 后仍保留",
+      "learnings": [],
+      "id": 6
+    },
+    {
+      "storyId": "US-005",
+      "entryDate": "2026-07-06",
+      "summary": "实现 Story 属性面板分区折叠（基本信息/验收标准/依赖与里程碑/操作/进度日志），localStorage 持久化分区与面板开合状态；useSyncedStoryFields 防止 Dashboard 定时刷新覆盖未保存编辑；新增标记完成 API 与操作入口；属性面板可收起停靠。",
+      "learnings": [
+        "Story 表单同步：story.id 变更时重置，dirty 时跳过 props 回写"
+      ],
+      "id": 7
+    },
+    {
+      "storyId": "US-006",
+      "entryDate": "2026-07-06",
+      "summary": "工作区改为左右分栏：左侧用户输入（脑图编辑），右侧运行结果（Agent 输出）；新增 WorkspaceStatusBar 于底部居中展示执行/就绪状态；ProjectCard 移除重复的执行状态块。",
+      "learnings": [
+        "Dashboard 三栏布局：sidebar 元数据 + workspace split（input/output）+ status footer"
+      ],
+      "id": 8
+    },
+    {
+      "storyId": "US-007",
+      "entryDate": "2026-07-06",
+      "summary": "Bug 修复 Story：US-007（关联 US-006）",
+      "learnings": [],
+      "id": 9
+    },
+    {
+      "storyId": "US-007",
+      "entryDate": "2026-07-06",
+      "summary": "修复 US-006 左右分栏布局后 workspace Collapse 未撑满高度、canvas 无 flex:1 导致 ReactFlow 尺寸为 0 不显示；补 flex 链并监听 canvas-wrap ResizeObserver",
+      "learnings": [
+        "ReactFlow 容器需显式 flex 高度链，position:absolute 子元素不会撑开父级"
+      ],
+      "id": 10
+    },
+    {
+      "storyId": "US-008",
+      "entryDate": "2026-07-06",
+      "summary": "新增 ProjectTreeView 与 treeViewData，MindMapPanel 工具栏支持脑图/树形切换，localStorage 持久化视图选择，选中节点跨视图同步",
+      "learnings": [
+        "树形视图复用 filteredTree 与 SelectedMindMapNode kind 映射，避免与脑图状态分叉"
+      ],
+      "id": 11
+    },
+    {
+      "storyId": "US-008",
+      "entryDate": "2026-07-06",
+      "summary": "需求变更：US-008 已保存为待实现\n描述：作为用户，我需要一个树形 View 展示脑图结构（项目/Feature/Story）， 放在脑图组件一起 放在左侧 节点的属性 放在 右侧都 都可以收起\n原已完成状态已重置",
+      "learnings": [],
+      "id": 12
+    },
+    {
+      "storyId": "US-005",
+      "entryDate": "2026-07-06",
+      "summary": "需求变更：US-005 已保存为待实现\n描述：作为用户，我需要在脑图中选中 Story 后，在分区化的属性面板查看并编辑 Story 字段；各分区可折叠，并记住我的布局偏好  用户的输入放在一个 分区   操作按钮放在 输入区域  进度日志 一个区域\n原已完成状态已重置",
+      "learnings": [],
+      "id": 13
+    },
+    {
+      "storyId": "US-005",
+      "entryDate": "2026-07-06",
+      "summary": "重组 Story 属性面板：编辑分区合并标题/描述/AC/保存与操作按钮，依赖与里程碑、进度日志独立可折叠分区",
+      "learnings": [
+        "Story 属性面板分区用 loop-props-section-edit 统一编辑区，操作按钮放在 props-story-form__actions"
+      ],
+      "id": 14
+    },
+    {
+      "storyId": "US-008",
+      "entryDate": "2026-07-06",
+      "summary": "调整工作区布局：左侧脑图/树形视图，右侧属性面板可折叠；切换按钮移至右边界",
+      "learnings": [
+        "mindmap-workspace grid 列序 1fr 280px，canvas-wrap 在前、props-panel 在后"
+      ],
+      "id": 15
+    },
+    {
+      "storyId": "US-001",
+      "entryDate": "2026-07-06",
+      "summary": "需求变更：US-001 已保存为待实现\n描述：作为用户，我需要类桌面程序的 Dashboard 界面（非典型 Web 应用风格），面板可折叠，以便专注当前工作区 \n需要尽可能的使用antd的 组件而非自己创造\nLayout 中的Panel是需要可以改变size的  (使用antd的 Split)  Panel中主要内容是需要自动填满剩余的\nPanel 是需要可以滚动的\n原已完成状态已重置",
+      "learnings": [],
+      "id": 16
+    },
+    {
+      "storyId": "US-001",
+      "entryDate": "2026-07-06",
+      "summary": "Dashboard 改用 antd Splitter 实现侧边栏/用户输入/运行结果/脑图属性面板可拖拽调宽；面板内容 flex 填满并可滚动；空项目态用 Empty+Button 修复添加无响应；默认选中根节点；视图切换改用 Segmented",
+      "learnings": [
+        "布局层级用 Splitter + flex 高度链，面板尺寸用 useSplitSizes 持久化 localStorage"
+      ],
+      "id": 17
+    },
+    {
+      "storyId": "US-001",
+      "entryDate": "2026-07-06",
+      "summary": "需求变更：US-001 已保存为待实现\n描述：作为用户，我需要类桌面程序的 Dashboard 界面（非典型 Web 应用风格），以便专注当前工作区 \n需要尽可能的使用antd的 组件而非自己创造\nLayout 中的Panel是需要可以改变size的  (使用antd的 Split)  Panel中主要内容是需要自动填满剩余的\nPanel 内部是需要可以滚动的\n原已完成状态已重置",
+      "learnings": [],
+      "id": 18
+    },
+    {
+      "storyId": "US-001",
+      "entryDate": "2026-07-06",
+      "summary": "修复脑图空项目态 +Feature/+Story 按钮无响应（空态 z-index 10 + ReactFlow pointer-events:none）；Splitter 工作区/Agent 面板填满剩余高度并支持内部滚动",
+      "learnings": [
+        "react-flow renderer z-index 为 4，空态 overlay 须高于 6 才能接收点击"
+      ],
+      "id": 19
+    },
+    {
+      "storyId": "US-008",
+      "entryDate": "2026-07-06",
+      "summary": "需求变更：US-008 已保存为待实现\n标题：「树形视图与脑图切换」→「脑图的树形结构view」\n原已完成状态已重置",
+      "learnings": [],
+      "id": 20
+    },
+    {
+      "storyId": "US-008",
+      "entryDate": "2026-07-06",
+      "summary": "左侧结构树与脑图并排（loop-tree-split + 可收起树面板），右侧属性 Splitter 可折叠；移除脑图/树形 Tab 切换",
+      "learnings": [
+        "需求从「切换视图」改为「并排展示」时，用嵌套 Splitter 替代 Segmented"
+      ],
+      "id": 21
+    },
+    {
+      "storyId": "US-009",
+      "entryDate": "2026-07-07",
+      "summary": "主工作区移除 CollapsiblePanel 与「用户输入」标题，脑图区 app-workspace__main 自动拉伸；Agent 输出区保留可调整 Splitter 但无折叠",
+      "learnings": [
+        "主区域脑图 Story 应直接渲染 MindMapPanel，勿再包 workspace CollapsiblePanel"
+      ],
+      "id": 22
+    },
+    {
+      "storyId": "US-009",
+      "entryDate": "2026-07-07",
+      "summary": "需求变更：US-009 已保存为待实现\n描述：不需要 展开收缩  不需要显示用户输入  需要自动拉伸 不需要提示\n原已完成状态已重置",
+      "learnings": [],
+      "id": 23
+    },
+    {
+      "storyId": "US-007",
+      "entryDate": "2026-07-07",
+      "summary": "用户请求删除 US-007，待回滚代码",
+      "learnings": [],
+      "id": 24
+    },
+    {
+      "storyId": "US-007",
+      "entryDate": "2026-07-07",
+      "summary": "已取消删除 US-007",
+      "learnings": [],
+      "id": 25
+    },
+    {
+      "storyId": "US-009",
+      "entryDate": "2026-07-07",
+      "summary": "移除主区域 mm-toolbar 操作提示与空态描述文案；app-workspace__main 自动拉伸承载 MindMapPanel，无 CollapsiblePanel/用户输入标题",
+      "learnings": [
+        "主区域「不需要提示」指移除 mm-toolbar 长帮助文案与 Empty description，保留功能按钮"
+      ],
+      "id": 26
+    }
+  ],
+  "nextId": 27
+}

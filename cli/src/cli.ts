@@ -15,12 +15,14 @@ import {
   type ParsedCli,
 } from "./cli-args.js";
 import { getProjectRoot } from "./paths.js";
+import { getPackageRoot } from "./config.js";
 import { runLoop } from "./loop-run.js";
 import {
   getLoopRunStatus,
   requestLoopRunStop,
 } from "./run-process.js";
 import {
+  finishRunLiveForStory,
   getAllRunLiveForDashboard,
   readRunLive,
 } from "./run-live.js";
@@ -86,13 +88,15 @@ const COMMANDS: Record<string, Handler> = {
     return { ok: true, project, branchName, description };
   },
 
-  complete(db, _root, parsed) {
+  complete(db, root, parsed) {
     const storyId = parsed.positional[0] ?? flagStr(parsed.flags, "story-id", "id");
     if (!storyId) fail("用法: loop-cli complete US-001");
     const workerId =
       flagStr(parsed.flags, "worker-id", "worker") ??
       process.env.LOOP_WORKER_ID?.trim();
-    return db.completeStory(projectName(db, parsed), storyId, workerId);
+    const story = db.completeStory(projectName(db, parsed), storyId, workerId);
+    finishRunLiveForStory(root, storyId);
+    return story;
   },
 
   "claim-story"(db, _root, parsed) {
@@ -417,6 +421,8 @@ const ALIASES: Record<string, string> = {
   "update-milestone": "update-milestone",
 };
 
+const WATCH_COMMANDS = new Set(["watch", "循环", "forever"]);
+
 function printHelp(): void {
   console.log(`loop-cli — Loop 工程迭代状态 CLI（通过 Shell 调用，无需 MCP）
 
@@ -455,6 +461,8 @@ function printHelp(): void {
   update-milestone <MS-xxx> [--title "..."] [--description "..."]
 
 循环:
+  watch [--tool agent|claude|amp] [--workers N]
+                      持续外循环，监听 Story 不退出的（等同 run --until-stop；全部完成后仍等待新 Story）
   run [--tool agent|claude|amp] [--max-iterations 10] [--workers N] [N]
                       外循环（默认最多 10 轮，workers 默认 1）
   run --until-stop [--tool agent] [--workers 3]
@@ -479,6 +487,7 @@ function printHelp(): void {
   request-removal <US-xxx> [--reason "..."]
   archive <US-xxx> | restore <US-xxx>
   dashboard [start] [--port 3460] [--no-open]   后台启动看板
+  dashboard dev                                   开发模式（热更新 UI，http://localhost:5173）
   dashboard stop | stop-dashboard                 关闭看板
   dashboard status                                查看看板状态
 
@@ -490,6 +499,7 @@ function printHelp(): void {
   pnpm loop bug US-001 "拖拽后节点弹回原位"
   pnpm loop progress --story-id US-003 --summary "实现登录页"
   pnpm loop run --tool agent 10
+  pnpm loop watch --tool agent
   pnpm loop run --until-stop --tool agent
   pnpm loop run --workers 3 --until-stop --tool agent
   pnpm loop run stop
@@ -619,6 +629,29 @@ async function handleDashboardCommand(
     return;
   }
 
+  if (sub === "dev") {
+    const { spawn } = await import("node:child_process");
+    const pkgRoot = getPackageRoot();
+    const cmd = process.platform === "win32" ? "pnpm.cmd" : "pnpm";
+    console.error(
+      `Dashboard 开发模式 — ${projectRoot} — http://localhost:5173（Ctrl+C 关闭）`
+    );
+    const child = spawn(cmd, ["dev"], {
+      cwd: pkgRoot,
+      stdio: "inherit",
+      shell: process.platform === "win32",
+      env: { ...process.env, LOOP_PROJECT_ROOT: projectRoot },
+    });
+    await new Promise<void>((resolve, reject) => {
+      child.on("error", reject);
+      child.on("close", (code) => {
+        if (code === 0 || code == null) resolve();
+        else process.exit(code);
+      });
+    });
+    return;
+  }
+
   if (parsed.flags.foreground === true) {
     const { startDashboardServer } = await import("./server.js");
     const result = await startDashboardServer({
@@ -652,7 +685,12 @@ async function main(): Promise<void> {
     process.exit(parsed.command ? 0 : 1);
   }
 
-  const command = ALIASES[parsed.command] ?? parsed.command;
+  let command = ALIASES[parsed.command] ?? parsed.command;
+
+  if (WATCH_COMMANDS.has(command)) {
+    parsed.flags["until-stop"] = true;
+    command = "run";
+  }
 
   if (command === "run") {
     const projectRoot = getProjectRoot();

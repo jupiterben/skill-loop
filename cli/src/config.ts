@@ -5,7 +5,7 @@ import { fileURLToPath } from "node:url";
 const PACKAGE_ROOT = join(fileURLToPath(new URL(".", import.meta.url)), "..");
 
 function hasLoopProject(root: string): boolean {
-  return existsSync(join(root, ".loop", "project.json"));
+  return existsSync(join(root, "loop-data", "project.json"));
 }
 
 function readConfigFile(): string | null {
@@ -39,7 +39,7 @@ export function resolveProjectRoot(): string {
       "任选一种方式：",
       "  1. 在工作区根目录: $env:LOOP_PROJECT_ROOT = (Get-Location).Path",
       "  2. 复制 loop-cli.config.example.json → loop-cli.config.json 并填写 projectRoot",
-      "  3. 先执行 loop init --project <名称> 初始化 .loop/",
+      "  3. 先执行 loop init --project <名称> 初始化 loop-data/",
     ].join("\n")
   );
 }

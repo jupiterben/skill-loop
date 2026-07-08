@@ -836,9 +836,27 @@ export class LoopStateDb {
         claimedAt: null,
       };
       writeEntity(getStoriesDir(this.projectRoot), updated);
+      this.closeRunningRunsForStory(storyId, "story completed");
       this.touchProject();
       return updated;
     });
+  }
+
+  private closeRunningRunsForStory(storyId: string, message: string): void {
+    const file = readJsonFile<RunsFile>(getRunsFile(this.projectRoot), {
+      runs: [],
+      nextId: 1,
+    });
+    const now = new Date().toISOString();
+    let changed = false;
+    for (const run of file.runs) {
+      if (run.status !== "running" || run.storyId !== storyId) continue;
+      run.status = "completed";
+      run.message = message;
+      run.endedAt = now;
+      changed = true;
+    }
+    if (changed) writeJsonFile(getRunsFile(this.projectRoot), file);
   }
 
   updateStory(
@@ -1400,7 +1418,7 @@ export class LoopStateDb {
     const activeRun = activeRuns[0] ?? null;
     const currentStory =
       activeRun?.storyId != null
-        ? (stories.find((s) => s.id === activeRun.storyId) ?? null)
+        ? (stories.find((s) => s.id === activeRun.storyId && !s.passes) ?? null)
         : null;
     return {
       project: meta.name,

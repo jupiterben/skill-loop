@@ -7,6 +7,8 @@ import {
   unlinkSync,
   writeFileSync,
 } from "node:fs";
+import { createHash } from "node:crypto";
+import { tmpdir } from "node:os";
 import { join } from "node:path";
 
 const LOCK_RETRIES = 40;
@@ -19,9 +21,14 @@ function sleepSync(ms: number): void {
   }
 }
 
-/** 基于目录的简易互斥锁，用于 JSON 状态并发写入 */
+function getLockRoot(stateDir: string): string {
+  const id = createHash("sha256").update(stateDir).digest("hex").slice(0, 16);
+  return join(tmpdir(), "loop-cli-locks", id);
+}
+
+/** 基于目录的简易互斥锁，用于 JSON 状态并发写入（锁文件在系统临时目录，不写入 loop-data） */
 export function withStateLock<T>(stateDir: string, fn: () => T): T {
-  const lockRoot = join(stateDir, ".locks");
+  const lockRoot = getLockRoot(stateDir);
   if (!existsSync(lockRoot)) mkdirSync(lockRoot, { recursive: true });
   const lockPath = join(lockRoot, "state.lock");
 

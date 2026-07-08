@@ -1,0 +1,181 @@
+{
+  "runs": [
+    {
+      "id": 1,
+      "iteration": 1,
+      "tool": "agent",
+      "storyId": "US-003",
+      "workerId": "w0",
+      "status": "completed",
+      "message": "iteration finished",
+      "startedAt": "2026-07-06T06:37:47.138Z",
+      "endedAt": "2026-07-06T06:40:45.537Z"
+    },
+    {
+      "id": 2,
+      "iteration": 2,
+      "tool": "agent",
+      "storyId": "US-002",
+      "workerId": "w0",
+      "status": "completed",
+      "message": "all stories complete",
+      "startedAt": "2026-07-06T06:40:47.563Z",
+      "endedAt": "2026-07-06T06:43:29.953Z"
+    },
+    {
+      "id": 3,
+      "iteration": 1,
+      "tool": "agent",
+      "storyId": "US-004",
+      "workerId": "w0",
+      "status": "completed",
+      "message": "iteration finished",
+      "startedAt": "2026-07-06T06:50:27.546Z",
+      "endedAt": "2026-07-06T06:52:09.856Z"
+    },
+    {
+      "id": 4,
+      "iteration": 2,
+      "tool": "agent",
+      "storyId": "US-004",
+      "workerId": "w0",
+      "status": "completed",
+      "message": "iteration finished",
+      "startedAt": "2026-07-06T06:52:11.878Z",
+      "endedAt": "2026-07-06T06:58:18.018Z"
+    },
+    {
+      "id": 5,
+      "iteration": 1,
+      "tool": "agent",
+      "storyId": "US-005",
+      "workerId": "w0",
+      "status": "completed",
+      "message": "iteration finished",
+      "startedAt": "2026-07-06T07:20:09.537Z",
+      "endedAt": "2026-07-06T07:23:45.751Z"
+    },
+    {
+      "id": 6,
+      "iteration": 2,
+      "tool": "agent",
+      "storyId": "US-006",
+      "workerId": "w0",
+      "status": "completed",
+      "message": "all stories complete",
+      "startedAt": "2026-07-06T07:23:47.778Z",
+      "endedAt": "2026-07-06T07:25:48.668Z"
+    },
+    {
+      "id": 7,
+      "iteration": 29,
+      "tool": "agent",
+      "storyId": "US-008",
+      "workerId": "w0",
+      "status": "completed",
+      "message": "superseded by new run",
+      "startedAt": "2026-07-06T07:32:38.655Z",
+      "endedAt": "2026-07-06T07:34:29.433Z"
+    },
+    {
+      "id": 8,
+      "iteration": 1,
+      "tool": "agent",
+      "storyId": "US-007",
+      "workerId": "w0",
+      "status": "completed",
+      "message": "iteration finished",
+      "startedAt": "2026-07-06T07:34:29.433Z",
+      "endedAt": "2026-07-06T07:37:50.327Z"
+    },
+    {
+      "id": 9,
+      "iteration": 2,
+      "tool": "agent",
+      "storyId": "US-008",
+      "workerId": "w0",
+      "status": "completed",
+      "message": "all stories complete",
+      "startedAt": "2026-07-06T07:37:52.354Z",
+      "endedAt": "2026-07-06T07:39:32.664Z"
+    },
+    {
+      "id": 10,
+      "iteration": 1,
+      "tool": "agent",
+      "storyId": "US-005",
+      "workerId": "w0",
+      "status": "completed",
+      "message": "iteration finished",
+      "startedAt": "2026-07-06T09:13:41.410Z",
+      "endedAt": "2026-07-06T09:16:00.581Z"
+    },
+    {
+      "id": 11,
+      "iteration": 2,
+      "tool": "agent",
+      "storyId": "US-008",
+      "workerId": "w0",
+      "status": "completed",
+      "message": "all stories complete",
+      "startedAt": "2026-07-06T09:16:02.603Z",
+      "endedAt": "2026-07-06T09:17:55.273Z"
+    },
+    {
+      "id": 12,
+      "iteration": 1,
+      "tool": "agent",
+      "storyId": "US-001",
+      "workerId": "w0",
+      "status": "completed",
+      "message": "all stories complete",
+      "startedAt": "2026-07-06T10:50:28.140Z",
+      "endedAt": "2026-07-06T10:54:43.791Z"
+    },
+    {
+      "id": 13,
+      "iteration": 1,
+      "tool": "agent",
+      "storyId": "US-001",
+      "workerId": "w0",
+      "status": "completed",
+      "message": null,
+      "startedAt": "2026-07-06T11:13:11.362Z",
+      "endedAt": "2026-07-06T11:16:24.308Z"
+    },
+    {
+      "id": 14,
+      "iteration": 1,
+      "tool": "agent",
+      "storyId": "US-008",
+      "workerId": "w0",
+      "status": "completed",
+      "message": "all stories complete",
+      "startedAt": "2026-07-06T11:19:56.508Z",
+      "endedAt": "2026-07-06T11:22:16.821Z"
+    },
+    {
+      "id": 15,
+      "iteration": 1,
+      "tool": "agent",
+      "storyId": "US-009",
+      "workerId": "w0",
+      "status": "completed",
+      "message": "all stories complete",
+      "startedAt": "2026-07-07T03:27:50.484Z",
+      "endedAt": "2026-07-07T03:29:21.994Z"
+    },
+    {
+      "id": 16,
+      "iteration": 61,
+      "tool": "agent",
+      "storyId": "US-009",
+      "workerId": "w0",
+      "status": "completed",
+      "message": "all stories complete",
+      "startedAt": "2026-07-07T03:31:22.857Z",
+      "endedAt": "2026-07-07T03:33:59.590Z"
+    }
+  ],
+  "nextId": 17
+}
