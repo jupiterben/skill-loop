@@ -146,7 +146,7 @@ function FeatureStoryList({
   if (stories.length === 0) {
     return (
       <Text type="secondary" className="props-story-form__hint">
-        暂无 Story，点击下方按钮添加。
+        暂无子 Story
       </Text>
     );
   }
@@ -192,7 +192,6 @@ function FeatureSectionsPanel({
   childFeatureCount,
   busy,
   onUpdateFeature,
-  onAddStory,
   onSelectNode,
 }: {
   feature: Feature;
@@ -201,7 +200,6 @@ function FeatureSectionsPanel({
   childFeatureCount: number;
   busy?: boolean;
   onUpdateFeature?: Props["onUpdateFeature"];
-  onAddStory?: () => void;
   onSelectNode?: Props["onSelectNode"];
 }) {
   const [title, setTitle] = useState(feature.title);
@@ -298,23 +296,11 @@ function FeatureSectionsPanel({
         title={`Story（${childStories.length}）`}
         defaultOpen
       >
-        <Space direction="vertical" size="small" style={{ width: "100%" }}>
-          <FeatureStoryList
-            stories={childStories}
-            busy={busy}
-            onSelectNode={onSelectNode}
-          />
-          {onAddStory && (
-            <Button
-              type="primary"
-              block
-              disabled={busy}
-              onClick={onAddStory}
-            >
-              + Story
-            </Button>
-          )}
-        </Space>
+        <FeatureStoryList
+          stories={childStories}
+          busy={busy}
+          onSelectNode={onSelectNode}
+        />
       </PropsSectionCollapse>
     </>
   );
@@ -1111,7 +1097,6 @@ export function NodePropsPanel({
           childFeatureCount={childFeatureCount}
           busy={busy}
           onUpdateFeature={onUpdateFeature}
-          onAddStory={onAddStory}
           onSelectNode={onSelectNode}
         />
       </aside>
