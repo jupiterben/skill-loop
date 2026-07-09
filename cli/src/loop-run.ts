@@ -10,7 +10,7 @@ import { join } from "node:path";
 import type { LoopStateDb } from "./db.js";
 import { getPackageRoot } from "./config.js";
 import { getProjectName } from "./get-project-name.js";
-import { getStateDir } from "./paths.js";
+import { getLastBranchFile, getRunArchiveDir, getRunsFile, getStateDir } from "./paths.js";
 import {
   clearCoordinatorState,
   clearLoopRunState,
@@ -133,7 +133,7 @@ function maybeArchivePreviousRun(
   projectName: string
 ): void {
   const stateDir = getStateDir(projectRoot);
-  const lastBranchFile = join(stateDir, ".last-branch");
+  const lastBranchFile = getLastBranchFile(projectRoot);
   const meta = db.getProjectMeta(projectName);
   const currentBranch = meta.branchName;
   if (!currentBranch) return;
@@ -143,15 +143,16 @@ function maybeArchivePreviousRun(
     if (lastBranch && lastBranch !== currentBranch) {
       const date = new Date().toISOString().slice(0, 10);
       const folder = join(
-        stateDir,
-        "archive",
+        getRunArchiveDir(projectRoot),
         `${date}-${lastBranch.replace(/\//g, "-")}`
       );
       mkdirSync(folder, { recursive: true });
-      for (const name of ["project.json", "patterns.json", "progress.json", "runs.json"]) {
+      for (const name of ["project.json", "patterns.json", "progress.json"]) {
         const src = join(stateDir, name);
         if (existsSync(src)) copyFileSync(src, join(folder, name));
       }
+      const runsSrc = getRunsFile(projectRoot);
+      if (existsSync(runsSrc)) copyFileSync(runsSrc, join(folder, "runs.json"));
       console.error(`已归档上一轮 (${lastBranch}) → ${folder}`);
     }
   }

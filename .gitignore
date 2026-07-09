@@ -4,3 +4,4 @@ node_modules
 /release.tar.gz
 /cli/dist
 /cli/public
+.loop-status/

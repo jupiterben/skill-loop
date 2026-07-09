@@ -1,9 +1,0 @@
-{
-  "pid": 48192,
-  "tool": "agent",
-  "startedAt": "2026-07-09T07:12:27.881Z",
-  "mode": "until-stop",
-  "stopRequested": false,
-  "iteration": 1,
-  "currentStoryId": null
-}
