@@ -754,7 +754,7 @@ export function MindMapPanel({
       <div
         className={`mm-milestone-bar${filterActive ? " mm-milestone-bar--filtered" : ""}`}
       >
-        <span className="mm-milestone-bar__label">MileStone</span>
+        <span className="mm-milestone-bar__label">Milestone</span>
         <MilestoneChip
           active={!filterActive}
           disabled={busy}
@@ -1183,6 +1183,10 @@ export function MindMapPanel({
           onCompleteStory={({ storyId, summary }) =>
             run(() => api.completeStory({ storyId, summary }))
           }
+          onSelectNode={(id, kind) => {
+            setSelectedDepEdgeId(null);
+            setSelected({ id, kind });
+          }}
         />
         </Splitter.Panel>
       </Splitter>

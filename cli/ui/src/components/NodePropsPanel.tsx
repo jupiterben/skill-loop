@@ -31,6 +31,7 @@ import { MILESTONE_NONE_LABEL } from "../lib/treeFilter";
 import { MilestoneChip } from "./MilestoneChip";
 import { useSyncedStoryFields } from "../hooks/useSyncedStoryFields";
 import { PropsSectionCollapse } from "./PropsSectionCollapse";
+import { featureChildStories } from "../features/mindmap-props/featureChildStories";
 
 const { Text } = Typography;
 const { TextArea } = Input;
@@ -76,6 +77,7 @@ interface Props {
   onConfirmStory?: (storyId: string) => void;
   onUnconfirmStory?: (storyId: string) => void;
   onSelectArchived?: (storyId: string) => void;
+  onSelectNode?: (id: string, kind: SelectedMindMapNode["kind"]) => void;
 }
 
 function confirmAction(
@@ -129,18 +131,73 @@ function AddActions({
   );
 }
 
-function FeatureEditor({
+function FeatureStoryList({
+  stories,
+  busy,
+  onSelectNode,
+}: {
+  stories: UserStory[];
+  busy?: boolean;
+  onSelectNode?: (id: string, kind: SelectedMindMapNode["kind"]) => void;
+}) {
+  if (stories.length === 0) {
+    return (
+      <Text type="secondary" className="props-story-form__hint">
+        暂无 Story，点击下方按钮添加。
+      </Text>
+    );
+  }
+
+  return (
+    <List
+      size="small"
+      className="props-feature-stories"
+      dataSource={stories}
+      renderItem={(s) => {
+        const kind: SelectedMindMapNode["kind"] = s.passes
+          ? "done"
+          : s.status === "draft"
+            ? "draft"
+            : s.removalRequestedAt
+              ? "pending_removal"
+              : "story";
+        return (
+          <List.Item className="props-feature-stories__item">
+            <Button
+              type="link"
+              size="small"
+              disabled={busy}
+              className="props-feature-stories__link"
+              onClick={() => onSelectNode?.(s.id, kind)}
+            >
+              <code>{s.id}</code>
+              <span>{s.title}</span>
+              {s.passes && <Tag color="success">已完成</Tag>}
+              {s.status === "draft" && !s.passes && <Tag>草稿</Tag>}
+            </Button>
+          </List.Item>
+        );
+      }}
+    />
+  );
+}
+
+function FeatureSectionsPanel({
   feature,
+  parentFeature,
+  childStories,
   busy,
   onUpdateFeature,
+  onAddStory,
+  onSelectNode,
 }: {
   feature: Feature;
+  parentFeature?: Feature | null;
+  childStories: UserStory[];
   busy?: boolean;
-  onUpdateFeature?: (input: {
-    id: string;
-    title: string;
-    description: string;
-  }) => void;
+  onUpdateFeature?: Props["onUpdateFeature"];
+  onAddStory?: () => void;
+  onSelectNode?: Props["onSelectNode"];
 }) {
   const [title, setTitle] = useState(feature.title);
   const [description, setDescription] = useState(feature.description);
@@ -162,47 +219,90 @@ function FeatureEditor({
   }, [feature.id, feature.title, feature.description, dirty]);
 
   return (
-    <section className="props-story-form">
-      <Space direction="vertical" size="small" style={{ width: "100%" }}>
-        <div className="props-field">
-          <Text type="secondary" className="props-field__label">
-            名称
-          </Text>
-          <Input
-            value={title}
-            disabled={busy}
-            onChange={(e) => setTitle(e.target.value)}
+    <>
+      <PropsSectionCollapse
+        storageKey="loop-props-section-feature-edit"
+        title="编辑"
+        defaultOpen
+      >
+        <Space direction="vertical" size="small" style={{ width: "100%" }}>
+          {parentFeature && (
+            <div className="props-field">
+              <Text type="secondary" className="props-field__label">
+                父级 Feature
+              </Text>
+              <Text>{parentFeature.title}</Text>
+            </div>
+          )}
+          <div className="props-field">
+            <Text type="secondary" className="props-field__label">
+              名称
+            </Text>
+            <Input
+              value={title}
+              disabled={busy}
+              onChange={(e) => setTitle(e.target.value)}
+            />
+          </div>
+          <div className="props-field">
+            <Text type="secondary" className="props-field__label">
+              描述
+            </Text>
+            <TextArea
+              rows={4}
+              value={description}
+              disabled={busy}
+              onChange={(e) => setDescription(e.target.value)}
+            />
+          </div>
+          {dirty && (
+            <Text type="warning" className="props-story-form__hint">
+              有未保存的修改；定时刷新不会覆盖当前编辑内容。
+            </Text>
+          )}
+          {onUpdateFeature && (
+            <Button
+              type="primary"
+              block
+              disabled={busy || !title.trim() || !dirty}
+              onClick={() =>
+                onUpdateFeature({
+                  id: feature.id,
+                  title: title.trim(),
+                  description,
+                })
+              }
+            >
+              保存
+            </Button>
+          )}
+        </Space>
+      </PropsSectionCollapse>
+
+      <PropsSectionCollapse
+        storageKey="loop-props-section-feature-stories"
+        title={`Story（${childStories.length}）`}
+        defaultOpen
+      >
+        <Space direction="vertical" size="small" style={{ width: "100%" }}>
+          <FeatureStoryList
+            stories={childStories}
+            busy={busy}
+            onSelectNode={onSelectNode}
           />
-        </div>
-        <div className="props-field">
-          <Text type="secondary" className="props-field__label">
-            描述
-          </Text>
-          <TextArea
-            rows={4}
-            value={description}
-            disabled={busy}
-            onChange={(e) => setDescription(e.target.value)}
-          />
-        </div>
-        {onUpdateFeature && (
-          <Button
-            type="primary"
-            block
-            disabled={busy || !title.trim() || !dirty}
-            onClick={() =>
-              onUpdateFeature({
-                id: feature.id,
-                title: title.trim(),
-                description,
-              })
-            }
-          >
-            保存
-          </Button>
-        )}
-      </Space>
-    </section>
+          {onAddStory && (
+            <Button
+              type="primary"
+              block
+              disabled={busy}
+              onClick={onAddStory}
+            >
+              + Story
+            </Button>
+          )}
+        </Space>
+      </PropsSectionCollapse>
+    </>
   );
 }
 
@@ -914,6 +1014,7 @@ export function NodePropsPanel({
   onConfirmStory,
   onUnconfirmStory,
   onSelectArchived,
+  onSelectNode,
 }: Props) {
   const featuresById = new Map(features.map((f) => [f.id, f]));
   const storiesById = new Map(userStories.map((s) => [s.id, s]));
@@ -976,8 +1077,11 @@ export function NodePropsPanel({
       );
     }
 
+    const parentFeature = f.parentId ? featuresById.get(f.parentId) : null;
+    const childStories = featureChildStories(f.id, userStories);
+
     return (
-      <aside className="props-panel">
+      <aside className="props-panel props-panel--feature">
         <header className="props-panel__head">
           <span className="props-panel__kind props-panel__kind--feature">
             Feature
@@ -985,15 +1089,14 @@ export function NodePropsPanel({
           <h3 className="props-panel__title">{f.title}</h3>
           <code className="props-panel__id">{f.id}</code>
         </header>
-        <AddActions
-          busy={busy}
-          onAddFeature={onAddFeature}
-          onAddStory={onAddStory}
-        />
-        <FeatureEditor
+        <FeatureSectionsPanel
           feature={f}
+          parentFeature={parentFeature}
+          childStories={childStories}
           busy={busy}
           onUpdateFeature={onUpdateFeature}
+          onAddStory={onAddStory}
+          onSelectNode={onSelectNode}
         />
       </aside>
     );
