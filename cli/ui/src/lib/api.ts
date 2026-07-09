@@ -108,6 +108,7 @@ export const api = {
     tool?: string;
     untilStop?: boolean;
     maxIterations?: number;
+    workers?: number;
   }) => post("/api/loop-run/start", input ?? {}),
   stopLoopRun: () => post("/api/loop-run/stop", {}),
   addPattern: (content: string) => post("/api/patterns", { content }),

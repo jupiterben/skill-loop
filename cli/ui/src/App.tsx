@@ -11,6 +11,9 @@ import { ProgressPanel } from "./components/ProgressPanel";
 import { RunsPanel } from "./components/RunsPanel";
 import { WorkspaceStatusBar } from "./components/WorkspaceStatusBar";
 import { ErrorAlert } from "./components/ErrorAlert";
+import { LoopRunControl } from "./features/loop-run-control/LoopRunControl";
+import { buildStartLoopRunPayload } from "./features/loop-run-control/loopRunControlView";
+import type { LoopRunStartInput } from "./features/loop-run-control/loopRunControlView";
 import { useDashboard } from "./hooks/useDashboard";
 import { api } from "./lib/api";
 import { isLoopProcessRunning, resolveRunningStoryIds } from "./lib/runningStories";
@@ -20,6 +23,7 @@ export function App() {
   const [patternsBusy, setPatternsBusy] = useState(false);
   const [specBusy, setSpecBusy] = useState(false);
   const [metaBusy, setMetaBusy] = useState(false);
+  const [loopBusy, setLoopBusy] = useState(false);
   const { sizes: bodySizes, onResizeEnd: onBodySplitEnd } = useSplitSizes(
     "loop-body-split-v2",
     [280, 720, 300]
@@ -91,6 +95,29 @@ export function App() {
     },
     [refresh]
   );
+
+  const handleStartLoopRun = useCallback(
+    async (input: LoopRunStartInput) => {
+      setLoopBusy(true);
+      try {
+        await api.startLoopRun(buildStartLoopRunPayload(input));
+        await refresh();
+      } finally {
+        setLoopBusy(false);
+      }
+    },
+    [refresh]
+  );
+
+  const handleStopLoopRun = useCallback(async () => {
+    setLoopBusy(true);
+    try {
+      await api.stopLoopRun();
+      await refresh();
+    } finally {
+      setLoopBusy(false);
+    }
+  }, [refresh]);
 
   const handleSaveProjectMeta = useCallback(
     async (draft: {
@@ -231,6 +258,12 @@ export function App() {
                 min={120}
               >
                 <div className="app-workspace__agent">
+                  <LoopRunControl
+                    loopRunner={data.loopRunner}
+                    busy={loopBusy}
+                    onStart={handleStartLoopRun}
+                    onStop={handleStopLoopRun}
+                  />
                   <AgentLivePanel
                     runLive={data.runLive}
                     runLiveWorkers={data.runLiveWorkers}
