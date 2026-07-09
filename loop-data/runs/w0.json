@@ -1,0 +1,10 @@
+{
+  "pid": 43952,
+  "tool": "agent",
+  "startedAt": "2026-07-09T03:08:31.048Z",
+  "mode": "until-stop",
+  "stopRequested": false,
+  "iteration": 395,
+  "currentStoryId": "US-014",
+  "workerId": "w0"
+}

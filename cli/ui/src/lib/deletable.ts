@@ -1,4 +1,5 @@
 import type { Feature, ProgressEntry, UserStory } from "../types";
+import { isEmptyLeafFeature } from "../features/mindmap-props/emptyLeafFeature";
 
 export function isActiveStory(story: UserStory): boolean {
   return !story.archivedAt;
@@ -31,24 +32,12 @@ export function isReopenedCompletedStory(
   return storyEverCompleted(story, progress) && !story.passes && isActiveStory(story);
 }
 
-export function featureSubtreeHasStory(
-  featureId: string,
-  features: Feature[],
-  stories: UserStory[]
-): boolean {
-  const active = stories.filter(isActiveStory);
-  if (active.some((s) => s.parentId === featureId)) return true;
-  return features
-    .filter((f) => f.parentId === featureId)
-    .some((child) => featureSubtreeHasStory(child.id, features, stories));
-}
-
 export function canDeleteFeature(
   featureId: string,
   features: Feature[],
   stories: UserStory[]
 ): boolean {
-  return !featureSubtreeHasStory(featureId, features, stories);
+  return isEmptyLeafFeature(featureId, features, stories);
 }
 
 export function canHardDeleteStory(

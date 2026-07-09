@@ -101,6 +101,11 @@ export const PROJECT_SPEC_TEMPLATES: ProjectSpecTemplate[] = [
 - 新建 Story 默认 draft，需 \`confirm-story\` 后才可执行
 - Bug 用 \`loop bug US-xxx "描述"\` 记录，不单独建 Bug 实体
 
+## Feature 规划
+- 叶子 FT（无子 Feature）必须至少包含 1 个 US，否则不可执行
+- 父级 FT 可作为分类容器，但其子树必须最终通向可执行 US
+- 空叶子 FT 用 \`loop delete-feature FT-xxx\` 清理，或在 Dashboard 补 US
+
 ## 质量与提交
 - 提交格式：\`feat: [US-xxx] - 标题\` 或 \`fix: [US-xxx] - 标题\`
 - 并行 worker 按 Feature 隔离文件，减少 merge 冲突

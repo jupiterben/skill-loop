@@ -211,7 +211,291 @@
         "主区域「不需要提示」指移除 mm-toolbar 长帮助文案与 Empty description，保留功能按钮"
       ],
       "id": 26
+    },
+    {
+      "storyId": "US-010",
+      "entryDate": "2026-07-09",
+      "summary": "需求变更：US-010 已保存为待实现\n标题：「UI 排布」→「CodebasePatterns UI 排布」",
+      "learnings": [],
+      "id": 27
+    },
+    {
+      "storyId": "US-010",
+      "entryDate": "2026-07-09",
+      "summary": "Codebase Patterns 改为卡片式列表：序号+内容区+独立操作栏，长文本可展开；迁移至 features/patterns，新增 patternPreview 测试",
+      "learnings": [
+        "Patterns 侧栏用 pattern-card 分隔条目，操作按钮放 footer 避免与正文挤在一起"
+      ],
+      "id": 28
+    },
+    {
+      "storyId": "US-005",
+      "entryDate": "2026-07-09",
+      "summary": "需求变更：US-005 已保存为草稿\n原已完成状态已重置",
+      "learnings": [],
+      "id": 29
+    },
+    {
+      "storyId": "US-007",
+      "entryDate": "2026-07-09",
+      "summary": "需求变更：US-007 已保存为待实现\n标题：「修复：脑图丢失显示」→「Feature属性」\n描述：显示Feature的属性\n添加Feature Story的 功能\n原已完成状态已重置",
+      "learnings": [],
+      "id": 30
+    },
+    {
+      "storyId": "US-005",
+      "entryDate": "2026-07-09",
+      "summary": "验证 Story 属性面板：编辑分区合并输入与操作按钮，依赖与里程碑、进度日志独立可折叠分区，useSyncedStoryFields 防刷新覆盖，Splitter 可收起属性面板",
+      "learnings": [
+        "Story 属性面板分区用 loop-props-section-edit 合并输入与操作（props-story-form__actions），进度日志独立 loop-props-section-progress"
+      ],
+      "id": 31
+    },
+    {
+      "storyId": "US-008",
+      "entryDate": "2026-07-09",
+      "summary": "需求变更：US-008 已保存为待实现\n原已完成状态已重置",
+      "learnings": [],
+      "id": 32
+    },
+    {
+      "storyId": "US-001",
+      "entryDate": "2026-07-09",
+      "summary": "需求变更：US-001 已保存为待实现\n原已完成状态已重置",
+      "learnings": [],
+      "id": 33
+    },
+    {
+      "storyId": "US-006",
+      "entryDate": "2026-07-09",
+      "summary": "需求变更：US-006 已保存为待实现\n原已完成状态已重置",
+      "learnings": [],
+      "id": 34
+    },
+    {
+      "storyId": "US-007",
+      "entryDate": "2026-07-09",
+      "summary": "需求变更：US-007 已保存为待实现\n描述：显示Feature的属性\n不需要 添加Feature Story的 功能",
+      "learnings": [],
+      "id": 35
+    },
+    {
+      "storyId": "US-007",
+      "entryDate": "2026-07-09",
+      "summary": "Feature 属性面板：编辑区+子 Story 列表分区，+ Story 添加并跳转选中；featureChildStories 工具与测试",
+      "learnings": [
+        "Feature 属性用 loop-props-section-feature-* 分区；子 Story 列表点击 onSelectNode 同步脑图选中"
+      ],
+      "id": 36
+    },
+    {
+      "storyId": "US-006",
+      "entryDate": "2026-07-09",
+      "summary": "已经实现",
+      "learnings": [],
+      "id": 37
+    },
+    {
+      "storyId": "US-008",
+      "entryDate": "2026-07-09",
+      "summary": "验证脑图左侧结构树与画布并排（嵌套 Splitter 可收起），右侧属性面板可折叠；ProjectTreeView 展示项目/Feature/Story，选中跨视图同步",
+      "learnings": [
+        "树形视图与脑图并排时用 loop-tree-split + loop-mindmap-split 双层 Splitter，勿用 Tab 切换"
+      ],
+      "id": 38
+    },
+    {
+      "storyId": "US-001",
+      "entryDate": "2026-07-09",
+      "summary": "PRD 审查：对齐 Splitter 桌面化布局需求\n标题：「界面优化」→「Dashboard 桌面化布局」\n描述：作为用户，我需要类桌面程序的 Dashboard（顶栏工具条 + antd Splitter 可拖拽分栏 + 可折叠侧栏），以便专注当前工作区。优先使用 antd 组件，Panel 内容自动填满剩余空间并支持内部滚动。\n验收标准：整体为三栏 Splitter：左侧边栏、中心工作区、右侧边栏，宽度可拖拽并 localStorage 持久化；工作区内部为垂直 Splitter：上方脑图、下方 Agent 输出，比例可调整；界面呈现类桌面程序风格（工具栏/面板/工作区），而非典型 Web 页面布局；侧栏与属性面板支持折叠；各 Panel 内容区 flex 填满并可滚动；尽可能使用 antd 组件（Splitter、Collapse、Button 等），避免自造布局组件；加载与空状态体验友好；pnpm dev 下可正常预览；不应出现：脑图空状态下 +Feature/+Story 按钮无响应",
+      "learnings": [],
+      "id": 39
+    },
+    {
+      "storyId": "US-003",
+      "entryDate": "2026-07-09",
+      "summary": "PRD 审查：细化脑图渲染验收标准\n标题：「脑图显示」→「脑图连线与渲染」\n描述：作为用户，我需要在中心工作区看到项目/Feature/Story 脑图，节点间树形连线稳定可见，以便把握需求结构。\n验收标准：ReactFlow 渲染项目根、Feature、Story 节点及树形连线；树形边绑定 sourceHandle=tree，拖拽节点后连线不丢失；画布容器尺寸变化时 ReactFlow 保持挂载，不因 flex 高度为 0 而卸载；mindmapLayout 连线回归测试通过；pnpm test 通过；不应出现：刷新或折叠面板后连线消失\n原已完成状态已重置",
+      "learnings": [],
+      "id": 40
+    },
+    {
+      "storyId": "US-004",
+      "entryDate": "2026-07-09",
+      "summary": "PRD 审查：细化项目规范验收标准\n标题：「编辑修改项目规范」→「项目规范编辑」\n描述：作为用户，我需要在左侧边栏查看、编辑项目规范（project-spec），并可选用内置模板，以便统一 Agent 协作约定。\n验收标准：Dashboard 左侧 ProjectSpecPanel 可查看与编辑规范正文；支持从内置模板（至少 4 套）应用或追加到当前规范；保存后写入 loop-data/project-spec.json，pnpm dev 下可正常使用；提供 CLI 命令：spec、update-spec、spec-templates、apply-spec-template；pnpm test 通过\n原已完成状态已重置",
+      "learnings": [],
+      "id": 41
+    },
+    {
+      "storyId": "US-001",
+      "entryDate": "2026-07-09",
+      "summary": "类桌面 Dashboard：工具栏统计胶囊与渐变进度、WorkspaceSection 统一 Agent/空态、侧栏进度/运行记录友好空态；空项目脑图 +Feature/+Story 可点击（z-index + pointer-events）",
+      "learnings": [
+        "工作区子面板用 WorkspaceSection 统一标题/图标/徽章，与侧栏 ProgressPanel 空态结构对齐"
+      ],
+      "id": 42
+    },
+    {
+      "storyId": "US-005",
+      "entryDate": "2026-07-09",
+      "summary": "PRD 审查：对齐分区化属性面板实现\n描述：作为用户，我需要在脑图中选中 Story 后，在右侧属性面板分区查看并编辑 Story 字段；编辑区合并标题/描述/AC 与操作按钮，依赖与里程碑、进度日志为独立可折叠分区，布局偏好需持久化。\n验收标准：选中 Story 节点时右侧显示 Story 属性面板（可 Splitter 收起）；编辑分区：可修改标题、描述、验收标准、状态（draft/ready）、优先级；操作按钮（确认/完成/归档等）置于编辑区内；依赖与里程碑分区：可管理 Story 依赖关系与 Milestone 标签；进度日志分区：展示该 Story 的历史进度条目；各分区可独立折叠，折叠状态 localStorage 持久化；useSyncedStoryFields：Dashboard 定时刷新不覆盖未保存编辑；保存后与 loop-data 同步；pnpm dev 下可正常使用；pnpm test 通过\n原已完成状态已重置",
+      "learnings": [],
+      "id": 43
+    },
+    {
+      "storyId": "US-006",
+      "entryDate": "2026-07-09",
+      "summary": "PRD 审查：对齐当前三栏+垂直分栏布局\n标题：「整体排布」→「工作区垂直分栏」\n描述：作为用户，我需要中心工作区上方为脑图编辑、下方为 Agent 运行输出与 Runs 记录，底部居中显示执行状态，以便同时查看规划与执行结果。\n验收标准：中心工作区使用垂直 Splitter：上方脑图（app-workspace__main）、下方 Agent 输出区；Splitter 比例可拖拽调整并 localStorage 持久化；底部 WorkspaceStatusBar 居中展示 loop 执行/就绪状态；左侧边栏承载项目规范与 Patterns，右侧边栏承载进度日志；pnpm test 通过\n原已完成状态已重置",
+      "learnings": [],
+      "id": 44
+    },
+    {
+      "storyId": "US-007",
+      "entryDate": "2026-07-09",
+      "summary": "PRD 审查：明确 Feature 属性范围，移除旧 Bug AC\n标题：「Feature属性」→「Feature 属性面板」\n描述：作为用户，我需要在脑图中选中 Feature 后，在右侧属性面板查看并编辑 Feature 标题与描述，并浏览其下 Story 列表（点击可跳转选中），以便管理功能模块。\n验收标准：选中 Feature 节点时右侧显示 Feature 属性面板；编辑分区：可修改 Feature 标题与描述并保存至 loop-data；Story 列表分区：展示该 Feature 下子 Story，点击条目同步脑图选中态；各分区可独立折叠，折叠状态 localStorage 持久化；不应出现：Feature 属性面板中的「+ Story」添加按钮；pnpm test 通过\n原已完成状态已重置",
+      "learnings": [],
+      "id": 45
+    },
+    {
+      "storyId": "US-008",
+      "entryDate": "2026-07-09",
+      "summary": "PRD 审查：对齐并排结构树实现\n标题：「脑图的树形结构view」→「脑图左侧结构树」\n描述：作为用户，我需要在脑图画布左侧并排查看项目/Feature/Story 结构树，与画布共享选中态；右侧为节点属性面板，树面板与属性面板均可收起。\n验收标准：脑图工作区左侧为 ProjectTreeView，右侧为 ReactFlow 画布，嵌套 Splitter 可拖拽调宽；结构树展示项目/Feature/Story 层级，与脑图 filteredTree 数据一致；树节点与脑图节点选中态双向同步；结构树面板与属性面板均支持 Splitter 折叠收起；pnpm test 通过\n原已完成状态已重置",
+      "learnings": [],
+      "id": 46
+    },
+    {
+      "storyId": "US-009",
+      "entryDate": "2026-07-09",
+      "summary": "PRD 审查：细化主区域简化验收标准\n标题：「主区域面板」→「主工作区脑图区简化」\n描述：作为用户，我需要中心工作区的脑图区域自动填满可用空间，无需「用户输入」标题或折叠控件，且无冗余操作提示，以便获得更大的编辑视野。\n验收标准：脑图区直接渲染于 app-workspace__main，无 CollapsiblePanel 包裹；不显示「用户输入」分区标题；脑图区 flex 自动拉伸填满 Splitter 上方 Panel 剩余高度；移除 mm-toolbar 长帮助文案与空态冗余 description，保留功能按钮；pnpm test 通过\n原已完成状态已重置",
+      "learnings": [],
+      "id": 47
+    },
+    {
+      "storyId": "US-010",
+      "entryDate": "2026-07-09",
+      "summary": "PRD 审查：对齐卡片式 Patterns UI\n标题：「CodebasePatterns UI 排布」→「Patterns 卡片式列表」\n描述：作为用户，我需要在左侧边栏以卡片式布局查看与编辑 Codebase Patterns，长文本可展开，操作按钮独立于正文，以便舒适地维护编码约定。\n验收标准：每条 Pattern 以卡片展示：序号 + 内容区 + 底部独立操作栏（编辑/删除）；长文本支持展开/收起预览（patternPreview）；新增 Pattern 入口清晰可见，编辑/删除不与正文挤在一起；pnpm test 通过（含 patternPreview 测试）\n原已完成状态已重置",
+      "learnings": [],
+      "id": 48
+    },
+    {
+      "storyId": "US-001",
+      "entryDate": "2026-07-09",
+      "summary": "PRD 全面审查：重构 Feature 树（新增 FT-013 节点属性面板，US-002 归位 FT-007），增强全部 US 描述与可测试 AC",
+      "learnings": [],
+      "id": 49
+    },
+    {
+      "storyId": "US-004",
+      "entryDate": "2026-07-09",
+      "summary": "验证项目规范编辑：ProjectSpecPanel 查看/编辑、4 套模板应用与追加、CLI spec 命令与 pnpm test 均通过",
+      "learnings": [
+        "模板追加走 API append=true；有内容时 UI 分「应用模板」「追加模板」两按钮"
+      ],
+      "id": 50
+    },
+    {
+      "storyId": "US-005",
+      "entryDate": "2026-07-09",
+      "summary": "验证 Story 属性面板：编辑区合并输入与操作（props-story-form__actions），依赖/里程碑与进度日志独立可折叠分区，PropsSectionCollapse localStorage 持久化，useSyncedStoryFields 防刷新覆盖，MindMapPanel 右侧 Splitter 可收起；pnpm test 通过",
+      "learnings": [
+        "Story 表单 dirty 时跳过 props 回写；进度日志在 loop-props-section-progress 分区展示该 Story 历史条目"
+      ],
+      "id": 51
+    },
+    {
+      "storyId": "US-006",
+      "entryDate": "2026-07-09",
+      "summary": "验证工作区垂直分栏：App.tsx 垂直 Splitter（app-workspace__main + app-workspace__agent），loop-workspace-split localStorage 持久化，底部 WorkspaceStatusBar 居中，左栏 ProjectSpec+Patterns、右栏 ProgressPanel；pnpm test 19/19 通过",
+      "learnings": [
+        "主工作区垂直分栏用 app-workspace-splitter + useSplitSizes(loop-workspace-split)；状态栏 workspace-status__content justify-content:center"
+      ],
+      "id": 52
+    },
+    {
+      "storyId": "US-008",
+      "entryDate": "2026-07-09",
+      "summary": "验证脑图左侧结构树：嵌套 Splitter（loop-tree-split 可收起 + ReactFlow 画布），右侧属性 loop-mindmap-split 可折叠；ProjectTreeView 使用 filteredTree，选中态与脑图双向同步；pnpm test 19/19 通过",
+      "learnings": [
+        "树形视图与脑图并排时用 loop-tree-split + loop-mindmap-split 双层 Splitter，勿用 Tab 切换"
+      ],
+      "id": 53
+    },
+    {
+      "storyId": "US-009",
+      "entryDate": "2026-07-09",
+      "summary": "验证主工作区脑图区：MindMapPanel 直接渲染于 app-workspace__main（无 CollapsiblePanel/用户输入标题），flex 高度链填满 Splitter 上方 Panel；空态仅 +Feature/+Story 按钮，无 mm-toolbar 帮助文案；pnpm test 19/19 通过",
+      "learnings": [
+        "主区域简化后 app-workspace__main 用 display:flex+column 承载 mm-panel，勿再包 CollapsiblePanel"
+      ],
+      "id": 54
+    },
+    {
+      "storyId": "US-010",
+      "entryDate": "2026-07-09",
+      "summary": "验证 Patterns 卡片式列表：pattern-card 序号+内容+底部操作栏，patternPreview 长文本展开/收起，+新增入口清晰，pnpm test 19/19 通过",
+      "learnings": [
+        "Patterns 侧栏用 features/patterns 卡片列表，正文与操作区分行，长文本 patternPreview 截断+展开"
+      ],
+      "id": 55
+    },
+    {
+      "storyId": "US-001",
+      "entryDate": "2026-07-09",
+      "summary": "规划补强：新增 FT-014 项目元信息（US-012）、FT-015 里程碑排期（US-013），覆盖战略层与时间维度输入缺口",
+      "learnings": [],
+      "id": 56
+    },
+    {
+      "storyId": "US-005",
+      "entryDate": "2026-07-09",
+      "summary": "需求变更：US-005 已保存为草稿\n原已完成状态已重置",
+      "learnings": [],
+      "id": 57
+    },
+    {
+      "storyId": "US-011",
+      "entryDate": "2026-07-09",
+      "summary": "验证右侧 ProgressPanel：进度记录标题+条目数、日期/Story/summary/learnings 倒序展示、空态友好、内容区可滚动随 Dashboard 刷新；右侧 Splitter 可折叠拖拽；新增 sortProgressEntries 测试；pnpm test 21/21 通过",
+      "learnings": [
+        "右侧边栏用 app-sidebar--right padding:0 + overflow:hidden，滚动交给 progress-panel__body"
+      ],
+      "id": 58
+    },
+    {
+      "storyId": "US-005",
+      "entryDate": "2026-07-09",
+      "summary": "验证 Story 属性面板：编辑区合并输入与操作（props-story-form__actions），依赖/里程碑与进度日志独立可折叠分区，PropsSectionCollapse localStorage 持久化，useSyncedStoryFields 防刷新覆盖，MindMapPanel 右侧 Splitter 可收起；pnpm test 21/21 通过",
+      "learnings": [
+        "Story 表单 dirty 时跳过 props 回写；进度日志在 loop-props-section-progress 分区展示该 Story 历史条目"
+      ],
+      "id": 59
+    },
+    {
+      "storyId": "US-012",
+      "entryDate": "2026-07-09",
+      "summary": "实现项目元信息：project.json 新增 vision；db.updateProjectMeta + loop update-project + POST /api/project/update；Dashboard 左侧 ProjectMetaPanel 可编辑描述/分支/愿景，保存后 AppToolbar 分支即时刷新；pnpm test 24/24 通过",
+      "learnings": [
+        "项目元信息用 features/project-meta + SidebarCollapse；编辑 dirty 时跳过轮询覆盖，与 useSyncedStoryFields 一致"
+      ],
+      "id": 60
+    },
+    {
+      "storyId": "US-013",
+      "entryDate": "2026-07-09",
+      "summary": "实现 Milestone targetDate/version：db+CLI+API；Dashboard 创建/编辑弹窗；筛选栏 meta 与属性面板完整标签；pnpm test 30/30",
+      "learnings": [
+        "Milestone 展示用 features/milestones/milestoneLabel；筛选栏 Chip 用 meta prop 显示版本或日期"
+      ],
+      "id": 61
+    },
+    {
+      "storyId": "US-014",
+      "entryDate": "2026-07-09",
+      "summary": "实现 delete-feature CLI、空叶子校验、脑图/属性面板弱警告、规划规范与 5 项测试；pnpm test 35/35",
+      "learnings": [
+        "空叶子 FT 逻辑在 cli/src/feature-leaf.ts 与 ui emptyLeafFeature.ts 对称实现"
+      ],
+      "id": 62
     }
   ],
-  "nextId": 27
+  "nextId": 63
 }

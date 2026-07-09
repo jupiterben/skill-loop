@@ -2816,6 +2816,20 @@ body {
   background: var(--mm-node-feature);
 }
 
+.mm-node--empty-leaf {
+  border-color: rgba(250, 173, 20, 0.55);
+}
+
+.mm-node__sublabel--warning {
+  color: #d48806;
+  font-size: 0.68rem;
+  line-height: 1.2;
+}
+
+.props-panel__empty-leaf-hint {
+  margin-bottom: 0.75rem;
+}
+
 .mm-node--story {
   background: var(--mm-node-story);
 }

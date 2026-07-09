@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import {
+  Alert,
   Button,
   Descriptions,
   Input,
@@ -33,6 +34,7 @@ import { milestoneFullLabel } from "../features/milestones/milestoneLabel";
 import { useSyncedStoryFields } from "../hooks/useSyncedStoryFields";
 import { PropsSectionCollapse } from "./PropsSectionCollapse";
 import { featureChildStories } from "../features/mindmap-props/featureChildStories";
+import { EMPTY_LEAF_FEATURE_HINT } from "../features/mindmap-props/emptyLeafFeature";
 
 const { Text } = Typography;
 const { TextArea } = Input;
@@ -187,6 +189,7 @@ function FeatureSectionsPanel({
   feature,
   parentFeature,
   childStories,
+  childFeatureCount,
   busy,
   onUpdateFeature,
   onAddStory,
@@ -195,6 +198,7 @@ function FeatureSectionsPanel({
   feature: Feature;
   parentFeature?: Feature | null;
   childStories: UserStory[];
+  childFeatureCount: number;
   busy?: boolean;
   onUpdateFeature?: Props["onUpdateFeature"];
   onAddStory?: () => void;
@@ -221,6 +225,15 @@ function FeatureSectionsPanel({
 
   return (
     <>
+      {childFeatureCount === 0 && childStories.length === 0 && (
+        <Alert
+          type="warning"
+          showIcon
+          className="props-panel__empty-leaf-hint"
+          message="空叶子 Feature"
+          description={EMPTY_LEAF_FEATURE_HINT}
+        />
+      )}
       <PropsSectionCollapse
         storageKey="loop-props-section-feature-edit"
         title="编辑"
@@ -1080,6 +1093,7 @@ export function NodePropsPanel({
 
     const parentFeature = f.parentId ? featuresById.get(f.parentId) : null;
     const childStories = featureChildStories(f.id, userStories);
+    const childFeatureCount = features.filter((x) => x.parentId === f.id).length;
 
     return (
       <aside className="props-panel props-panel--feature">
@@ -1094,6 +1108,7 @@ export function NodePropsPanel({
           feature={f}
           parentFeature={parentFeature}
           childStories={childStories}
+          childFeatureCount={childFeatureCount}
           busy={busy}
           onUpdateFeature={onUpdateFeature}
           onAddStory={onAddStory}

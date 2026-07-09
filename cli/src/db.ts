@@ -36,6 +36,7 @@ import {
   hasBugAc,
   normalizeBugDescription,
 } from "./bug-ac.js";
+import { assertDeletableEmptyLeafFeature } from "./feature-leaf.js";
 import {
   emptyProjectSpec,
   getProjectSpecTemplate,
@@ -518,27 +519,12 @@ export class LoopStateDb {
   deleteFeature(projectName: string, featureId: string): string[] {
     this.assertProject(projectName);
     const features = this.getFeatures(projectName);
-    if (!features.some((f) => f.id === featureId)) {
-      throw new Error(`找不到 Feature: ${featureId}`);
-    }
-
-    const subtreeIds = new Set(
-      this.collectFeatureSubtreeIds(featureId, features)
-    );
     const stories = this.getStories(projectName);
-    const hasStory = getActiveStories(stories).some(
-      (s) => s.parentId && subtreeIds.has(s.parentId)
-    );
-    if (hasStory) {
-      throw new Error("该 Feature 子树内仍有 Story，无法删除");
-    }
+    assertDeletableEmptyLeafFeature(featureId, features, stories);
 
-    const dir = getFeaturesDir(this.projectRoot);
-    for (const id of subtreeIds) {
-      deleteEntity(dir, id);
-    }
+    deleteEntity(getFeaturesDir(this.projectRoot), featureId);
     this.touchProject();
-    return [...subtreeIds];
+    return [featureId];
   }
 
   private storyHasProgress(storyId: string): boolean {

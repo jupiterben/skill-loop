@@ -2,6 +2,7 @@ import { Input, Tooltip } from "antd";
 import { memo, useLayoutEffect, useRef, useState } from "react";
 import { Handle, Position, type NodeProps } from "@xyflow/react";
 import type { MindMapNodeData } from "../lib/mindmapLayout";
+import { EMPTY_LEAF_FEATURE_HINT } from "../features/mindmap-props/emptyLeafFeature";
 
 const DEP_HANDLE_H = 7;
 const DEP_HANDLE_GAP = 4;
@@ -92,7 +93,7 @@ function MindMapNode({ id, data, selected }: NodeProps) {
   const nodeBody = (
     <div
       ref={rootRef}
-      className={`mm-node mm-node--${d.kind}${d.isRunning ? " mm-node--running" : ""}${selected ? " mm-node--selected" : ""}${showDescTooltip ? " mm-node--has-desc" : ""}${d.isDropTarget ? " mm-node--drop-target" : ""}${d.isDragging ? " mm-node--dragging" : ""}`}
+      className={`mm-node mm-node--${d.kind}${d.emptyLeafWarning ? " mm-node--empty-leaf" : ""}${d.isRunning ? " mm-node--running" : ""}${selected ? " mm-node--selected" : ""}${showDescTooltip ? " mm-node--has-desc" : ""}${d.isDropTarget ? " mm-node--drop-target" : ""}${d.isDragging ? " mm-node--dragging" : ""}`}
     >
         {d.isRunning && (
           <span className="mm-node__running-badge" aria-hidden>
@@ -132,7 +133,14 @@ function MindMapNode({ id, data, selected }: NodeProps) {
             </button>
           </Tooltip>
         )}
-        {d.sublabel && <div className="mm-node__sublabel">{d.sublabel}</div>}
+        {d.sublabel && (
+          <div
+            className={`mm-node__sublabel${d.emptyLeafWarning ? " mm-node__sublabel--warning" : ""}`}
+            title={d.emptyLeafWarning ? EMPTY_LEAF_FEATURE_HINT : undefined}
+          >
+            {d.sublabel}
+          </div>
+        )}
         {d.storyId ? (
           <div className="mm-node__label mm-node__label--story">
             <span className="mm-node__id">{d.storyId}</span>
@@ -291,6 +299,8 @@ export default memo(MindMapNode, (prev, next) => {
     prev.selected === next.selected &&
     pd.kind === nd.kind &&
     pd.label === nd.label &&
+    pd.sublabel === nd.sublabel &&
+    pd.emptyLeafWarning === nd.emptyLeafWarning &&
     pd.isRunning === nd.isRunning &&
     pd.collapsed === nd.collapsed &&
     pd.addable === nd.addable &&

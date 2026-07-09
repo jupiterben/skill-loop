@@ -10,6 +10,11 @@
     "Dashboard 主布局用 antd Splitter（sidebar/workspace/脑图属性），尺寸持久化 loop-*-split localStorage + useSplitSizes",
     "脑图工作区左侧用嵌套 Splitter：结构树（loop-tree-split，collapsible）+ 脑图画布；右属性 loop-mindmap-split",
     "主工作区脑图用 app-workspace__main 直接承载 MindMapPanel，勿 CollapsiblePanel/用户输入标题",
-    "主工作区脑图区勿 mm-toolbar 操作提示与 Empty 描述文案，空项目仅保留 +Feature/+Story 按钮"
+    "主工作区脑图区勿 mm-toolbar 操作提示与 Empty 描述文案，空项目仅保留 +Feature/+Story 按钮",
+    "Codebase Patterns 侧栏用 features/patterns 卡片列表（pattern-card），正文与操作区分行，长文本 patternPreview 截断+展开",
+    "Feature 属性面板用 features/mindmap-props + PropsSectionCollapse（loop-props-section-feature-edit/stories）；子 Story 列表 featureChildStories 排序",
+    "项目元信息存 loop-data/project.json（branchName/description/vision）；Dashboard 用 features/project-meta ProjectMetaPanel；CLI loop update-project 与 POST /api/project/update",
+    "Milestone 可选 targetDate/version 存 loop-data/milestones；展示用 features/milestones/milestoneLabel；Dashboard 双击筛选 Tag 打开编辑弹窗",
+    "空叶子 FT 判定用 feature-leaf.ts / emptyLeafFeature.ts；仅空叶子可 delete-feature；脑图 sublabel 与属性面板 Alert 提示补 US 或删除"
   ]
 }

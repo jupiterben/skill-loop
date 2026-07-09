@@ -57,6 +57,9 @@ import {
   canHardDeleteStory,
   isFormFieldFocused,
 } from "../lib/deletable";
+import {
+  isEmptyLeafFeature,
+} from "../features/mindmap-props/emptyLeafFeature";
 import MindMapNode from "./MindMapNode";
 import DepEdge from "./DepEdge";
 import { Modal } from "./Modal";
@@ -358,6 +361,8 @@ export function MindMapPanel({
             ? canHardDeleteStory(n.id, userStories, progress)
             : false;
       const isFeature = kind === "feature";
+      const emptyLeaf =
+        isFeature && isEmptyLeafFeature(n.id, features, userStories);
       const reorderable = isSelected && (isFeature || isStory);
       const reorderState = reorderable
         ? isFeature
@@ -373,6 +378,8 @@ export function MindMapPanel({
         draggable: reparentable && !busy,
         data: {
           ...n.data,
+          sublabel: emptyLeaf ? "无可执行 Story" : n.data.sublabel,
+          emptyLeafWarning: emptyLeaf,
           isRunning: runningIds.has(n.id),
           isDragging: dragSourceId === n.id,
           isDropTarget: dropTargetId === n.id,

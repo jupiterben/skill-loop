@@ -21,6 +21,7 @@ export type MindMapNodeData = {
   confirmable?: boolean;
   onUnconfirmDraft?: () => void;
   unconfirmable?: boolean;
+  emptyLeafWarning?: boolean;
   onToggleCollapse?: () => void;
   onHeightChange?: (id: string, height: number) => void;
   renamable?: boolean;

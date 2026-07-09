@@ -276,6 +276,14 @@ const COMMANDS: Record<string, Handler> = {
     return { ok: true, deleted: storyId };
   },
 
+  "delete-feature"(db, _root, parsed) {
+    const featureId =
+      parsed.positional[0] ?? flagStr(parsed.flags, "feature-id", "id");
+    if (!featureId) fail("用法: loop-cli delete-feature FT-001");
+    const deletedIds = db.deleteFeature(projectName(db, parsed), featureId);
+    return { ok: true, deletedIds };
+  },
+
   "add-milestone"(db, _root, parsed) {
     const title = flagStr(parsed.flags, "title");
     if (!title) fail("缺少 --title");
@@ -500,6 +508,7 @@ function printHelp(): void {
   update-feature <FT-xxx> [--title "..."] [--description "..."]
   move-story <US-xxx> --parent-id FT-004
   delete-story <US-xxx>
+  delete-feature <FT-xxx>              删除空叶子 Feature（无子 FT、无子 US）
   add-milestone --title "..." [--target-date YYYY-MM-DD] [--version v0.1]
   update-milestone <MS-xxx> [--title "..."] [--description "..."] [--target-date YYYY-MM-DD] [--version v0.1]
   update-project [--description "..."] [--branch "..."] [--vision "..."]
