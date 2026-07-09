@@ -120,9 +120,19 @@ const COMMANDS: Record<string, Handler> = {
     const workerId =
       flagStr(parsed.flags, "worker-id", "worker") ??
       process.env.LOOP_WORKER_ID?.trim();
-    const story = db.completeStory(projectName(db, parsed), storyId, workerId);
+    const summary =
+      flagStr(parsed.flags, "summary") ?? `Story ${storyId} 已完成`;
+    const result = db.completeStoryWithProgress(
+      projectName(db, parsed),
+      storyId,
+      {
+        summary,
+        learnings: repeatValues(parsed.repeats, "learning", "learnings"),
+        workerId,
+      }
+    );
     finishRunLiveForStory(root, storyId);
-    return story;
+    return result;
   },
 
   "claim-story"(db, _root, parsed) {
