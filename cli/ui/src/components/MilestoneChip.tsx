@@ -3,12 +3,14 @@ import type { ButtonHTMLAttributes, ReactNode } from "react";
 type Props = Omit<ButtonHTMLAttributes<HTMLButtonElement>, "type"> & {
   active?: boolean;
   variant?: "default" | "add";
+  meta?: string | null;
   children: ReactNode;
 };
 
 export function MilestoneChip({
   active = false,
   variant = "default",
+  meta = null,
   className = "",
   children,
   ...rest
@@ -28,6 +30,7 @@ export function MilestoneChip({
         <span className="mm-chip__dot" aria-hidden />
       )}
       <span className="mm-chip__label">{children}</span>
+      {meta ? <span className="mm-chip__meta">{meta}</span> : null}
     </button>
   );
 }

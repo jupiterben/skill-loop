@@ -2,6 +2,10 @@ export interface Milestone {
   id: string;
   title: string;
   description: string;
+  /** ISO 日期字符串，如 2026-07-15 */
+  targetDate?: string;
+  /** 版本标签，如 v0.1 */
+  version?: string;
   sortOrder: number;
 }
 

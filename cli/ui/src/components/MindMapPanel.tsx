@@ -49,6 +49,10 @@ import {
 } from "../lib/acceptanceCriteria";
 import { MilestoneChip } from "./MilestoneChip";
 import {
+  milestoneFilterMeta,
+  milestoneFullLabel,
+} from "../features/milestones/milestoneLabel";
+import {
   canDeleteFeature,
   canHardDeleteStory,
   isFormFieldFocused,
@@ -131,11 +135,17 @@ export function MindMapPanel({
   const [selected, setSelected] = useState<SelectedMindMapNode | null>(null);
   const [selectedDepEdgeId, setSelectedDepEdgeId] = useState<string | null>(null);
   const [isConnecting, setIsConnecting] = useState(false);
-  const [milestoneTitle, setMilestoneTitle] = useState("");
+  const [milestoneForm, setMilestoneForm] = useState({
+    title: "",
+    targetDate: "",
+    version: "",
+  });
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
   const [milestoneErr, setMilestoneErr] = useState<string | null>(null);
-  const [showMilestoneModal, setShowMilestoneModal] = useState(false);
+  const [milestoneModal, setMilestoneModal] = useState<
+    { mode: "create" } | { mode: "edit"; id: string } | null
+  >(null);
   const [createModal, setCreateModal] = useState<{
     type: "feature" | "story";
     parentId?: string;
@@ -147,10 +157,6 @@ export function MindMapPanel({
   );
   const [createMilestoneId, setCreateMilestoneId] = useState("");
   const [milestoneFilter, setMilestoneFilter] = useState<string | null>(null);
-  const [renamingMilestoneId, setRenamingMilestoneId] = useState<string | null>(
-    null
-  );
-  const [renameTitle, setRenameTitle] = useState("");
   const [collapsedIds, setCollapsedIds] = useState<Set<string>>(() => new Set());
   const [nodeHeights, setNodeHeights] = useState<Record<string, number>>({});
   const [dragSourceId, setDragSourceId] = useState<string | null>(null);
@@ -586,29 +592,46 @@ export function MindMapPanel({
 
   const clearFilters = () => setMilestoneFilter(null);
 
-  const submitRename = () => {
-    const t = renameTitle.trim();
-    const id = renamingMilestoneId;
-    setRenamingMilestoneId(null);
-    if (!id || !t) return;
-    const cur = milestones.find((m) => m.id === id);
-    if (cur?.title === t) return;
-    void run(() => api.updateMilestone(id, t));
+  const openMilestoneModal = (
+    mode: "create" | "edit",
+    milestone?: Milestone
+  ) => {
+    setMilestoneErr(null);
+    if (mode === "create") {
+      setMilestoneForm({ title: "", targetDate: "", version: "" });
+      setMilestoneModal({ mode: "create" });
+      return;
+    }
+    if (!milestone) return;
+    setMilestoneForm({
+      title: milestone.title,
+      targetDate: milestone.targetDate ?? "",
+      version: milestone.version ?? "",
+    });
+    setMilestoneModal({ mode: "edit", id: milestone.id });
   };
 
   const closeMilestoneModal = () => {
-    setShowMilestoneModal(false);
-    setMilestoneTitle("");
+    setMilestoneModal(null);
+    setMilestoneForm({ title: "", targetDate: "", version: "" });
     setMilestoneErr(null);
   };
 
   const submitMilestone = () => {
-    const t = milestoneTitle.trim();
-    if (!t) return;
+    const title = milestoneForm.title.trim();
+    if (!title || !milestoneModal) return;
     setBusy(true);
     setMilestoneErr(null);
-    void api
-      .addMilestone(t)
+    const payload = {
+      title,
+      targetDate: milestoneForm.targetDate,
+      version: milestoneForm.version,
+    };
+    const request =
+      milestoneModal.mode === "create"
+        ? api.addMilestone(payload)
+        : api.updateMilestone(milestoneModal.id, payload);
+    void request
       .then(() => {
         closeMilestoneModal();
         onRefresh();
@@ -668,9 +691,8 @@ export function MindMapPanel({
       if (
         isFormFieldFocused() ||
         busy ||
-        showMilestoneModal ||
-        createModal ||
-        renamingMilestoneId
+        milestoneModal ||
+        createModal
       ) {
         return;
       }
@@ -731,9 +753,8 @@ export function MindMapPanel({
     },
     [
       busy,
-      showMilestoneModal,
+      milestoneModal,
       createModal,
-      renamingMilestoneId,
       selected,
       features,
       userStories,
@@ -762,39 +783,22 @@ export function MindMapPanel({
         >
           全部
         </MilestoneChip>
-        {milestones.map((m) =>
-          renamingMilestoneId === m.id ? (
-            <Input
-              key={m.id}
-              size="small"
-              className="mm-chip-input"
-              value={renameTitle}
-              disabled={busy}
-              autoFocus
-              onChange={(e) => setRenameTitle(e.target.value)}
-              onBlur={submitRename}
-              onKeyDown={(e) => {
-                if (e.key === "Enter") submitRename();
-                if (e.key === "Escape") setRenamingMilestoneId(null);
-              }}
-            />
-          ) : (
-            <MilestoneChip
+        {milestones.map((m) => (
+          <MilestoneChip
               key={m.id}
               active={milestoneFilter === m.id}
               disabled={busy}
+              meta={milestoneFilterMeta(m)}
               onClick={() => selectFilter(m.id)}
               onDoubleClick={(e) => {
                 e.preventDefault();
-                setRenamingMilestoneId(m.id);
-                setRenameTitle(m.title);
+                openMilestoneModal("edit", m);
               }}
-              title="单击筛选 · 双击改名"
+              title="单击筛选 · 双击编辑"
             >
               {m.title}
-            </MilestoneChip>
-          )
-        )}
+          </MilestoneChip>
+        ))}
         <MilestoneChip
           active={milestoneFilter === MILESTONE_NONE}
           disabled={busy}
@@ -805,18 +809,17 @@ export function MindMapPanel({
         <MilestoneChip
           variant="add"
           disabled={busy}
-          onClick={() => {
-            setMilestoneErr(null);
-            setShowMilestoneModal(true);
-          }}
+          onClick={() => openMilestoneModal("create")}
         >
           + MileStone
         </MilestoneChip>
       </div>
 
       <Modal
-        open={showMilestoneModal}
-        title="新建 Milestone 标签"
+        open={Boolean(milestoneModal)}
+        title={
+          milestoneModal?.mode === "edit" ? "编辑 Milestone 标签" : "新建 Milestone 标签"
+        }
         onClose={closeMilestoneModal}
       >
         <form
@@ -831,9 +834,36 @@ export function MindMapPanel({
               <Text className="modal-form__label">标签名称</Text>
               <Input
                 placeholder="例如：v1.0 发布"
-                value={milestoneTitle}
-                onChange={(e) => setMilestoneTitle(e.target.value)}
+                value={milestoneForm.title}
+                onChange={(e) =>
+                  setMilestoneForm((prev) => ({ ...prev, title: e.target.value }))
+                }
                 autoFocus
+                disabled={busy}
+              />
+            </div>
+            <div className="modal-form__field">
+              <Text className="modal-form__label">目标日期（可选）</Text>
+              <Input
+                type="date"
+                value={milestoneForm.targetDate}
+                onChange={(e) =>
+                  setMilestoneForm((prev) => ({
+                    ...prev,
+                    targetDate: e.target.value,
+                  }))
+                }
+                disabled={busy}
+              />
+            </div>
+            <div className="modal-form__field">
+              <Text className="modal-form__label">版本（可选）</Text>
+              <Input
+                placeholder="例如：v0.1"
+                value={milestoneForm.version}
+                onChange={(e) =>
+                  setMilestoneForm((prev) => ({ ...prev, version: e.target.value }))
+                }
                 disabled={busy}
               />
             </div>
@@ -854,9 +884,9 @@ export function MindMapPanel({
               <Button
                 type="primary"
                 htmlType="submit"
-                disabled={busy || !milestoneTitle.trim()}
+                disabled={busy || !milestoneForm.title.trim()}
               >
-                创建
+                {milestoneModal?.mode === "edit" ? "保存" : "创建"}
               </Button>
             </Space>
           </Space>
@@ -934,7 +964,7 @@ export function MindMapPanel({
                       disabled={busy}
                       onClick={() => setCreateMilestoneId(m.id)}
                     >
-                      {m.title}
+                      {milestoneFullLabel(m)}
                     </MilestoneChip>
                   ))}
                 </div>

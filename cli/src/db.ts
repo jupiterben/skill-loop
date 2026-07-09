@@ -166,6 +166,31 @@ export class LoopStateDb {
     );
   }
 
+  private normalizeMilestoneTargetDate(value: string | undefined): string | undefined {
+    if (value === undefined) return undefined;
+    const trimmed = value.trim();
+    if (!trimmed) return undefined;
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(trimmed)) {
+      throw new Error("targetDate 须为 ISO 日期格式 YYYY-MM-DD");
+    }
+    const [year, month, day] = trimmed.split("-").map(Number);
+    const date = new Date(Date.UTC(year, month - 1, day));
+    if (
+      date.getUTCFullYear() !== year ||
+      date.getUTCMonth() !== month - 1 ||
+      date.getUTCDate() !== day
+    ) {
+      throw new Error("targetDate 不是有效日期");
+    }
+    return trimmed;
+  }
+
+  private normalizeMilestoneVersion(value: string | undefined): string | undefined {
+    if (value === undefined) return undefined;
+    const trimmed = value.trim();
+    return trimmed || undefined;
+  }
+
   addMilestone(
     projectName: string,
     input: Omit<Milestone, "id" | "sortOrder"> & {
@@ -180,11 +205,16 @@ export class LoopStateDb {
       input.sortOrder ??
       (existing.length ? Math.max(...existing.map((m) => m.sortOrder)) + 1 : 0);
 
+    const targetDate = this.normalizeMilestoneTargetDate(input.targetDate);
+    const version = this.normalizeMilestoneVersion(input.version);
+
     const milestone: Milestone = {
       id,
       title: input.title,
       description: input.description ?? "",
       sortOrder,
+      ...(targetDate ? { targetDate } : {}),
+      ...(version ? { version } : {}),
     };
     writeEntity(getMilestonesDir(this.projectRoot), milestone);
     this.touchProject();
@@ -194,7 +224,12 @@ export class LoopStateDb {
   updateMilestone(
     projectName: string,
     milestoneId: string,
-    patch: { title?: string; description?: string }
+    patch: {
+      title?: string;
+      description?: string;
+      targetDate?: string;
+      version?: string;
+    }
   ): Milestone {
     this.assertProject(projectName);
     const existing = this.getMilestones(projectName);
@@ -205,13 +240,20 @@ export class LoopStateDb {
       throw new Error("title 不能为空");
     }
 
-    const updated: Milestone = {
-      ...cur,
-      ...(patch.title !== undefined ? { title: patch.title.trim() } : {}),
-      ...(patch.description !== undefined
-        ? { description: patch.description }
-        : {}),
-    };
+    const updated: Milestone = { ...cur };
+    if (patch.title !== undefined) updated.title = patch.title.trim();
+    if (patch.description !== undefined) updated.description = patch.description;
+    if (patch.targetDate !== undefined) {
+      const targetDate = this.normalizeMilestoneTargetDate(patch.targetDate);
+      if (targetDate) updated.targetDate = targetDate;
+      else delete updated.targetDate;
+    }
+    if (patch.version !== undefined) {
+      const version = this.normalizeMilestoneVersion(patch.version);
+      if (version) updated.version = version;
+      else delete updated.version;
+    }
+
     writeEntity(getMilestonesDir(this.projectRoot), updated);
     this.touchProject();
     return updated;

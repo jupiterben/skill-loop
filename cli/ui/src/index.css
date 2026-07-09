@@ -3083,6 +3083,16 @@ body {
   white-space: nowrap;
 }
 
+.mm-chip__meta {
+  font-size: 0.68rem;
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+.mm-chip--on .mm-chip__meta {
+  color: color-mix(in srgb, var(--accent) 72%, var(--muted));
+}
+
 .mm-chip--add {
   border-style: dashed;
   color: var(--muted);

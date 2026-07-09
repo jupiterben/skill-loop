@@ -282,19 +282,36 @@ const COMMANDS: Record<string, Handler> = {
     return db.addMilestone(projectName(db, parsed), {
       title,
       description: flagStr(parsed.flags, "description", "desc") ?? "",
+      targetDate: flagStr(parsed.flags, "target-date", "targetDate"),
+      version: flagStr(parsed.flags, "version"),
     });
   },
 
   "update-milestone"(db, _root, parsed) {
     const milestoneId =
       parsed.positional[0] ?? flagStr(parsed.flags, "milestone-id", "id");
-    if (!milestoneId) fail("用法: loop-cli update-milestone MS-001 [--title \"...\"]");
-    const patch: { title?: string; description?: string } = {};
+    if (!milestoneId) {
+      fail(
+        "用法: loop-cli update-milestone MS-001 [--title \"...\"] [--target-date YYYY-MM-DD] [--version v0.1]"
+      );
+    }
+    const patch: {
+      title?: string;
+      description?: string;
+      targetDate?: string;
+      version?: string;
+    } = {};
     const title = flagStr(parsed.flags, "title");
     const description = flagStr(parsed.flags, "description", "desc");
+    const targetDate = flagStr(parsed.flags, "target-date", "targetDate");
+    const version = flagStr(parsed.flags, "version");
     if (title !== undefined) patch.title = title;
     if (description !== undefined) patch.description = description;
-    if (!Object.keys(patch).length) fail("至少提供 --title 或 --description");
+    if (targetDate !== undefined) patch.targetDate = targetDate;
+    if (version !== undefined) patch.version = version;
+    if (!Object.keys(patch).length) {
+      fail("至少提供 --title、--description、--target-date 或 --version");
+    }
     return db.updateMilestone(projectName(db, parsed), milestoneId, patch);
   },
 
@@ -483,8 +500,8 @@ function printHelp(): void {
   update-feature <FT-xxx> [--title "..."] [--description "..."]
   move-story <US-xxx> --parent-id FT-004
   delete-story <US-xxx>
-  add-milestone --title "..."
-  update-milestone <MS-xxx> [--title "..."] [--description "..."]
+  add-milestone --title "..." [--target-date YYYY-MM-DD] [--version v0.1]
+  update-milestone <MS-xxx> [--title "..."] [--description "..."] [--target-date YYYY-MM-DD] [--version v0.1]
   update-project [--description "..."] [--branch "..."] [--vision "..."]
 
 循环:

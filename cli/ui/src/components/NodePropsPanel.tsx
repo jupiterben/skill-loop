@@ -29,6 +29,7 @@ import {
 } from "../lib/deletable";
 import { MILESTONE_NONE_LABEL } from "../lib/treeFilter";
 import { MilestoneChip } from "./MilestoneChip";
+import { milestoneFullLabel } from "../features/milestones/milestoneLabel";
 import { useSyncedStoryFields } from "../hooks/useSyncedStoryFields";
 import { PropsSectionCollapse } from "./PropsSectionCollapse";
 import { featureChildStories } from "../features/mindmap-props/featureChildStories";
@@ -637,12 +638,12 @@ function StorySectionsPanel({
                     disabled={busy}
                     onClick={() => onAssignMilestone(story.id, m.id)}
                   >
-                    {m.title}
+                    {milestoneFullLabel(m)}
                   </MilestoneChip>
                 ))}
               </div>
             ) : milestone ? (
-              <Text>{milestone.title}</Text>
+              <Text>{milestoneFullLabel(milestone)}</Text>
             ) : (
               <Text type="secondary">—</Text>
             )}

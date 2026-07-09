@@ -44,6 +44,9 @@ export async function handleApiMutation(
       const milestone = db.addMilestone(projectName, {
         title,
         description: String(body.description ?? ""),
+        targetDate:
+          body.targetDate !== undefined ? String(body.targetDate) : undefined,
+        version: body.version !== undefined ? String(body.version) : undefined,
       });
       json(res, { ok: true, milestone });
       return true;
@@ -52,12 +55,23 @@ export async function handleApiMutation(
     if (req.method === "PATCH" && pathname === "/api/milestones") {
       const id = String(body.id ?? "");
       if (!id) throw new Error("id 必填");
-      const patch: { title?: string; description?: string } = {};
+      const patch: {
+        title?: string;
+        description?: string;
+        targetDate?: string;
+        version?: string;
+      } = {};
       if (body.title !== undefined) {
         patch.title = String(body.title).trim();
       }
       if (body.description !== undefined) {
         patch.description = String(body.description);
+      }
+      if (body.targetDate !== undefined) {
+        patch.targetDate = String(body.targetDate);
+      }
+      if (body.version !== undefined) {
+        patch.version = String(body.version);
       }
       const milestone = db.updateMilestone(projectName, id, patch);
       json(res, { ok: true, milestone });
@@ -67,12 +81,23 @@ export async function handleApiMutation(
     if (req.method === "POST" && pathname === "/api/milestones/update") {
       const id = String(body.id ?? "");
       if (!id) throw new Error("id 必填");
-      const patch: { title?: string; description?: string } = {};
+      const patch: {
+        title?: string;
+        description?: string;
+        targetDate?: string;
+        version?: string;
+      } = {};
       if (body.title !== undefined) {
         patch.title = String(body.title).trim();
       }
       if (body.description !== undefined) {
         patch.description = String(body.description);
+      }
+      if (body.targetDate !== undefined) {
+        patch.targetDate = String(body.targetDate);
+      }
+      if (body.version !== undefined) {
+        patch.version = String(body.version);
       }
       const milestone = db.updateMilestone(projectName, id, patch);
       json(res, { ok: true, milestone });

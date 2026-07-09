@@ -32,9 +32,20 @@ const del = async (path: string, body: Record<string, unknown>) => {
 };
 
 export const api = {
-  addMilestone: (title: string) => post("/api/milestones", { title }),
-  updateMilestone: (id: string, title: string) =>
-    post("/api/milestones/update", { id, title }),
+  addMilestone: (input: {
+    title: string;
+    targetDate?: string;
+    version?: string;
+  }) => post("/api/milestones", input),
+  updateMilestone: (
+    id: string,
+    patch: {
+      title?: string;
+      description?: string;
+      targetDate?: string;
+      version?: string;
+    }
+  ) => post("/api/milestones/update", { id, ...patch }),
   addFeature: (input: { title: string; parentId?: string | null }) =>
     post("/api/features", input),
   updateFeature: (input: {
