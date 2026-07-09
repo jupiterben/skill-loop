@@ -43,7 +43,7 @@ describe("项目初始化与状态查询", () => {
     expect(raw.updatedAt).toMatch(/^\d{4}-\d{2}-\d{2}T/);
   });
 
-  it("init 更新已有项目时刷新 updatedAt", () => {
+  it("init 更新已有项目时刷新 updatedAt", async () => {
     const root = createEmptyRoot();
     const db = new LoopStateDb(root);
     db.upsertProject({
@@ -53,6 +53,8 @@ describe("项目初始化与状态查询", () => {
     });
     const first = JSON.parse(readFileSync(getProjectFile(root), "utf8"))
       .updatedAt as string;
+
+    await new Promise((resolve) => setTimeout(resolve, 5));
 
     db.upsertProject({
       name: "demo",

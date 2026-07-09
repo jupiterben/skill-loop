@@ -6,6 +6,7 @@
  * LOOP_PROJECT_ROOT=... loop-cli complete US-001
  */
 import { LoopStateDb } from "./db.js";
+import { isStoryWorkType } from "./story-work-type.js";
 import { getProjectName } from "./get-project-name.js";
 import {
   flagNum,
@@ -177,6 +178,9 @@ const COMMANDS: Record<string, Handler> = {
     if (!title) fail("缺少 --title");
     const name = projectName(db, parsed);
     const ready = parsed.flags.ready === true;
+    const workTypeRaw = flagStr(parsed.flags, "work-type", "workType");
+    const workType =
+      workTypeRaw && isStoryWorkType(workTypeRaw) ? workTypeRaw : undefined;
     return db.addStory(name, {
       parentId: flagStr(parsed.flags, "parent-id") ?? null,
       milestoneId: flagStr(parsed.flags, "milestone-id") ?? null,
@@ -190,6 +194,7 @@ const COMMANDS: Record<string, Handler> = {
       priority: flagNum(parsed.flags, "priority") ?? 0,
       notes: flagStr(parsed.flags, "notes") ?? "",
       status: ready ? "ready" : "draft",
+      ...(workType ? { workType } : {}),
     });
   },
 
@@ -247,6 +252,7 @@ const COMMANDS: Record<string, Handler> = {
     const patch: {
       title?: string;
       description?: string;
+      workType?: import("./types.js").StoryWorkType;
       acceptanceCriteria?: string[];
       changeNote?: string;
       status: "draft" | "ready";
@@ -254,17 +260,27 @@ const COMMANDS: Record<string, Handler> = {
     const title = flagStr(parsed.flags, "title");
     const description = flagStr(parsed.flags, "description", "desc");
     const changeNote = flagStr(parsed.flags, "change-note", "note");
+    const workTypeRaw = flagStr(parsed.flags, "work-type", "workType");
     const ac = repeatValues(parsed.repeats, "ac", "acceptance-criteria");
     if (title !== undefined) patch.title = title;
     if (description !== undefined) patch.description = description;
     if (changeNote !== undefined) patch.changeNote = changeNote;
+    if (workTypeRaw !== undefined) {
+      if (!isStoryWorkType(workTypeRaw)) {
+        fail(
+          "work-type 必须为 implementation、documentation、planning、testing 或 refactor"
+        );
+      }
+      patch.workType = workTypeRaw;
+    }
     if (ac.length) patch.acceptanceCriteria = ac;
     if (
       patch.title === undefined &&
       patch.description === undefined &&
+      patch.workType === undefined &&
       !patch.acceptanceCriteria?.length
     ) {
-      fail("至少提供 --title、--description 或 --ac");
+      fail("至少提供 --title、--description、--work-type 或 --ac");
     }
     return db.updateStory(projectName(db, parsed), storyId, patch);
   },

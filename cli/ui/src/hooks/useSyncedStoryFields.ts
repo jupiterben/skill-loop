@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { UserStory } from "../types";
+import { normalizeStoryWorkType } from "../features/story-work-type/storyWorkType";
 import {
   acceptanceCriteriaEqual,
   formatAcceptanceCriteria,
@@ -9,6 +10,7 @@ import {
 export function useSyncedStoryFields(story: UserStory) {
   const [title, setTitle] = useState(story.title);
   const [description, setDescription] = useState(story.description);
+  const [workType, setWorkType] = useState(story.workType);
   const [acceptanceCriteria, setAcceptanceCriteria] = useState(() =>
     formatAcceptanceCriteria(story.acceptanceCriteria)
   );
@@ -23,6 +25,7 @@ export function useSyncedStoryFields(story: UserStory) {
   const dirty =
     title.trim() !== story.title ||
     description !== story.description ||
+    workType !== story.workType ||
     !acceptanceCriteriaEqual(parsedAcceptanceCriteria, story.acceptanceCriteria);
 
   useEffect(() => {
@@ -30,6 +33,7 @@ export function useSyncedStoryFields(story: UserStory) {
       storyIdRef.current = story.id;
       setTitle(story.title);
       setDescription(story.description);
+      setWorkType(story.workType);
       setAcceptanceCriteria(formatAcceptanceCriteria(story.acceptanceCriteria));
       setChangeNote("");
       return;
@@ -37,11 +41,13 @@ export function useSyncedStoryFields(story: UserStory) {
     if (dirty) return;
     setTitle(story.title);
     setDescription(story.description);
+    setWorkType(story.workType);
     setAcceptanceCriteria(formatAcceptanceCriteria(story.acceptanceCriteria));
   }, [
     story.id,
     story.title,
     story.description,
+    story.workType,
     story.acceptanceCriteria,
     dirty,
   ]);
@@ -53,6 +59,8 @@ export function useSyncedStoryFields(story: UserStory) {
     setTitle,
     description,
     setDescription,
+    workType,
+    setWorkType,
     acceptanceCriteria,
     setAcceptanceCriteria,
     changeNote,

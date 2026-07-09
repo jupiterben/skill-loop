@@ -1,3 +1,4 @@
+import { normalizeStoryWorkType } from "./story-work-type.js";
 import type {
   Feature,
   Milestone,
@@ -8,10 +9,11 @@ import type {
 } from "./types.js";
 
 export function normalizeUserStory(story: UserStory): UserStory {
-  const raw = story as UserStory & { status?: StoryStatus };
+  const raw = story as UserStory & { status?: StoryStatus; workType?: UserStory["workType"] };
   const everCompleted = Boolean(raw.everCompleted ?? raw.passes);
   return {
     ...story,
+    workType: normalizeStoryWorkType(raw.workType, story.description),
     status: raw.status ?? "ready",
     everCompleted,
     removalRequestedAt: story.removalRequestedAt ?? null,

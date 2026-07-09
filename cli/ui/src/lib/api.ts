@@ -90,6 +90,7 @@ export const api = {
     storyId: string;
     title?: string;
     description?: string;
+    workType?: import("../types").StoryWorkType;
     acceptanceCriteria?: string[];
     changeNote?: string;
     status?: "draft" | "ready";

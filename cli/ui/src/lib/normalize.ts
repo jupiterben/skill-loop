@@ -1,3 +1,4 @@
+import { normalizeStoryWorkType } from "../features/story-work-type/storyWorkType";
 import type {
   DashboardData,
   Feature,
@@ -5,6 +6,7 @@ import type {
   ProjectStatus,
   RunLiveState,
   StoryDependency,
+  StoryWorkType,
   TreeNode,
   UserStory,
 } from "../types";
@@ -122,6 +124,10 @@ function normalizeStory(raw: Record<string, unknown>, index: number): UserStory 
     dependsOn: Array.isArray(raw.dependsOn) ? (raw.dependsOn as string[]) : [],
     title: String(raw.title ?? ""),
     description: String(raw.description ?? ""),
+    workType: normalizeStoryWorkType(
+      raw.workType as StoryWorkType | undefined,
+      String(raw.description ?? "")
+    ),
     acceptanceCriteria: Array.isArray(raw.acceptanceCriteria)
       ? (raw.acceptanceCriteria as string[])
       : [],

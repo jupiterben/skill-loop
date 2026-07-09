@@ -2,6 +2,7 @@ import type { IncomingMessage, ServerResponse } from "node:http";
 import type { LoopStateDb } from "./db.js";
 import { getProjectName } from "./get-project-name.js";
 import { finishRunLiveForStory } from "./run-live.js";
+import { isStoryWorkType } from "./story-work-type.js";
 
 function json(res: ServerResponse, data: unknown, status = 200): void {
   res.writeHead(status, {
@@ -313,6 +314,7 @@ export async function handleApiMutation(
       const patch: {
         title?: string;
         description?: string;
+        workType?: import("./types.js").StoryWorkType;
         acceptanceCriteria?: string[];
         changeNote?: string;
         status?: "draft" | "ready";
@@ -320,6 +322,15 @@ export async function handleApiMutation(
       if (body.title !== undefined) patch.title = String(body.title);
       if (body.description !== undefined) {
         patch.description = String(body.description);
+      }
+      if (body.workType !== undefined) {
+        const workType = String(body.workType);
+        if (!isStoryWorkType(workType)) {
+          throw new Error(
+            "workType 必须为 implementation、documentation、planning、testing 或 refactor"
+          );
+        }
+        patch.workType = workType;
       }
       if (body.acceptanceCriteria !== undefined) {
         if (!Array.isArray(body.acceptanceCriteria)) {

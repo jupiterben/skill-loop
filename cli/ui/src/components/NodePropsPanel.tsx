@@ -7,6 +7,7 @@ import {
   InputNumber,
   List,
   Modal,
+  Select,
   Space,
   Tag,
   Typography,
@@ -17,6 +18,7 @@ import type {
   ProgressEntry,
   SelectedMindMapNode,
   StoryDependency,
+  StoryWorkType,
   UserStory,
 } from "../types";
 import {
@@ -35,6 +37,7 @@ import { useSyncedStoryFields } from "../hooks/useSyncedStoryFields";
 import { PropsSectionCollapse } from "./PropsSectionCollapse";
 import { featureChildStories } from "../features/mindmap-props/featureChildStories";
 import { EMPTY_LEAF_FEATURE_HINT } from "../features/mindmap-props/emptyLeafFeature";
+import { STORY_WORK_TYPE_OPTIONS } from "../features/story-work-type/storyWorkType";
 
 const { Text } = Typography;
 const { TextArea } = Input;
@@ -62,6 +65,7 @@ interface Props {
     storyId: string;
     title: string;
     description: string;
+    workType: StoryWorkType;
     acceptanceCriteria: string[];
     changeNote?: string;
     status: "draft" | "ready";
@@ -415,6 +419,8 @@ function StorySectionsPanel({
     setDescription,
     acceptanceCriteria,
     setAcceptanceCriteria,
+    workType,
+    setWorkType,
     changeNote,
     setChangeNote,
     parsedAcceptanceCriteria,
@@ -438,6 +444,7 @@ function StorySectionsPanel({
       storyId: story.id,
       title: title.trim(),
       description,
+      workType,
       acceptanceCriteria: parsedAcceptanceCriteria,
       changeNote: changeNote.trim() || undefined,
       status,
@@ -480,6 +487,18 @@ function StorySectionsPanel({
               value={description}
               disabled={busy}
               onChange={(e) => setDescription(e.target.value)}
+            />
+          </div>
+          <div className="props-field">
+            <Text type="secondary" className="props-field__label">
+              类型
+            </Text>
+            <Select
+              value={workType}
+              disabled={busy}
+              options={STORY_WORK_TYPE_OPTIONS}
+              onChange={(value: StoryWorkType) => setWorkType(value)}
+              style={{ width: "100%" }}
             />
           </div>
           <div className="props-field">

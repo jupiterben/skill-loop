@@ -19,6 +19,13 @@ export interface Feature {
 
 export type StoryStatus = "draft" | "ready";
 
+export type StoryWorkType =
+  | "implementation"
+  | "documentation"
+  | "planning"
+  | "testing"
+  | "refactor";
+
 export interface UserStory {
   id: string;
   milestoneId: string | null;
@@ -26,6 +33,7 @@ export interface UserStory {
   dependsOn: string[];
   title: string;
   description: string;
+  workType: StoryWorkType;
   acceptanceCriteria: string[];
   priority: number;
   passes: boolean;

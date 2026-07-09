@@ -9,6 +9,11 @@ import {
   withStateLock,
 } from "./json-fs.js";
 import {
+  normalizeStoryWorkType,
+  STORY_WORK_TYPE_LABELS,
+  type StoryWorkType,
+} from "./story-work-type.js";
+import {
   getFeaturesDir,
   getMilestonesDir,
   getPatternsFile,
@@ -766,7 +771,13 @@ export class LoopStateDb {
     projectName: string,
     story: Omit<
       UserStory,
-      "id" | "passes" | "sortOrder" | "archivedAt" | "removalRequestedAt" | "status"
+      | "id"
+      | "passes"
+      | "sortOrder"
+      | "archivedAt"
+      | "removalRequestedAt"
+      | "status"
+      | "workType"
     > & {
       id?: string;
       passes?: boolean;
@@ -774,6 +785,7 @@ export class LoopStateDb {
       archivedAt?: string | null;
       removalRequestedAt?: string | null;
       status?: UserStory["status"];
+      workType?: StoryWorkType;
     }
   ): UserStory {
     this.assertProject(projectName);
@@ -811,6 +823,7 @@ export class LoopStateDb {
       dependsOn,
       title: story.title,
       description: story.description,
+      workType: normalizeStoryWorkType(story.workType, story.description),
       acceptanceCriteria: story.acceptanceCriteria,
       priority,
       passes: story.passes ?? false,
@@ -935,6 +948,7 @@ export class LoopStateDb {
     patch: {
       title?: string;
       description?: string;
+      workType?: StoryWorkType;
       acceptanceCriteria?: string[];
       changeNote?: string;
       status?: UserStory["status"];
@@ -948,10 +962,15 @@ export class LoopStateDb {
       patch.title !== undefined ? patch.title.trim() : story.title;
     const description =
       patch.description !== undefined ? patch.description : story.description;
+    const workType =
+      patch.workType !== undefined
+        ? normalizeStoryWorkType(patch.workType, description)
+        : story.workType;
     if (!title) throw new Error("title 不能为空");
 
     const titleChanged = title !== story.title;
     const descChanged = description !== story.description;
+    const workTypeChanged = workType !== story.workType;
     const acChanged =
       patch.acceptanceCriteria !== undefined &&
       JSON.stringify(patch.acceptanceCriteria) !==
@@ -963,6 +982,7 @@ export class LoopStateDb {
     if (
       !titleChanged &&
       !descChanged &&
+      !workTypeChanged &&
       !acChanged &&
       !wasPassed &&
       !statusChanged
@@ -985,6 +1005,7 @@ export class LoopStateDb {
       ...story,
       title,
       description,
+      workType,
       ...(patch.acceptanceCriteria !== undefined
         ? { acceptanceCriteria: patch.acceptanceCriteria }
         : {}),
@@ -1010,6 +1031,11 @@ export class LoopStateDb {
     }
     if (descChanged) {
       summaryParts.push(`描述：${description}`);
+    }
+    if (workTypeChanged) {
+      summaryParts.push(
+        `类型：${STORY_WORK_TYPE_LABELS[story.workType]}→${STORY_WORK_TYPE_LABELS[workType]}`
+      );
     }
     if (acChanged && patch.acceptanceCriteria) {
       summaryParts.push(`验收标准：${patch.acceptanceCriteria.join("；")}`);

@@ -10,6 +10,7 @@ function story(
     dependsOn: [],
     title: partial.id,
     description: "",
+    workType: "implementation",
     acceptanceCriteria: [],
     priority: 0,
     passes: false,
