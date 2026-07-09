@@ -66,10 +66,20 @@ cd cli && pnpm install && pnpm build
 .\dev.ps1                         # 同上 dev 快捷方式
 ```
 
+## 需求规划
+
+```powershell
+.\loop.ps1 plan --requirement "拆分登录模块"
+.\loop.ps1 plan --story-id US-003 --requirement "细化 AC"
+```
+
+单次调用规划 Agent，读取 `PLANNER.md`（可用 `LOOP_PLANNER_PROMPT` 或 `loop-data/PLANNER.md` 覆盖），输出 PRD 调整建议，不直接修改代码。
+
 ## 日常命令
 
 | 命令 | 作用 |
 |------|------|
+| `.\loop.ps1 plan --requirement "..."` | 需求规划 Agent |
 | `.\loop.ps1 status` | 查看进度 |
 | `.\loop.ps1 next` | 下一个 Story |
 | `.\loop.ps1 complete US-xxx` | 标记完成 |

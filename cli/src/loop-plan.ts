@@ -22,7 +22,7 @@ export type PlanResult = {
   output: string;
 };
 
-function resolvePlannerPromptPath(projectRoot: string): string {
+export function resolvePlannerPromptPath(projectRoot: string): string {
   const custom = process.env.LOOP_PLANNER_PROMPT?.trim();
   if (custom && existsSync(custom)) return custom;
 
@@ -32,7 +32,7 @@ function resolvePlannerPromptPath(projectRoot: string): string {
   return join(getPackageRoot(), "templates", "PLANNER.md");
 }
 
-function buildPrompt(
+export function buildPlannerPrompt(
   basePath: string,
   input: { storyId?: string; requirement?: string }
 ): string {
@@ -145,7 +145,7 @@ export async function runPlan(
     status.currentStory?.id ||
     null;
 
-  const prompt = buildPrompt(promptPath, {
+  const prompt = buildPlannerPrompt(promptPath, {
     storyId: storyId ?? undefined,
     requirement: options.requirement?.trim(),
   });

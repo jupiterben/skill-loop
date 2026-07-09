@@ -38,6 +38,18 @@ pnpm loop run --workers 3 --until-stop --tool agent   # 3 个并行 worker（git
 
 提示词：`loop-data/AGENT.md`（可覆盖）或 CLI 内置 `templates/AGENT.md`。
 
+## 需求规划
+
+单次调用规划 Agent，将自然语言需求转为 Feature / Story 调整建议（**不直接改代码**）：
+
+```powershell
+pnpm loop plan --requirement "把登录拆成前端表单与后端 API"
+pnpm loop plan --story-id US-003 --requirement "细化验收标准"
+pnpm loop plan --tool claude --requirement "新增 3D 展示模块"
+```
+
+提示词优先级：`LOOP_PLANNER_PROMPT` 环境变量 → `loop-data/PLANNER.md` → 内置 `templates/PLANNER.md`。
+
 ## 每轮迭代（手动）
 
 ```powershell
@@ -71,6 +83,7 @@ pnpm loop end-run --run-id 1 --status completed
 | `pnpm loop add-story --title "..." --ready` | 添加并直接可执行 |
 | `pnpm loop bug US-xxx "缺陷描述"` | 追加 Bug 反例 AC（推荐） |
 | `pnpm loop add-feature --title "..."` | 添加 Feature 分组 |
+| `pnpm loop plan [--tool agent] [--story-id US-xxx] [--requirement "..."]` | 单次规划 Agent（读 PLANNER.md，输出 PRD 建议，不改代码） |
 | `pnpm loop watch [--tool agent]` | 持续外循环（全部完成后仍监听，不退出的） |
 | `pnpm loop run [--tool agent] [N]` | 外循环自动迭代（有限轮数） |
 | `pnpm loop run --workers 3` | 并行 Agent（worktree + Story 认领） |
