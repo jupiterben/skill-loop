@@ -64,6 +64,7 @@ import MindMapNode from "./MindMapNode";
 import DepEdge from "./DepEdge";
 import { Modal } from "./Modal";
 import { NodePropsPanel } from "./NodePropsPanel";
+import { DraftStoriesBanner } from "./DraftStoriesBanner";
 import { ProjectTreeView } from "./ProjectTreeView";
 import { useSplitSizes } from "../hooks/useSplitSizes";
 import { FitViewOnLoad } from "./FitViewOnLoad";
@@ -173,6 +174,11 @@ export function MindMapPanel({
     null
   );
   const flowNodesLayoutRef = useRef<Node<MindMapNodeData>[]>([]);
+
+  const draftStories = useMemo(
+    () => userStories.filter((s) => !s.passes && s.status === "draft"),
+    [userStories]
+  );
 
   const { sizes: mindmapSizes, onResizeEnd: onMindmapSplitEnd } = useSplitSizes(
     "loop-mindmap-split",
@@ -1041,6 +1047,13 @@ export function MindMapPanel({
                     setSelectedDepEdgeId(null);
                     setSelected({ id, kind });
                   }}
+                />
+                <DraftStoriesBanner
+                  stories={draftStories}
+                  onConfirmStory={(storyId) =>
+                    run(() => api.confirmStory(storyId))
+                  }
+                  busy={busy}
                 />
               </div>
             </Splitter.Panel>

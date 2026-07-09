@@ -2,7 +2,6 @@ import { useCallback, useState } from "react";
 import { Splitter, Spin } from "antd";
 import { useSplitSizes } from "./hooks/useSplitSizes";
 import { AppToolbar } from "./components/AppToolbar";
-import { DraftStoriesBanner } from "./components/DraftStoriesBanner";
 import { MindMapPanel } from "./components/MindMapPanel";
 import { AgentLivePanel } from "./components/AgentLivePanel";
 import { PatternsPanel } from "./features/patterns/PatternsPanel";
@@ -18,7 +17,6 @@ import { isLoopProcessRunning, resolveRunningStoryIds } from "./lib/runningStori
 
 export function App() {
   const { data, error, refresh } = useDashboard();
-  const [confirmBusy, setConfirmBusy] = useState(false);
   const [patternsBusy, setPatternsBusy] = useState(false);
   const [specBusy, setSpecBusy] = useState(false);
   const [metaBusy, setMetaBusy] = useState(false);
@@ -28,19 +26,6 @@ export function App() {
   );
   const { sizes: workspaceSizes, onResizeEnd: onWorkspaceSplitEnd } =
     useSplitSizes("loop-workspace-split", [72, 28]);
-
-  const handleConfirmStory = useCallback(
-    async (storyId: string) => {
-      setConfirmBusy(true);
-      try {
-        await api.confirmStory(storyId);
-        await refresh();
-      } finally {
-        setConfirmBusy(false);
-      }
-    },
-    [refresh]
-  );
 
   const handleAddPattern = useCallback(
     async (content: string) => {
@@ -156,9 +141,6 @@ export function App() {
   }
 
   const { status, tree, features, userStories, archivedStories, milestones, dependencies, patterns, projectSpec, projectSpecTemplates, progress, runs } = data;
-  const draftStories = userStories.filter(
-    (s) => !s.passes && s.status === "draft"
-  );
   const pct = status.totalStories
     ? Math.round((status.completedStories / status.totalStories) * 100)
     : 0;
@@ -218,13 +200,6 @@ export function App() {
 
         <Splitter.Panel min={360} className="app-body-splitter__workspace">
           <div className="app-workspace">
-            {draftStories.length > 0 && (
-              <DraftStoriesBanner
-                stories={draftStories}
-                onConfirmStory={handleConfirmStory}
-                busy={confirmBusy}
-              />
-            )}
             <Splitter
               className="app-workspace-splitter"
               orientation="vertical"
