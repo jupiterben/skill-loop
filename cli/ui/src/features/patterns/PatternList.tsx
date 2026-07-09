@@ -1,6 +1,7 @@
 import { useState } from "react";
-import { Button, Input, List, Modal, Space, Typography } from "antd";
-import { Modal as LoopModal } from "./Modal";
+import { Button, Input, Modal, Space, Typography } from "antd";
+import { Modal as LoopModal } from "../../components/Modal";
+import { needsExpand, patternPreview } from "./patternPreview";
 
 const { Text } = Typography;
 const { TextArea } = Input;
@@ -13,7 +14,7 @@ interface Props {
   onDelete?: (index: number) => Promise<void>;
 }
 
-export function Patterns({
+export function PatternList({
   patterns = [],
   busy = false,
   onAdd,
@@ -24,6 +25,7 @@ export function Patterns({
   const [editValue, setEditValue] = useState("");
   const [addOpen, setAddOpen] = useState(false);
   const [addValue, setAddValue] = useState("");
+  const [expanded, setExpanded] = useState<Record<number, boolean>>({});
   const canMutate = Boolean(onAdd && onUpdate && onDelete);
 
   const openEdit = (index: number) => {
@@ -67,6 +69,10 @@ export function Patterns({
     });
   };
 
+  const toggleExpand = (index: number) => {
+    setExpanded((prev) => ({ ...prev, [index]: !prev[index] }));
+  };
+
   return (
     <div className="patterns-panel__body">
       {canMutate && (
@@ -83,54 +89,69 @@ export function Patterns({
       )}
 
       {!patterns.length ? (
-        <Text type="secondary" className="patterns-panel__empty">
-          暂无模式记录
-        </Text>
+        <div className="patterns-panel__empty">
+          <Text type="secondary">暂无模式记录</Text>
+          <Text type="secondary" className="patterns-panel__empty-hint">
+            Agent 完成 Story 后会自动写入可复用约定
+          </Text>
+        </div>
       ) : (
-        <List
-          className="pattern-list"
-          size="small"
-          dataSource={patterns}
-          renderItem={(p, i) => (
-            <List.Item
-              key={`${i}-${p.slice(0, 24)}`}
-              className="pattern-list__item"
-              actions={
-                canMutate
-                  ? [
-                      <Button
-                        key="edit"
-                        type="link"
-                        size="small"
-                        disabled={busy}
-                        onClick={() => openEdit(i)}
-                      >
-                        编辑
-                      </Button>,
-                      <Button
-                        key="delete"
-                        type="link"
-                        size="small"
-                        danger
-                        disabled={busy}
-                        onClick={() => confirmDelete(i)}
-                      >
-                        删除
-                      </Button>,
-                    ]
-                  : undefined
-              }
-            >
-              <Text className="pattern-list__text">{p}</Text>
-            </List.Item>
-          )}
-        />
+        <div className="pattern-card-list">
+          {patterns.map((content, index) => {
+            const isExpanded = expanded[index];
+            const showExpand = needsExpand(content);
+            const displayText = isExpanded ? content.trim() : patternPreview(content);
+
+            return (
+              <article
+                key={`${index}-${content.slice(0, 24)}`}
+                className="pattern-card"
+              >
+                <header className="pattern-card__head">
+                  <span className="pattern-card__index">#{index + 1}</span>
+                </header>
+                <p className="pattern-card__content">{displayText}</p>
+                {showExpand && (
+                  <Button
+                    type="link"
+                    size="small"
+                    className="pattern-card__expand"
+                    onClick={() => toggleExpand(index)}
+                  >
+                    {isExpanded ? "收起" : "展开全文"}
+                  </Button>
+                )}
+                {canMutate && (
+                  <footer className="pattern-card__actions">
+                    <Button
+                      type="default"
+                      size="small"
+                      disabled={busy}
+                      onClick={() => openEdit(index)}
+                    >
+                      编辑
+                    </Button>
+                    <Button
+                      type="default"
+                      size="small"
+                      danger
+                      disabled={busy}
+                      onClick={() => confirmDelete(index)}
+                    >
+                      删除
+                    </Button>
+                  </footer>
+                )}
+              </article>
+            );
+          })}
+        </div>
       )}
 
       <LoopModal open={addOpen} title="新增 Pattern" onClose={closeAdd}>
         <Space direction="vertical" size="middle" style={{ width: "100%" }}>
           <TextArea
-            rows={4}
+            rows={6}
             value={addValue}
             placeholder="描述可复用的编码约定…"
             disabled={busy}
@@ -158,7 +179,7 @@ export function Patterns({
       >
         <Space direction="vertical" size="middle" style={{ width: "100%" }}>
           <TextArea
-            rows={4}
+            rows={6}
             value={editValue}
             disabled={busy}
             onChange={(e) => setEditValue(e.target.value)}

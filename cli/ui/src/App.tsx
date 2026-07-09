@@ -2,10 +2,10 @@ import { useCallback, useState } from "react";
 import { Splitter, Spin } from "antd";
 import { useSplitSizes } from "./hooks/useSplitSizes";
 import { AppToolbar } from "./components/AppToolbar";
-import { ProjectCard } from "./components/ProjectCard";
+import { DraftStoriesBanner } from "./components/DraftStoriesBanner";
 import { MindMapPanel } from "./components/MindMapPanel";
 import { AgentLivePanel } from "./components/AgentLivePanel";
-import { PatternsPanel } from "./components/PatternsPanel";
+import { PatternsPanel } from "./features/patterns/PatternsPanel";
 import { ProjectSpecPanel } from "./features/project-spec/ProjectSpecPanel";
 import { ProgressPanel } from "./components/ProgressPanel";
 import { RunsPanel } from "./components/RunsPanel";
@@ -124,7 +124,10 @@ export function App() {
   if (!data) {
     return (
       <div className="app-shell app-shell--centered">
-        <Spin size="large" description="加载 Loop Dashboard…" />
+        <div className="app-loading">
+          <Spin size="large" />
+          <p className="app-loading__text">加载 Loop Dashboard…</p>
+        </div>
       </div>
     );
   }
@@ -188,9 +191,8 @@ export function App() {
         <Splitter.Panel min={360} className="app-body-splitter__workspace">
           <div className="app-workspace">
             {draftStories.length > 0 && (
-              <ProjectCard
-                status={status}
-                draftStories={draftStories}
+              <DraftStoriesBanner
+                stories={draftStories}
                 onConfirmStory={handleConfirmStory}
                 busy={confirmBusy}
               />

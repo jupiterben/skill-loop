@@ -1,5 +1,5 @@
-import { Patterns } from "./Patterns";
-import { SidebarCollapse } from "./SidebarCollapse";
+import { CollapsiblePanel } from "../../components/CollapsiblePanel";
+import { PatternList } from "./PatternList";
 
 const STORAGE_KEY = "loop-patterns-panel-open";
 
@@ -19,20 +19,21 @@ export function PatternsPanel({
   onDelete,
 }: Props) {
   return (
-    <SidebarCollapse
+    <CollapsiblePanel
       storageKey={STORAGE_KEY}
       defaultOpen
       title="Codebase Patterns"
       count={patterns.length}
       className="patterns-panel"
+      bodyClassName="patterns-panel__scroll"
     >
-      <Patterns
+      <PatternList
         patterns={patterns}
         busy={busy}
         onAdd={onAdd}
         onUpdate={onUpdate}
         onDelete={onDelete}
       />
-    </SidebarCollapse>
+    </CollapsiblePanel>
   );
 }
