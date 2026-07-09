@@ -960,7 +960,87 @@
         "Story workType 用 features/story-work-type 模块；历史数据无字段时从「类型：」前缀推断"
       ],
       "id": 127
+    },
+    {
+      "storyId": "US-018",
+      "entryDate": "2026-07-09",
+      "summary": "验证 Story 执行命令：confirm/unconfirm/complete/progress 已实现，completeStoryWithProgress 自动生成完成进度，story-execution 回归测试 46/46 通过",
+      "learnings": [],
+      "id": 128
+    },
+    {
+      "storyId": "US-018",
+      "entryDate": "2026-07-09",
+      "summary": "Story 执行命令建档完成",
+      "learnings": [
+        "complete 命令统一走 completeStoryWithProgress，自动写入 passes 与进度记录；测试放 features/story-execution"
+      ],
+      "id": 129
+    },
+    {
+      "storyId": "US-020",
+      "entryDate": "2026-07-09",
+      "summary": "Story US-020 已完成",
+      "learnings": [],
+      "id": 130
+    },
+    {
+      "storyId": "US-020",
+      "entryDate": "2026-07-09",
+      "summary": "需求规划命令建档完成",
+      "learnings": [
+        "loop plan 读 PLANNER.md（LOOP_PLANNER_PROMPT → loop-data/PLANNER.md → templates）；测试放 features/plan/plan.test.ts"
+      ],
+      "id": 131
+    },
+    {
+      "storyId": "US-022",
+      "entryDate": "2026-07-09",
+      "summary": "Story US-022 已完成",
+      "learnings": [],
+      "id": 132
+    },
+    {
+      "storyId": "US-022",
+      "entryDate": "2026-07-09",
+      "summary": "Dashboard 服务管理命令建档完成",
+      "learnings": [
+        "dashboard 状态存 loop-data/dashboard.json；测试放 features/dashboard/dashboard.test.ts"
+      ],
+      "id": 133
+    },
+    {
+      "storyId": "US-023",
+      "entryDate": "2026-07-09",
+      "summary": "Story US-023 已完成",
+      "learnings": [],
+      "id": 134
+    },
+    {
+      "storyId": "US-023",
+      "entryDate": "2026-07-09",
+      "summary": "有限轮外循环执行能力建档完成",
+      "learnings": [
+        "loop run 状态：run.json 为当前外循环、runs.json 为历史；测试放 features/loop-run/loop-run.test.ts"
+      ],
+      "id": 135
+    },
+    {
+      "storyId": "US-025",
+      "entryDate": "2026-07-09",
+      "summary": "Story US-025 已完成",
+      "learnings": [],
+      "id": 136
+    },
+    {
+      "storyId": "US-025",
+      "entryDate": "2026-07-09",
+      "summary": "并行 Worker 认领能力建档完成",
+      "learnings": [
+        "并行认领：getNextStories 跳过已认领 Story；complete/release 清除 claimedBy；测试放 features/parallel-worker/parallel-worker.test.ts"
+      ],
+      "id": 137
     }
   ],
-  "nextId": 128
+  "nextId": 138
 }
