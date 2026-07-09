@@ -13,10 +13,15 @@ import {
   getRunsFile,
 } from "../../../../src/paths.js";
 import {
+  clearAllWorkerRunStates,
+  clearCoordinatorState,
   clearLoopRunState,
   getLoopRunStatus,
   readLoopRunState,
+  requestLoopRunStop,
+  writeCoordinatorState,
   writeLoopRunState,
+  writeWorkerRunState,
 } from "../../../../src/run-process.js";
 
 describe("有限轮外循环执行", () => {
@@ -183,4 +188,136 @@ describe("有限轮外循环执行", () => {
     expect(result.untilStop).toBe(false);
     expect(result.reason).toBe("所有 Story 已完成");
   });
+});
+
+describe("持续监听与优雅停止", () => {
+  const roots: string[] = [];
+
+  afterEach(() => {
+    while (roots.length) {
+      rmSync(roots.pop()!, { recursive: true, force: true });
+    }
+  });
+
+  function createProjectRoot() {
+    const root = mkdtempSync(join(tmpdir(), "loop-watch-"));
+    roots.push(root);
+    mkdirSync(join(root, "loop-data"), { recursive: true });
+    return root;
+  }
+
+  function createDb() {
+    const root = createProjectRoot();
+    const db = new LoopStateDb(root);
+    db.upsertProject({ name: "demo", branchName: "main", description: "" });
+    db.addFeature("demo", { title: "F1", description: "" });
+    const feature = db.getFeatures("demo")[0]!;
+    const story = db.addStory("demo", {
+      parentId: feature.id,
+      title: "测试 Story",
+      description: "",
+      acceptanceCriteria: ["AC"],
+      status: "ready",
+    });
+    return { db, root, story };
+  }
+
+  it("requestLoopRunStop 为 until-stop 外循环设置 stopRequested", () => {
+    const root = createProjectRoot();
+    writeLoopRunState(root, {
+      pid: process.pid,
+      tool: "agent",
+      startedAt: "2026-07-09T08:00:00.000Z",
+      mode: "until-stop",
+      stopRequested: false,
+      iteration: 3,
+    });
+
+    const result = requestLoopRunStop(root);
+    expect(result.ok).toBe(true);
+
+    const status = getLoopRunStatus(root);
+    expect(status.running).toBe(true);
+    expect(status.stopRequested).toBe(true);
+    expect(status.state?.mode).toBe("until-stop");
+    expect(status.state?.iteration).toBe(3);
+
+    clearLoopRunState(root);
+  });
+
+  it("requestLoopRunStop --worker 仅标记指定 worker，协调器 stop 停止整轮外循环", () => {
+    const root = createProjectRoot();
+    writeCoordinatorState(root, {
+      pid: process.pid,
+      tool: "agent",
+      startedAt: "2026-07-09T08:00:00.000Z",
+      mode: "until-stop",
+      stopRequested: false,
+      workers: 2,
+      workerIds: ["w0", "w1"],
+    });
+    writeWorkerRunState(root, "w0", {
+      pid: process.pid,
+      tool: "agent",
+      startedAt: "2026-07-09T08:00:00.000Z",
+      mode: "until-stop",
+      stopRequested: false,
+      iteration: 2,
+      workerId: "w0",
+    });
+    writeWorkerRunState(root, "w1", {
+      pid: process.pid,
+      tool: "agent",
+      startedAt: "2026-07-09T08:00:00.000Z",
+      mode: "until-stop",
+      stopRequested: false,
+      iteration: 2,
+      workerId: "w1",
+    });
+
+    const workerStop = requestLoopRunStop(root, "w0");
+    expect(workerStop.ok).toBe(true);
+
+    let status = getLoopRunStatus(root);
+    expect(status.stopRequested).toBe(false);
+    expect(status.coordinator?.mode).toBe("until-stop");
+    expect(status.workers.find((w) => w.workerId === "w0")?.stopRequested).toBe(
+      true
+    );
+    expect(status.workers.find((w) => w.workerId === "w1")?.stopRequested).toBe(
+      false
+    );
+
+    const wholeStop = requestLoopRunStop(root);
+    expect(wholeStop.ok).toBe(true);
+    status = getLoopRunStatus(root);
+    expect(status.stopRequested).toBe(true);
+
+    clearCoordinatorState(root);
+    clearAllWorkerRunStates(root);
+  });
+
+  it("until-stop 在无 ready Story 时等待而非退出，stop 后优雅结束", async () => {
+    const { db, root } = createDb();
+    const stories = db.getStories("demo");
+    db.updateStory("demo", stories[0]!.id, { status: "draft" });
+
+    const loopPromise = runLoop(db, root, {
+      tool: "agent",
+      untilStop: true,
+      sleepMs: 30,
+      projectName: "demo",
+    });
+
+    await new Promise((r) => setTimeout(r, 100));
+    const status = getLoopRunStatus(root);
+    expect(status.running).toBe(true);
+    expect(status.state?.mode).toBe("until-stop");
+
+    requestLoopRunStop(root);
+    const result = await loopPromise;
+    expect(result.completed).toBe(false);
+    expect(result.untilStop).toBe(true);
+    expect(result.reason).toBe("用户请求停止");
+  }, 10_000);
 });
