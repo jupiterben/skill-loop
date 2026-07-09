@@ -113,7 +113,7 @@ export function resolveRunTool(preferred?: string): RunTool {
   return resolveTool(preferred);
 }
 
-function resolvePromptPath(projectRoot: string): string {
+export function resolveAgentPromptPath(projectRoot: string): string {
   const custom = process.env.LOOP_AGENT_PROMPT?.trim();
   if (custom && existsSync(custom)) return custom;
 
@@ -121,6 +121,10 @@ function resolvePromptPath(projectRoot: string): string {
   if (existsSync(inProject)) return inProject;
 
   return join(getPackageRoot(), "templates", "AGENT.md");
+}
+
+function resolvePromptPath(projectRoot: string): string {
+  return resolveAgentPromptPath(projectRoot);
 }
 
 function maybeArchivePreviousRun(
