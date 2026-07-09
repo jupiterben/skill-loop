@@ -1,4 +1,5 @@
 import { Progress, Tag, Typography } from "antd";
+import { resolveAppToolbarView } from "../features/app-toolbar/appToolbarView";
 import type { ProjectStatus } from "../types";
 
 const { Text } = Typography;
@@ -25,15 +26,19 @@ function StatPill({
 }
 
 export function AppToolbar({ status }: Props) {
-  const total = status.totalStories ?? 0;
-  const completed = status.completedStories ?? 0;
-  const pending = status.pendingStories ?? 0;
-  const blocked = status.blockedStories ?? 0;
-  const drafts = status.draftStories ?? 0;
-  const pct = total ? Math.round((completed / total) * 100) : 0;
-  const loopRunning =
-    status.activeRun?.status === "running" ||
-    (status.activeRuns?.length ?? 0) > 0;
+  const view = resolveAppToolbarView(status);
+  const {
+    project,
+    branchName,
+    completed,
+    pending,
+    blocked,
+    drafts,
+    total,
+    progressPct,
+    showRunning,
+    showComplete,
+  } = view;
 
   return (
     <header className="app-toolbar">
@@ -46,7 +51,7 @@ export function AppToolbar({ status }: Props) {
             Loop Dashboard
           </Text>
           <Text type="secondary" className="app-toolbar__project">
-            {status.project}
+            {project}
           </Text>
         </div>
       </div>
@@ -64,15 +69,15 @@ export function AppToolbar({ status }: Props) {
 
       <div className="app-toolbar__meta">
         <Tag className="app-toolbar__tag app-toolbar__tag--branch">
-          {status.branchName}
+          {branchName}
         </Tag>
-        {loopRunning && (
+        {showRunning && (
           <Tag color="processing" className="app-toolbar__tag">
             <span className="app-toolbar__live-dot" aria-hidden />
             运行中
           </Tag>
         )}
-        {status.isComplete && (
+        {showComplete && (
           <Tag color="success" className="app-toolbar__tag">
             全部完成
           </Tag>
@@ -85,11 +90,11 @@ export function AppToolbar({ status }: Props) {
             进度
           </Text>
           <Text strong className="app-toolbar__progress-pct">
-            {pct}%
+            {progressPct}%
           </Text>
         </div>
         <Progress
-          percent={pct}
+          percent={progressPct}
           size="small"
           showInfo={false}
           strokeColor={{
