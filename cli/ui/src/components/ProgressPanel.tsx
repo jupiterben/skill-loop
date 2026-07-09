@@ -1,4 +1,5 @@
 import { Typography } from "antd";
+import { sortProgressEntries } from "../features/progress/sortProgressEntries";
 import type { ProgressEntry } from "../types";
 import { CollapsiblePanel } from "./CollapsiblePanel";
 
@@ -16,9 +17,7 @@ function ProgressList({ entries }: { entries: ProgressEntry[] }) {
     );
   }
 
-  const sorted = [...entries].sort((a, b) =>
-    b.entryDate.localeCompare(a.entryDate)
-  );
+  const sorted = sortProgressEntries(entries);
 
   return (
     <div className="progress-panel__list">

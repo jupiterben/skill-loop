@@ -326,6 +326,9 @@ body {
 
 .app-sidebar--right {
   border-left: 1px solid var(--border);
+  padding: 0;
+  gap: 0;
+  overflow: hidden;
 }
 
 .app-workspace {
