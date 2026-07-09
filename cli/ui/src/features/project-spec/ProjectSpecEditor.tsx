@@ -48,22 +48,31 @@ export function ProjectSpecEditor({
     closeEdit();
   };
 
-  const confirmApplyTemplate = () => {
+  const applyTemplate = async (append: boolean) => {
+    if (!onApplyTemplate || !templateId) return;
+    const template = templates.find((t) => t.id === templateId);
+    if (!template) return;
+    await onApplyTemplate(templateId, append);
+    setTemplateId(null);
+  };
+
+  const confirmApplyTemplate = (append: boolean) => {
     if (!onApplyTemplate || !templateId) return;
     const template = templates.find((t) => t.id === templateId);
     if (!template) return;
     const hasContent = Boolean(projectSpec.content.trim());
+    if (!hasContent) {
+      void applyTemplate(false);
+      return;
+    }
     Modal.confirm({
-      title: "应用规范模板",
-      content: hasContent
-        ? `将用「${template.title}」替换当前内容，是否继续？`
-        : `将应用「${template.title}」模板，是否继续？`,
-      okText: hasContent ? "替换" : "应用",
+      title: append ? "追加规范模板" : "应用规范模板",
+      content: append
+        ? `将把「${template.title}」追加到当前规范末尾，是否继续？`
+        : `将用「${template.title}」替换当前内容，是否继续？`,
+      okText: append ? "追加" : "替换",
       cancelText: "取消",
-      onOk: async () => {
-        await onApplyTemplate(templateId, false);
-        setTemplateId(null);
-      },
+      onOk: () => applyTemplate(append),
     });
   };
 
@@ -117,15 +126,38 @@ export function ProjectSpecEditor({
             }}
           />
 
-          <Button
-            type="dashed"
-            size="small"
-            block
-            disabled={busy || !templateId}
-            onClick={() => confirmApplyTemplate()}
-          >
-            应用模板
-          </Button>
+          {projectSpec.content.trim() ? (
+            <Space.Compact block>
+              <Button
+                type="dashed"
+                size="small"
+                style={{ width: "50%" }}
+                disabled={busy || !templateId}
+                onClick={() => confirmApplyTemplate(false)}
+              >
+                应用模板
+              </Button>
+              <Button
+                type="dashed"
+                size="small"
+                style={{ width: "50%" }}
+                disabled={busy || !templateId}
+                onClick={() => confirmApplyTemplate(true)}
+              >
+                追加模板
+              </Button>
+            </Space.Compact>
+          ) : (
+            <Button
+              type="dashed"
+              size="small"
+              block
+              disabled={busy || !templateId}
+              onClick={() => confirmApplyTemplate(false)}
+            >
+              应用模板
+            </Button>
+          )}
         </Space>
       )}
 

@@ -5,10 +5,12 @@ import {
 } from "../../../../src/project-spec-templates";
 
 describe("project-spec-templates", () => {
-  it("包含常用模板", () => {
+  it("包含至少 4 套内置模板", () => {
+    expect(PROJECT_SPEC_TEMPLATES.length).toBeGreaterThanOrEqual(4);
     const ids = PROJECT_SPEC_TEMPLATES.map((t) => t.id);
     expect(ids).toContain("general");
     expect(ids).toContain("typescript-react");
+    expect(ids).toContain("python-backend");
     expect(ids).toContain("loop-agent");
   });
 
