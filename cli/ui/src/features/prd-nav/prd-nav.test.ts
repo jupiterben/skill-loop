@@ -96,6 +96,7 @@ describe("PRD 查询与导航命令", () => {
       kind: "story",
       id: expect.stringMatching(/^US-/),
       title: expect.any(String),
+      workType: expect.any(String),
       passes: false,
       draft: expect.any(Boolean),
       blocked: expect.any(Boolean),

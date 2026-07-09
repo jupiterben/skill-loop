@@ -147,6 +147,7 @@ export function buildTree(
       sortOrder: s.sortOrder,
       milestoneId: s.milestoneId,
       milestoneTitle: ms?.title ?? null,
+      workType: s.workType,
       children: [],
     };
   }

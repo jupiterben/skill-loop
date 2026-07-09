@@ -64,6 +64,7 @@ export interface TreeNode {
   sortOrder: number;
   milestoneId?: string | null;
   milestoneTitle?: string | null;
+  workType?: StoryWorkType;
   children: TreeNode[];
 }
 

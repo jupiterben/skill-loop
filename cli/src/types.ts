@@ -71,6 +71,8 @@ export interface TreeNode {
   /** Story 的 Milestone 标签（仅 kind=story） */
   milestoneId?: string | null;
   milestoneTitle?: string | null;
+  /** Story 工作类型（仅 kind=story） */
+  workType?: StoryWorkType;
   children: TreeNode[];
 }
 
