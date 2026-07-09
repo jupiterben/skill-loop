@@ -1,0 +1,7 @@
+{
+  "id": "FT-016",
+  "parentId": "FT-003",
+  "title": "Milestone 管理",
+  "description": "Milestone 创建、编辑、筛选与 Story 绑定",
+  "sortOrder": 2
+}

@@ -1,0 +1,7 @@
+{
+  "id": "FT-025",
+  "parentId": "FT-023",
+  "title": "并行 Worker 协调",
+  "description": "workers、claim/release、next-stories、worktree 隔离与协调器状态",
+  "sortOrder": 1
+}

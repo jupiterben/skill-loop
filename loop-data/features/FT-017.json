@@ -1,0 +1,7 @@
+{
+  "id": "FT-017",
+  "parentId": "FT-003",
+  "title": "脑图编辑操作",
+  "description": "节点增删、拖拽改父级、重排、依赖连线与归档流",
+  "sortOrder": 3
+}

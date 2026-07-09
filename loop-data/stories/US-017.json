@@ -1,0 +1,27 @@
+{
+  "id": "US-017",
+  "milestoneId": null,
+  "parentId": "FT-019",
+  "dependsOn": [],
+  "title": "PRD 结构维护命令",
+  "description": "类型：代码实现。作为规划者，我需要通过 CLI 维护 Feature 与 Story 结构，并在 Story 数据结构中正式引入 workType 字段，以便把代码实现、文档补全、规划/PRD、测试补充、重构等类型作为正式模型管理。Feature 不引入类型字段。",
+  "acceptanceCriteria": [
+    "Story 数据结构正式新增 workType 字段，并持久化到 loop-data/stories/*.json",
+    "workType 至少支持：implementation、documentation、planning、testing、refactor（或等价中文枚举），并有稳定映射",
+    "add-story、update-story、status、prd、tree 等 CLI 输出支持读取与返回 Story workType",
+    "相关 HTTP API 与前端类型定义同步支持 Story workType",
+    "Feature 数据结构不新增类型字段，CLI 与 API 也不提供 Feature 类型编辑能力",
+    "历史 Story 缺省值有兼容策略，旧数据可正常读取",
+    "pnpm test 通过"
+  ],
+  "priority": 0,
+  "passes": false,
+  "everCompleted": false,
+  "status": "ready",
+  "notes": "",
+  "sortOrder": 1,
+  "removalRequestedAt": null,
+  "archivedAt": null,
+  "claimedBy": null,
+  "claimedAt": null
+}

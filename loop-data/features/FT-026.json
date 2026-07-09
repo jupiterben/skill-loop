@@ -1,0 +1,7 @@
+{
+  "id": "FT-026",
+  "parentId": "FT-023",
+  "title": "运行输出与观测",
+  "description": "run output、live 输出、Runs 历史、状态栏与运行中高亮",
+  "sortOrder": 2
+}

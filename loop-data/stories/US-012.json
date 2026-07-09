@@ -1,0 +1,26 @@
+{
+  "id": "US-012",
+  "milestoneId": null,
+  "parentId": "FT-014",
+  "dependsOn": [],
+  "title": "项目元信息编辑",
+  "description": "类型：代码实现。作为项目负责人，我需要在 Dashboard 编辑项目元信息（描述、Git 分支、愿景摘要），以便 Agent 理解项目背景与目标，而不只依赖 Story 列表。",
+  "acceptanceCriteria": [
+    "扩展 project.json：保留 name，可编辑 branchName、description，新增可选 vision 字段（愿景/目标摘要）",
+    "新增 CLI：loop update-project [--description] [--branch] [--vision] 与对应 HTTP API",
+    "Dashboard 左侧边栏新增 ProjectMetaPanel（或并入顶栏/项目规范区），可查看并保存上述字段",
+    "保存后写入 loop-data/project.json，status/prd 接口返回最新元信息",
+    "AppToolbar 展示的项目名/分支随保存即时刷新",
+    "pnpm test 通过"
+  ],
+  "priority": 0,
+  "passes": true,
+  "everCompleted": true,
+  "status": "ready",
+  "notes": "",
+  "sortOrder": 0,
+  "removalRequestedAt": null,
+  "archivedAt": null,
+  "claimedBy": null,
+  "claimedAt": null
+}

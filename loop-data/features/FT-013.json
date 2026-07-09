@@ -1,0 +1,7 @@
+{
+  "id": "FT-013",
+  "parentId": "FT-003",
+  "title": "节点属性面板",
+  "description": "脑图工作区右侧：选中 Feature/Story 后的属性编辑面板",
+  "sortOrder": 1
+}

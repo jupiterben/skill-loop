@@ -1,0 +1,24 @@
+{
+  "id": "US-034",
+  "milestoneId": null,
+  "parentId": "FT-017",
+  "dependsOn": [],
+  "title": "Story 依赖连线",
+  "description": "类型：文档补全（已实现能力建档）。作为用户，我需要在脑图中建立与删除 Story 依赖关系，以便表达真实的执行顺序。",
+  "acceptanceCriteria": [
+    "支持通过连线创建 Story dependsOn 关系",
+    "支持删除依赖连线，并同步更新故事数据",
+    "避免自依赖、重复依赖或明显非法依赖",
+    "pnpm test 通过"
+  ],
+  "priority": 0,
+  "passes": false,
+  "everCompleted": false,
+  "status": "ready",
+  "notes": "",
+  "sortOrder": 2,
+  "removalRequestedAt": null,
+  "archivedAt": null,
+  "claimedBy": null,
+  "claimedAt": null
+}

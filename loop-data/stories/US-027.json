@@ -1,0 +1,24 @@
+{
+  "id": "US-027",
+  "milestoneId": null,
+  "parentId": "FT-026",
+  "dependsOn": [],
+  "title": "Agent 实时输出面板",
+  "description": "类型：文档补全（已实现能力建档）。作为用户，我需要在 Dashboard 中实时看到 Agent 当前输出，并在 CLI 中读取相同的 live 内容，以便理解 loop 正在做什么。",
+  "acceptanceCriteria": [
+    "提供 run output 命令与 run-live 数据文件读取能力",
+    "Dashboard 的 AgentLivePanel 展示 phase、实时输出、多 worker 视图与空状态",
+    "Story 完成或停止后，live 状态正确收尾",
+    "pnpm test 通过"
+  ],
+  "priority": 0,
+  "passes": false,
+  "everCompleted": false,
+  "status": "ready",
+  "notes": "",
+  "sortOrder": 0,
+  "removalRequestedAt": null,
+  "archivedAt": null,
+  "claimedBy": null,
+  "claimedAt": null
+}

@@ -1,7 +1,7 @@
 {
   "id": "FT-003",
   "parentId": "FT-001",
-  "title": "主区域脑图",
-  "description": "",
+  "title": "需求脑图",
+  "description": "脑图画布、结构树、Milestone、节点属性面板与脑图编辑操作",
   "sortOrder": 1
 }

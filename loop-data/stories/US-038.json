@@ -1,0 +1,25 @@
+{
+  "id": "US-038",
+  "milestoneId": null,
+  "parentId": "FT-012",
+  "dependsOn": [],
+  "title": "TreeView 下方显示 Draft Story",
+  "description": "类型：代码实现。作为用户，我需要在左侧 TreeView 组件下方直接看到 draft 状态的 Story 列表，并在同一区域完成确认，以便在浏览需求树时顺手处理待确认项。",
+  "acceptanceCriteria": [
+    "存在 draft 且未完成 Story 时，在 TreeView 组件下方显示 draft Story 列表，而不是显示在工作区顶部横幅",
+    "列表展示至少包含 Story 标题与确认入口，并与结构树区域一起滚动或布局协调",
+    "确认后 UI 与 loop-data 状态同步刷新，列表即时移除已确认 Story",
+    "无 draft Story 时，该区域可隐藏或显示为空态，不影响 TreeView 主体",
+    "pnpm test 通过"
+  ],
+  "priority": 1,
+  "passes": true,
+  "everCompleted": true,
+  "status": "ready",
+  "notes": "",
+  "sortOrder": 1,
+  "removalRequestedAt": null,
+  "archivedAt": null,
+  "claimedBy": null,
+  "claimedAt": null
+}

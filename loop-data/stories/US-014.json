@@ -1,10 +1,10 @@
 {
   "id": "US-014",
   "milestoneId": null,
-  "parentId": "FT-006",
+  "parentId": "FT-019",
   "dependsOn": [],
   "title": "Feature 清理与空节点校验",
-  "description": "作为项目维护者，我需要识别并清理没有任何 Story 的空叶子 Feature，并在规划时避免继续产生不可执行的 FT 空节点，以便脑图结构始终服务于可执行 Story。",
+  "description": "类型：代码实现。作为项目维护者，我需要识别并清理没有任何 Story 的空叶子 Feature，并在规划时避免继续产生不可执行的 FT 空节点，以便脑图结构始终服务于可执行 Story。",
   "acceptanceCriteria": [
     "新增 CLI：loop delete-feature FT-xxx，仅允许删除没有子 Feature 且没有子 Story 的空叶子 Feature",
     "删除 Feature 前返回清晰校验错误：存在子 Feature 或子 Story 时不得删除",

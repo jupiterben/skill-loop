@@ -1,0 +1,24 @@
+{
+  "id": "US-022",
+  "milestoneId": null,
+  "parentId": "FT-022",
+  "dependsOn": [],
+  "title": "Dashboard 服务管理命令",
+  "description": "类型：文档补全（已实现能力建档）。作为用户，我需要通过 CLI 启停 Dashboard 服务，以便在本地快速进入或退出可视化界面。",
+  "acceptanceCriteria": [
+    "提供 dashboard start、dashboard dev、dashboard stop、dashboard status",
+    "支持端口配置、是否自动打开浏览器等参数",
+    "服务状态可被 CLI 查询，并在异常时返回清晰提示",
+    "pnpm test 通过"
+  ],
+  "priority": 0,
+  "passes": false,
+  "everCompleted": false,
+  "status": "ready",
+  "notes": "",
+  "sortOrder": 0,
+  "removalRequestedAt": null,
+  "archivedAt": null,
+  "claimedBy": null,
+  "claimedAt": null
+}

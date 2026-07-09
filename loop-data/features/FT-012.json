@@ -1,0 +1,7 @@
+{
+  "id": "FT-012",
+  "parentId": "FT-003",
+  "title": "结构树",
+  "description": "脑图画布左侧的项目/Feature/Story 树形导航，以及与其相邻的 draft Story 列表",
+  "sortOrder": 0
+}

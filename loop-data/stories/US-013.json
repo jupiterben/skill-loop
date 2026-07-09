@@ -1,0 +1,26 @@
+{
+  "id": "US-013",
+  "milestoneId": null,
+  "parentId": "FT-016",
+  "dependsOn": [],
+  "title": "Milestone 目标日期与版本",
+  "description": "类型：代码实现。作为用户，我需要为 Milestone 设置目标日期和版本号，并在脑图筛选栏与属性中展示，以便按时间阶段规划 Story 交付。",
+  "acceptanceCriteria": [
+    "扩展 Milestone 模型：新增可选 targetDate（ISO 日期字符串）与 version（如 v0.1）字段",
+    "add-milestone / update-milestone CLI 与 HTTP API 支持 --target-date、--version",
+    "Dashboard 创建/编辑 Milestone 时可填写目标日期与版本",
+    "脑图 Milestone 筛选栏的 Tag 展示版本或目标日期（有值时）",
+    "Story 属性面板中 Milestone 选择器展示完整 Milestone 信息",
+    "pnpm test 通过"
+  ],
+  "priority": 0,
+  "passes": true,
+  "everCompleted": true,
+  "status": "ready",
+  "notes": "",
+  "sortOrder": 0,
+  "removalRequestedAt": null,
+  "archivedAt": null,
+  "claimedBy": null,
+  "claimedAt": null
+}

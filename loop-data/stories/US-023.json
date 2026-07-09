@@ -1,0 +1,24 @@
+{
+  "id": "US-023",
+  "milestoneId": null,
+  "parentId": "FT-024",
+  "dependsOn": [],
+  "title": "有限轮外循环执行",
+  "description": "类型：文档补全（已实现能力建档）。作为执行者，我需要运行有限轮的 loop run，以便让 Agent 自动挑选 ready Story、执行并在达到上限后退出。",
+  "acceptanceCriteria": [
+    "loop run 支持最大轮数、tool、workers 等参数",
+    "每轮从 ready 且依赖满足的 Story 中选择任务，执行后写入 runs.json 与 run.json",
+    "达到 max-iterations、无可执行 Story 或项目完成时按预期退出",
+    "pnpm test 通过"
+  ],
+  "priority": 0,
+  "passes": false,
+  "everCompleted": false,
+  "status": "ready",
+  "notes": "",
+  "sortOrder": 0,
+  "removalRequestedAt": null,
+  "archivedAt": null,
+  "claimedBy": null,
+  "claimedAt": null
+}

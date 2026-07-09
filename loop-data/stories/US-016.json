@@ -1,0 +1,24 @@
+{
+  "id": "US-016",
+  "milestoneId": null,
+  "parentId": "FT-018",
+  "dependsOn": [],
+  "title": "PRD 查询与导航命令",
+  "description": "类型：文档补全（已实现能力建档）。作为用户，我需要通过 CLI 浏览 PRD 与下一个待做项，以便在不打开 Dashboard 的情况下理解当前规划。",
+  "acceptanceCriteria": [
+    "提供 loop prd、loop tree、loop next、loop next-stories、loop patterns、loop spec、loop spec-templates",
+    "输出包含足够的结构化字段，便于 Agent 或脚本读取",
+    "next-stories 支持 limit，返回可并行 Story 列表",
+    "pnpm test 通过"
+  ],
+  "priority": 0,
+  "passes": false,
+  "everCompleted": false,
+  "status": "ready",
+  "notes": "",
+  "sortOrder": 1,
+  "removalRequestedAt": null,
+  "archivedAt": null,
+  "claimedBy": null,
+  "claimedAt": null
+}

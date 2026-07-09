@@ -1,0 +1,24 @@
+{
+  "id": "US-028",
+  "milestoneId": null,
+  "parentId": "FT-026",
+  "dependsOn": [],
+  "title": "外循环迭代历史",
+  "description": "类型：文档补全（已实现能力建档）。作为用户，我需要查看每一轮 loop 迭代历史，以便回顾哪些 Story 被执行过、成功或失败。",
+  "acceptanceCriteria": [
+    "runs.json 持久化记录 iteration、tool、storyId、workerId、status、startedAt、endedAt",
+    "Dashboard 的 RunsPanel 展示迭代历史列表",
+    "CLI 与 Dashboard 读取同一份运行账本数据",
+    "pnpm test 通过"
+  ],
+  "priority": 0,
+  "passes": false,
+  "everCompleted": false,
+  "status": "ready",
+  "notes": "",
+  "sortOrder": 1,
+  "removalRequestedAt": null,
+  "archivedAt": null,
+  "claimedBy": null,
+  "claimedAt": null
+}

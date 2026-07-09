@@ -1,0 +1,7 @@
+{
+  "id": "FT-018",
+  "parentId": "FT-006",
+  "title": "项目初始化与查询",
+  "description": "init、status、prd、tree、next 等基础查询与项目初始化",
+  "sortOrder": 3
+}

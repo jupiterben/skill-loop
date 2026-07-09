@@ -1,10 +1,10 @@
 {
   "id": "US-002",
   "milestoneId": null,
-  "parentId": "FT-010",
+  "parentId": "FT-007",
   "dependsOn": [],
   "title": "Codebase Patterns 增删改查",
-  "description": "作为用户，我需要在 Dashboard 与 CLI 中管理 Codebase Patterns（查看、新增、编辑、删除），以便持续维护项目编码约定",
+  "description": "类型：代码实现。作为用户，我需要在 Dashboard 与 CLI 中管理 Codebase Patterns（查看、新增、编辑、删除），以便持续维护项目编码约定。",
   "acceptanceCriteria": [
     "可查看全部 Codebase Patterns 列表",
     "支持新增 pattern",
@@ -13,12 +13,12 @@
     "Dashboard Patterns 面板提供增删改查操作",
     "CLI/API 与 UI 行为一致，pnpm dev 下可正常使用"
   ],
-  "priority": 0,
+  "priority": 1,
   "passes": true,
   "everCompleted": true,
   "status": "ready",
   "notes": "",
-  "sortOrder": 0,
+  "sortOrder": 1,
   "removalRequestedAt": null,
   "archivedAt": null,
   "claimedBy": null,

@@ -1,0 +1,24 @@
+{
+  "id": "US-037",
+  "milestoneId": null,
+  "parentId": "FT-011",
+  "dependsOn": [],
+  "title": "顶栏项目概览",
+  "description": "类型：文档补全（已实现能力建档）。作为用户，我需要在 Dashboard 顶栏快速看到项目名、分支、完成度与运行状态，以便把握项目整体情况。",
+  "acceptanceCriteria": [
+    "AppToolbar 展示项目名、分支、完成数、待做数、草稿数、阻塞数与进度百分比",
+    "有 activeRun 时显示运行中状态；全部完成时显示完成标记",
+    "顶栏数据与 loop status 聚合结果保持一致",
+    "pnpm test 通过"
+  ],
+  "priority": 0,
+  "passes": false,
+  "everCompleted": false,
+  "status": "ready",
+  "notes": "",
+  "sortOrder": 2,
+  "removalRequestedAt": null,
+  "archivedAt": null,
+  "claimedBy": null,
+  "claimedAt": null
+}

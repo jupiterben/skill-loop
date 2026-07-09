@@ -1,0 +1,24 @@
+{
+  "id": "US-018",
+  "milestoneId": null,
+  "parentId": "FT-020",
+  "dependsOn": [],
+  "title": "Story 执行命令",
+  "description": "类型：文档补全（已实现能力建档）。作为执行 Agent，我需要通过 CLI 驱动 Story 从 draft 到完成的主流程，以便外循环与手动执行都能共享同一套状态机。",
+  "acceptanceCriteria": [
+    "提供 confirm-story、unconfirm-story、complete、progress 命令",
+    "complete 标记 passes=true，并为 Story 生成完成进度记录",
+    "progress 支持 summary、storyId、learning、entryDate",
+    "pnpm test 通过"
+  ],
+  "priority": 0,
+  "passes": false,
+  "everCompleted": false,
+  "status": "ready",
+  "notes": "",
+  "sortOrder": 0,
+  "removalRequestedAt": null,
+  "archivedAt": null,
+  "claimedBy": "w0",
+  "claimedAt": "2026-07-09T07:20:25.900Z"
+}

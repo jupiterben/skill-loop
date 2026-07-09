@@ -1,7 +1,7 @@
 {
   "id": "FT-001",
   "parentId": null,
-  "title": "用户界面",
-  "description": "Loop Dashboard 看板界面与交互",
+  "title": "Loop Dashboard",
+  "description": "Dashboard 壳层、需求脑图、项目输入与进度洞察的整体界面",
   "sortOrder": 1
 }

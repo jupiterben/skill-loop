@@ -1,0 +1,24 @@
+{
+  "id": "US-033",
+  "milestoneId": null,
+  "parentId": "FT-017",
+  "dependsOn": [],
+  "title": "脑图拖拽改父级与重排",
+  "description": "类型：文档补全（已实现能力建档）。作为用户，我需要通过拖拽和排序操作调整脑图节点结构，以便自然地重组需求树。",
+  "acceptanceCriteria": [
+    "支持拖拽节点修改父级关系",
+    "支持同级节点重排，保持 sortOrder 一致",
+    "非法移动（如移到自身子树下）被拒绝并给出清晰反馈",
+    "pnpm test 通过"
+  ],
+  "priority": 0,
+  "passes": false,
+  "everCompleted": false,
+  "status": "ready",
+  "notes": "",
+  "sortOrder": 1,
+  "removalRequestedAt": null,
+  "archivedAt": null,
+  "claimedBy": null,
+  "claimedAt": null
+}

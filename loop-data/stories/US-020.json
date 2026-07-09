@@ -1,0 +1,24 @@
+{
+  "id": "US-020",
+  "milestoneId": null,
+  "parentId": "FT-021",
+  "dependsOn": [],
+  "title": "需求规划命令",
+  "description": "类型：文档补全（已实现能力建档）。作为规划者，我需要通过 loop plan 调用规划 Agent，把自然语言需求转成 Feature 与 Story 调整建议。",
+  "acceptanceCriteria": [
+    "loop plan 支持 story-id、requirement、tool 参数",
+    "读取 PLANNER.md 模板，并可通过环境变量或 loop-data 自定义 planner prompt",
+    "规划结果不直接修改代码，而是输出针对 PRD 的建议或变更",
+    "pnpm test 通过"
+  ],
+  "priority": 0,
+  "passes": false,
+  "everCompleted": false,
+  "status": "ready",
+  "notes": "",
+  "sortOrder": 0,
+  "removalRequestedAt": null,
+  "archivedAt": null,
+  "claimedBy": null,
+  "claimedAt": null
+}

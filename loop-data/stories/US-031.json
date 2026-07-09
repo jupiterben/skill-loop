@@ -1,0 +1,24 @@
+{
+  "id": "US-031",
+  "milestoneId": null,
+  "parentId": "FT-026",
+  "dependsOn": [],
+  "title": "Dashboard 启停外循环",
+  "description": "类型：代码实现。作为用户，我需要在 Dashboard 中直接启动或停止 loop 外循环，而不必回到命令行。",
+  "acceptanceCriteria": [
+    "Dashboard 调用 startLoopRun 与 stopLoopRun API",
+    "可设置至少 tool 与 workers 等关键参数，且与 CLI 语义一致",
+    "启动后 AgentLivePanel、RunsPanel、WorkspaceStatusBar 联动刷新",
+    "pnpm test 通过"
+  ],
+  "priority": 0,
+  "passes": false,
+  "everCompleted": false,
+  "status": "ready",
+  "notes": "",
+  "sortOrder": 4,
+  "removalRequestedAt": null,
+  "archivedAt": null,
+  "claimedBy": null,
+  "claimedAt": null
+}

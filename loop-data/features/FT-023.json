@@ -1,0 +1,7 @@
+{
+  "id": "FT-023",
+  "parentId": null,
+  "title": "外循环执行",
+  "description": "loop run/watch、并行 worker、实时输出与运行观测",
+  "sortOrder": 3
+}

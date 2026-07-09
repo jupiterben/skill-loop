@@ -1,0 +1,7 @@
+{
+  "id": "FT-019",
+  "parentId": "FT-006",
+  "title": "PRD 结构管理",
+  "description": "Feature/Story 的新增、修改、移动、删除与结构校验",
+  "sortOrder": 4
+}

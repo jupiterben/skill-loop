@@ -3,11 +3,14 @@
   "milestoneId": null,
   "parentId": "FT-003",
   "dependsOn": [],
-  "title": "主区域面板",
-  "description": "不需要 展开收缩  不需要显示用户输入  需要自动拉伸 不需要提示",
+  "title": "主工作区脑图区简化",
+  "description": "类型：代码实现。作为用户，我需要中心工作区的脑图区域自动填满可用空间，无需用户输入标题或折叠控件，且无冗余操作提示，以便获得更大的编辑视野。",
   "acceptanceCriteria": [
-    "实现功能",
-    "npm test 通过"
+    "脑图区直接渲染于 app-workspace__main，无 CollapsiblePanel 包裹",
+    "不显示「用户输入」分区标题",
+    "脑图区 flex 自动拉伸填满 Splitter 上方 Panel 剩余高度",
+    "移除 mm-toolbar 长帮助文案与空态冗余 description，保留功能按钮",
+    "pnpm test 通过"
   ],
   "priority": 0,
   "passes": true,

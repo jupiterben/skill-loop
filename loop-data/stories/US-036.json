@@ -1,0 +1,24 @@
+{
+  "id": "US-036",
+  "milestoneId": null,
+  "parentId": "FT-016",
+  "dependsOn": [],
+  "title": "Milestone 筛选与创建编辑",
+  "description": "类型：文档补全（已实现能力建档）。作为用户，我需要在脑图顶部按 Milestone 筛选 Story，并创建或编辑 Milestone，以便按阶段组织需求。",
+  "acceptanceCriteria": [
+    "脑图提供 Milestone 筛选栏，支持查看全部、按具体 Milestone 过滤、查看无 Milestone Story",
+    "支持在 Dashboard 中创建和编辑 Milestone 基本信息",
+    "筛选结果与脑图、结构树、属性面板保持一致",
+    "pnpm test 通过"
+  ],
+  "priority": 0,
+  "passes": false,
+  "everCompleted": false,
+  "status": "ready",
+  "notes": "",
+  "sortOrder": 1,
+  "removalRequestedAt": null,
+  "archivedAt": null,
+  "claimedBy": null,
+  "claimedAt": null
+}

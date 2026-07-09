@@ -1,0 +1,24 @@
+{
+  "id": "US-025",
+  "milestoneId": null,
+  "parentId": "FT-025",
+  "dependsOn": [],
+  "title": "并行 Worker 执行与认领",
+  "description": "类型：文档补全（已实现能力建档）。作为多 worker 执行者，我需要并行领取可执行 Story 并避免冲突，以便安全地同时推进多个任务。",
+  "acceptanceCriteria": [
+    "支持 workers N、next-stories、claim-story、release-claim",
+    "被认领 Story 不会被其他 worker 重复执行",
+    "当 Story 完成、释放或停止时，认领状态正确更新",
+    "pnpm test 通过"
+  ],
+  "priority": 0,
+  "passes": false,
+  "everCompleted": false,
+  "status": "ready",
+  "notes": "",
+  "sortOrder": 0,
+  "removalRequestedAt": null,
+  "archivedAt": null,
+  "claimedBy": null,
+  "claimedAt": null
+}

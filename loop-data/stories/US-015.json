@@ -1,0 +1,24 @@
+{
+  "id": "US-015",
+  "milestoneId": null,
+  "parentId": "FT-018",
+  "dependsOn": [],
+  "title": "项目初始化与状态查询",
+  "description": "类型：代码实现。作为项目负责人，我需要用 CLI 初始化 Loop 项目并查看当前整体状态，以便让 Dashboard、Agent 与 loop-data 在统一的项目上下文中工作。",
+  "acceptanceCriteria": [
+    "loop init 创建或更新 project.json，至少写入项目名、branchName、description、updatedAt",
+    "loop status 返回项目元信息、Story 统计、nextStory、currentStory、patterns、activeRun 等聚合状态",
+    "未初始化项目时返回清晰错误提示",
+    "pnpm test 通过"
+  ],
+  "priority": 0,
+  "passes": true,
+  "everCompleted": true,
+  "status": "ready",
+  "notes": "",
+  "sortOrder": 0,
+  "removalRequestedAt": null,
+  "archivedAt": null,
+  "claimedBy": null,
+  "claimedAt": null
+}

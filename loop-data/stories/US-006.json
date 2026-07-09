@@ -3,11 +3,14 @@
   "milestoneId": null,
   "parentId": "FT-011",
   "dependsOn": [],
-  "title": "整体排布",
-  "description": "作为用户 ： 我希望 用户输入的 内容放在左侧面板  运行 结果放在右侧面板  状态在 centerbottom",
+  "title": "工作区垂直分栏",
+  "description": "类型：代码实现。作为用户，我需要中心工作区上方为脑图编辑、下方为 Agent 运行输出与 Runs 记录，底部居中显示执行状态，以便同时查看规划与执行结果。",
   "acceptanceCriteria": [
-    "实现功能",
-    "npm test 通过"
+    "中心工作区使用垂直 Splitter：上方脑图（app-workspace__main）、下方 Agent 输出区",
+    "Splitter 比例可拖拽调整并 localStorage 持久化",
+    "底部 WorkspaceStatusBar 居中展示 loop 执行/就绪状态",
+    "左侧边栏承载项目规范与 Patterns，右侧边栏承载进度日志",
+    "pnpm test 通过"
   ],
   "priority": 0,
   "passes": true,

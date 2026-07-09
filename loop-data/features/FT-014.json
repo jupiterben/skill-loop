@@ -1,0 +1,7 @@
+{
+  "id": "FT-014",
+  "parentId": "FT-005",
+  "title": "项目元信息",
+  "description": "project.json：项目描述、分支、愿景摘要等战略层输入",
+  "sortOrder": 2
+}

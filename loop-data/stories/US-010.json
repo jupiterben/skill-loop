@@ -1,0 +1,24 @@
+{
+  "id": "US-010",
+  "milestoneId": null,
+  "parentId": "FT-007",
+  "dependsOn": [],
+  "title": "Patterns 卡片式列表",
+  "description": "类型：代码实现。作为用户，我需要在左侧边栏以卡片式布局查看与编辑 Codebase Patterns，长文本可展开，操作按钮独立于正文，以便舒适地维护编码约定。",
+  "acceptanceCriteria": [
+    "每条 Pattern 以卡片展示：序号 + 内容区 + 底部独立操作栏（编辑/删除）",
+    "长文本支持展开/收起预览（patternPreview）",
+    "新增 Pattern 入口清晰可见，编辑/删除不与正文挤在一起",
+    "pnpm test 通过（含 patternPreview 测试）"
+  ],
+  "priority": 0,
+  "passes": true,
+  "everCompleted": true,
+  "status": "ready",
+  "notes": "",
+  "sortOrder": 0,
+  "removalRequestedAt": null,
+  "archivedAt": null,
+  "claimedBy": null,
+  "claimedAt": null
+}

@@ -1,0 +1,7 @@
+{
+  "id": "FT-020",
+  "parentId": "FT-006",
+  "title": "Story 生命周期",
+  "description": "confirm、complete、progress、request-removal、archive、restore 等执行命令",
+  "sortOrder": 5
+}

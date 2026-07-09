@@ -3,11 +3,14 @@
   "milestoneId": null,
   "parentId": "FT-002",
   "dependsOn": [],
-  "title": "编辑修改项目规范",
-  "description": "作为用户： 我需要可以修改 项目规范 需要有一些 优秀的项目规范模板可以使用",
+  "title": "项目规范编辑",
+  "description": "类型：代码实现。作为用户，我需要在左侧边栏查看、编辑项目规范（project-spec），并可选用内置模板，以便统一 Agent 协作约定。",
   "acceptanceCriteria": [
-    "实现功能",
-    "npm test 通过"
+    "Dashboard 左侧 ProjectSpecPanel 可查看与编辑规范正文",
+    "支持从内置模板（至少 4 套）应用或追加到当前规范",
+    "保存后写入 loop-data/project-spec.json，pnpm dev 下可正常使用",
+    "提供 CLI 命令：spec、update-spec、spec-templates、apply-spec-template",
+    "pnpm test 通过"
   ],
   "priority": 0,
   "passes": true,

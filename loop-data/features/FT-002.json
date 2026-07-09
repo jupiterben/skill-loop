@@ -2,6 +2,6 @@
   "id": "FT-002",
   "parentId": "FT-005",
   "title": "项目规范",
-  "description": "",
+  "description": "project-spec.json 的查看、编辑与模板应用",
   "sortOrder": 0
 }

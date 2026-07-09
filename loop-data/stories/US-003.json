@@ -3,12 +3,14 @@
   "milestoneId": null,
   "parentId": "FT-003",
   "dependsOn": [],
-  "title": "脑图显示",
-  "description": "脑图显示",
+  "title": "脑图连线与渲染",
+  "description": "类型：代码实现。作为用户，我需要在中心工作区看到项目、Feature、Story 脑图，节点间树形连线稳定可见，以便把握需求结构。",
   "acceptanceCriteria": [
-    "实现功能",
-    "npm test 通过",
-    "不会出现连线丢失的问题"
+    "ReactFlow 渲染项目根、Feature、Story 节点及树形连线",
+    "树形边绑定 sourceHandle=tree，拖拽节点后连线不丢失",
+    "画布容器尺寸变化时 ReactFlow 保持挂载，不因 flex 高度为 0 而卸载",
+    "mindmapLayout 连线回归测试通过；pnpm test 通过",
+    "不应出现：刷新或折叠面板后连线消失"
   ],
   "priority": 0,
   "passes": true,

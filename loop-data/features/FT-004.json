@@ -1,7 +1,7 @@
 {
   "id": "FT-004",
   "parentId": "FT-001",
-  "title": "右侧区域",
-  "description": "",
+  "title": "进度与洞察",
+  "description": "进度日志与项目执行洞察",
   "sortOrder": 3
 }

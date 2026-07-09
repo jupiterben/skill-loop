@@ -1,0 +1,24 @@
+{
+  "id": "US-030",
+  "milestoneId": null,
+  "parentId": "FT-026",
+  "dependsOn": [],
+  "title": "运行中 Story 高亮",
+  "description": "类型：文档补全（已实现能力建档）。作为用户，我需要在脑图与树形视图中看到哪些 Story 正在执行，以便避免重复操作并理解当前焦点。",
+  "acceptanceCriteria": [
+    "运行中的 Story 在脑图节点与结构树中有明确 visual state",
+    "高亮状态根据 activeRun 或 activeRuns 动态更新",
+    "多 worker 模式下可同时高亮多个 Story",
+    "pnpm test 通过"
+  ],
+  "priority": 0,
+  "passes": false,
+  "everCompleted": false,
+  "status": "ready",
+  "notes": "",
+  "sortOrder": 3,
+  "removalRequestedAt": null,
+  "archivedAt": null,
+  "claimedBy": null,
+  "claimedAt": null
+}

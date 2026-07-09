@@ -1,0 +1,7 @@
+{
+  "id": "FT-022",
+  "parentId": "FT-006",
+  "title": "Dashboard 服务管理",
+  "description": "dashboard start/stop/dev/status 等看板进程管理",
+  "sortOrder": 7
+}

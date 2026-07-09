@@ -1,0 +1,24 @@
+{
+  "id": "US-029",
+  "milestoneId": null,
+  "parentId": "FT-026",
+  "dependsOn": [],
+  "title": "工作区执行状态栏",
+  "description": "类型：文档补全（已实现能力建档）。作为用户，我需要在工作区底部看到当前 loop 执行状态，以便快速判断系统是否在运行、空闲或已完成。",
+  "acceptanceCriteria": [
+    "WorkspaceStatusBar 展示运行中、就绪、完成、并行 worker 等状态信息",
+    "状态栏数据来自 dashboard 聚合接口中的 loopRunner 与 status",
+    "在无 activeRun、运行中、停止请求、全部完成等状态下展示一致",
+    "pnpm test 通过"
+  ],
+  "priority": 0,
+  "passes": false,
+  "everCompleted": false,
+  "status": "ready",
+  "notes": "",
+  "sortOrder": 2,
+  "removalRequestedAt": null,
+  "archivedAt": null,
+  "claimedBy": null,
+  "claimedAt": null
+}

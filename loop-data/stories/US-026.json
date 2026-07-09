@@ -1,0 +1,24 @@
+{
+  "id": "US-026",
+  "milestoneId": null,
+  "parentId": "FT-025",
+  "dependsOn": [],
+  "title": "Git worktree 隔离执行",
+  "description": "类型：文档补全（已实现能力建档）。作为并行执行系统，我需要为不同 worker 提供隔离的工作目录，以便减少并行改动冲突。",
+  "acceptanceCriteria": [
+    "多 worker 模式下可为 worker 创建独立 worktree 或等效隔离目录",
+    "worker 结束后清理临时工作目录与协调状态",
+    "隔离执行不破坏主工作区的 loop-data 读写",
+    "pnpm test 通过"
+  ],
+  "priority": 0,
+  "passes": false,
+  "everCompleted": false,
+  "status": "ready",
+  "notes": "",
+  "sortOrder": 1,
+  "removalRequestedAt": null,
+  "archivedAt": null,
+  "claimedBy": null,
+  "claimedAt": null
+}

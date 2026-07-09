@@ -1,0 +1,24 @@
+{
+  "id": "US-032",
+  "milestoneId": null,
+  "parentId": "FT-017",
+  "dependsOn": [],
+  "title": "脑图节点增删",
+  "description": "类型：文档补全（已实现能力建档）。作为用户，我需要在脑图中直接新增或删除 Feature 与 Story 节点，以便快速维护需求结构。",
+  "acceptanceCriteria": [
+    "支持从空态或脑图工具区新增 Feature 与 Story",
+    "支持删除节点，并正确处理其在树中的消失与状态刷新",
+    "新增节点后自动写入 loop-data 并保持父子关系",
+    "pnpm test 通过"
+  ],
+  "priority": 0,
+  "passes": false,
+  "everCompleted": false,
+  "status": "ready",
+  "notes": "",
+  "sortOrder": 0,
+  "removalRequestedAt": null,
+  "archivedAt": null,
+  "claimedBy": null,
+  "claimedAt": null
+}

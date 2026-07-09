@@ -495,7 +495,472 @@
         "空叶子 FT 逻辑在 cli/src/feature-leaf.ts 与 ui emptyLeafFeature.ts 对称实现"
       ],
       "id": 62
+    },
+    {
+      "storyId": "US-003",
+      "entryDate": "2026-07-09",
+      "summary": "验证脑图连线与渲染：sourceHandle=tree 树边、flowMounted+ResizeObserver 防折叠卸载、拖拽后 reset layout 保连线；mindmapLayout 回归测试与 pnpm test 35/35 通过",
+      "learnings": [
+        "ReactFlow 用 flowMounted 一次挂载后保持，canvasReady 仅控制 visibility 不卸载"
+      ],
+      "id": 63
+    },
+    {
+      "storyId": "US-007",
+      "entryDate": "2026-07-09",
+      "summary": "验证 Feature 属性面板：编辑区+子 Story 列表分区、PropsSectionCollapse 持久化；移除 + Story 按钮满足 AC 反例；pnpm test 35/35 通过",
+      "learnings": [
+        "Feature 属性面板勿传 onAddStory；空列表提示改为「暂无子 Story」"
+      ],
+      "id": 64
+    },
+    {
+      "storyId": "US-038",
+      "entryDate": "2026-07-09",
+      "summary": "需求调整：draft story 改为显示在 TreeView 组件下方\n标题：「草稿 Story 待确认横幅」→「TreeView 下方显示 Draft Story」\n描述：作为用户，我需要在左侧 TreeView 组件下方直接看到 draft 状态的 Story 列表，并在同一区域完成确认，以便在浏览需求树时顺手处理待确认项。\n验收标准：存在 draft 且未完成 Story 时，在 TreeView 组件下方显示 draft Story 列表，而不是显示在工作区顶部横幅；列表展示至少包含 Story 标题与确认入口，并与结构树区域一起滚动或布局协调；确认后 UI 与 loop-data 状态同步刷新，列表即时移除已确认 Story；无 draft Story 时，该区域可隐藏或显示为空态，不影响 TreeView 主体；pnpm test 通过",
+      "learnings": [],
+      "id": 65
+    },
+    {
+      "storyId": "US-038",
+      "entryDate": "2026-07-09",
+      "summary": "将 DraftStoriesBanner 从 App 工作区顶部移至 MindMapPanel 结构树面板内 ProjectTreeView 下方；确认操作复用 run+api.confirmStory；无草稿时组件返回 null",
+      "learnings": [
+        "草稿待确认 UI 应放在 mindmap-tree-panel 内，与 project-tree-view 用 flex 分栏协调滚动"
+      ],
+      "id": 66
+    },
+    {
+      "storyId": "US-015",
+      "entryDate": "2026-07-09",
+      "summary": "验证 init/status：upsertProject 写入 project.json（name/branchName/description/updatedAt），getStatus 聚合元信息/Story 统计/patterns/activeRun，未初始化清晰错误；新增 4 项回归测试，pnpm test 39/39 通过",
+      "learnings": [
+        "init/status 测试放 features/project-init；addStory 用 status:ready 而非 ready 参数"
+      ],
+      "id": 67
+    },
+    {
+      "storyId": "US-016",
+      "entryDate": "2026-07-09",
+      "summary": "需求变更：US-016 已保存为待实现\n描述：类型：文档补全（已实现能力建档）。作为用户，我需要通过 CLI 浏览 PRD 与下一个待做项，以便在不打开 Dashboard 的情况下理解当前规划。",
+      "learnings": [],
+      "id": 68
+    },
+    {
+      "storyId": "US-017",
+      "entryDate": "2026-07-09",
+      "summary": "需求变更：US-017 已保存为待实现\n描述：类型：文档补全（已实现能力建档）。作为规划者，我需要通过 CLI 维护 Feature 与 Story 结构，以便持续演化项目 PRD。",
+      "learnings": [],
+      "id": 69
+    },
+    {
+      "storyId": "US-018",
+      "entryDate": "2026-07-09",
+      "summary": "需求变更：US-018 已保存为待实现\n描述：类型：文档补全（已实现能力建档）。作为执行 Agent，我需要通过 CLI 驱动 Story 从 draft 到完成的主流程，以便外循环与手动执行都能共享同一套状态机。",
+      "learnings": [],
+      "id": 70
+    },
+    {
+      "storyId": "US-019",
+      "entryDate": "2026-07-09",
+      "summary": "需求变更：US-019 已保存为待实现\n描述：类型：文档补全（已实现能力建档）。作为项目维护者，我需要对不再需要的 Story 发起移除、归档与恢复，以便在不丢失历史记录的前提下清理 PRD。",
+      "learnings": [],
+      "id": 71
+    },
+    {
+      "storyId": "US-020",
+      "entryDate": "2026-07-09",
+      "summary": "需求变更：US-020 已保存为待实现\n描述：类型：文档补全（已实现能力建档）。作为规划者，我需要通过 loop plan 调用规划 Agent，把自然语言需求转成 Feature 与 Story 调整建议。",
+      "learnings": [],
+      "id": 72
+    },
+    {
+      "storyId": "US-021",
+      "entryDate": "2026-07-09",
+      "summary": "需求变更：US-021 已保存为待实现\n描述：类型：文档补全（已实现能力建档）。作为执行者，我需要通过 loop bug 将缺陷写入 AC 或派生修复 Story，以便把回归问题纳入正式流程。",
+      "learnings": [],
+      "id": 73
+    },
+    {
+      "storyId": "US-022",
+      "entryDate": "2026-07-09",
+      "summary": "需求变更：US-022 已保存为待实现\n描述：类型：文档补全（已实现能力建档）。作为用户，我需要通过 CLI 启停 Dashboard 服务，以便在本地快速进入或退出可视化界面。",
+      "learnings": [],
+      "id": 74
+    },
+    {
+      "storyId": "US-023",
+      "entryDate": "2026-07-09",
+      "summary": "需求变更：US-023 已保存为待实现\n描述：类型：文档补全（已实现能力建档）。作为执行者，我需要运行有限轮的 loop run，以便让 Agent 自动挑选 ready Story、执行并在达到上限后退出。",
+      "learnings": [],
+      "id": 75
+    },
+    {
+      "storyId": "US-024",
+      "entryDate": "2026-07-09",
+      "summary": "需求变更：US-024 已保存为待实现\n描述：类型：文档补全（已实现能力建档）。作为执行者，我需要持续监听模式与停止控制，以便让 loop 在项目未完成时持续工作，并能被安全停止。",
+      "learnings": [],
+      "id": 76
+    },
+    {
+      "storyId": "US-025",
+      "entryDate": "2026-07-09",
+      "summary": "需求变更：US-025 已保存为待实现\n描述：类型：文档补全（已实现能力建档）。作为多 worker 执行者，我需要并行领取可执行 Story 并避免冲突，以便安全地同时推进多个任务。",
+      "learnings": [],
+      "id": 77
+    },
+    {
+      "storyId": "US-026",
+      "entryDate": "2026-07-09",
+      "summary": "需求变更：US-026 已保存为待实现\n描述：类型：文档补全（已实现能力建档）。作为并行执行系统，我需要为不同 worker 提供隔离的工作目录，以便减少并行改动冲突。",
+      "learnings": [],
+      "id": 78
+    },
+    {
+      "storyId": "US-027",
+      "entryDate": "2026-07-09",
+      "summary": "需求变更：US-027 已保存为待实现\n描述：类型：文档补全（已实现能力建档）。作为用户，我需要在 Dashboard 中实时看到 Agent 当前输出，并在 CLI 中读取相同的 live 内容，以便理解 loop 正在做什么。",
+      "learnings": [],
+      "id": 79
+    },
+    {
+      "storyId": "US-028",
+      "entryDate": "2026-07-09",
+      "summary": "需求变更：US-028 已保存为待实现\n描述：类型：文档补全（已实现能力建档）。作为用户，我需要查看每一轮 loop 迭代历史，以便回顾哪些 Story 被执行过、成功或失败。",
+      "learnings": [],
+      "id": 80
+    },
+    {
+      "storyId": "US-029",
+      "entryDate": "2026-07-09",
+      "summary": "需求变更：US-029 已保存为待实现\n描述：类型：文档补全（已实现能力建档）。作为用户，我需要在工作区底部看到当前 loop 执行状态，以便快速判断系统是否在运行、空闲或已完成。",
+      "learnings": [],
+      "id": 81
+    },
+    {
+      "storyId": "US-030",
+      "entryDate": "2026-07-09",
+      "summary": "需求变更：US-030 已保存为待实现\n描述：类型：文档补全（已实现能力建档）。作为用户，我需要在脑图与树形视图中看到哪些 Story 正在执行，以便避免重复操作并理解当前焦点。",
+      "learnings": [],
+      "id": 82
+    },
+    {
+      "storyId": "US-031",
+      "entryDate": "2026-07-09",
+      "summary": "需求变更：US-031 已保存为待实现\n描述：类型：代码实现。作为用户，我需要在 Dashboard 中直接启动或停止 loop 外循环，而不必回到命令行。",
+      "learnings": [],
+      "id": 83
+    },
+    {
+      "storyId": "US-032",
+      "entryDate": "2026-07-09",
+      "summary": "需求变更：US-032 已保存为待实现\n描述：类型：文档补全（已实现能力建档）。作为用户，我需要在脑图中直接新增或删除 Feature 与 Story 节点，以便快速维护需求结构。",
+      "learnings": [],
+      "id": 84
+    },
+    {
+      "storyId": "US-033",
+      "entryDate": "2026-07-09",
+      "summary": "需求变更：US-033 已保存为待实现\n描述：类型：文档补全（已实现能力建档）。作为用户，我需要通过拖拽和排序操作调整脑图节点结构，以便自然地重组需求树。",
+      "learnings": [],
+      "id": 85
+    },
+    {
+      "storyId": "US-034",
+      "entryDate": "2026-07-09",
+      "summary": "需求变更：US-034 已保存为待实现\n描述：类型：文档补全（已实现能力建档）。作为用户，我需要在脑图中建立与删除 Story 依赖关系，以便表达真实的执行顺序。",
+      "learnings": [],
+      "id": 86
+    },
+    {
+      "storyId": "US-035",
+      "entryDate": "2026-07-09",
+      "summary": "需求变更：US-035 已保存为待实现\n描述：类型：文档补全（已实现能力建档）。作为用户，我需要在脑图属性面板中完成等待删除、归档、恢复等 Story 生命周期操作，以便在图形界面中维护 PRD。",
+      "learnings": [],
+      "id": 87
+    },
+    {
+      "storyId": "US-036",
+      "entryDate": "2026-07-09",
+      "summary": "需求变更：US-036 已保存为待实现\n描述：类型：文档补全（已实现能力建档）。作为用户，我需要在脑图顶部按 Milestone 筛选 Story，并创建或编辑 Milestone，以便按阶段组织需求。",
+      "learnings": [],
+      "id": 88
+    },
+    {
+      "storyId": "US-037",
+      "entryDate": "2026-07-09",
+      "summary": "需求变更：US-037 已保存为待实现\n描述：类型：文档补全（已实现能力建档）。作为用户，我需要在 Dashboard 顶栏快速看到项目名、分支、完成度与运行状态，以便把握项目整体情况。",
+      "learnings": [],
+      "id": 89
+    },
+    {
+      "storyId": "US-004",
+      "entryDate": "2026-07-09",
+      "summary": "需求变更：US-004 已保存为草稿\n原已完成状态已重置",
+      "learnings": [],
+      "id": 90
+    },
+    {
+      "storyId": "US-001",
+      "entryDate": "2026-07-09",
+      "summary": "需求变更：US-001 已保存为待实现\n描述：类型：代码实现。作为用户，我需要类桌面程序的 Dashboard（顶栏工具条 + antd Splitter 可拖拽分栏 + 可折叠侧栏），以便专注当前工作区。优先使用 antd 组件，Panel 内容自动填满剩余空间并支持内部滚动。\n原已完成状态已重置",
+      "learnings": [],
+      "id": 91
+    },
+    {
+      "storyId": "US-001",
+      "entryDate": "2026-07-09",
+      "summary": "Story US-001 已完成",
+      "learnings": [],
+      "id": 92
+    },
+    {
+      "storyId": "US-002",
+      "entryDate": "2026-07-09",
+      "summary": "需求变更：US-002 已保存为待实现\n描述：类型：代码实现。作为用户，我需要在 Dashboard 与 CLI 中管理 Codebase Patterns（查看、新增、编辑、删除），以便持续维护项目编码约定。\n原已完成状态已重置",
+      "learnings": [],
+      "id": 93
+    },
+    {
+      "storyId": "US-002",
+      "entryDate": "2026-07-09",
+      "summary": "Story US-002 已完成",
+      "learnings": [],
+      "id": 94
+    },
+    {
+      "storyId": "US-003",
+      "entryDate": "2026-07-09",
+      "summary": "需求变更：US-003 已保存为待实现\n描述：类型：代码实现。作为用户，我需要在中心工作区看到项目、Feature、Story 脑图，节点间树形连线稳定可见，以便把握需求结构。\n原已完成状态已重置",
+      "learnings": [],
+      "id": 95
+    },
+    {
+      "storyId": "US-003",
+      "entryDate": "2026-07-09",
+      "summary": "Story US-003 已完成",
+      "learnings": [],
+      "id": 96
+    },
+    {
+      "storyId": "US-004",
+      "entryDate": "2026-07-09",
+      "summary": "需求变更：US-004 已保存为待实现\n描述：类型：代码实现。作为用户，我需要在左侧边栏查看、编辑项目规范（project-spec），并可选用内置模板，以便统一 Agent 协作约定。",
+      "learnings": [],
+      "id": 97
+    },
+    {
+      "storyId": "US-004",
+      "entryDate": "2026-07-09",
+      "summary": "Story US-004 已完成",
+      "learnings": [],
+      "id": 98
+    },
+    {
+      "storyId": "US-005",
+      "entryDate": "2026-07-09",
+      "summary": "需求变更：US-005 已保存为待实现\n描述：类型：代码实现。作为用户，我需要在脑图中选中 Story 后，在右侧属性面板分区查看并编辑 Story 字段；编辑区合并标题、描述、AC 与操作按钮，依赖与里程碑、进度日志为独立可折叠分区，布局偏好需持久化。\n原已完成状态已重置",
+      "learnings": [],
+      "id": 99
+    },
+    {
+      "storyId": "US-005",
+      "entryDate": "2026-07-09",
+      "summary": "Story US-005 已完成",
+      "learnings": [],
+      "id": 100
+    },
+    {
+      "storyId": "US-006",
+      "entryDate": "2026-07-09",
+      "summary": "需求变更：US-006 已保存为待实现\n描述：类型：代码实现。作为用户，我需要中心工作区上方为脑图编辑、下方为 Agent 运行输出与 Runs 记录，底部居中显示执行状态，以便同时查看规划与执行结果。\n原已完成状态已重置",
+      "learnings": [],
+      "id": 101
+    },
+    {
+      "storyId": "US-006",
+      "entryDate": "2026-07-09",
+      "summary": "Story US-006 已完成",
+      "learnings": [],
+      "id": 102
+    },
+    {
+      "storyId": "US-007",
+      "entryDate": "2026-07-09",
+      "summary": "需求变更：US-007 已保存为待实现\n描述：类型：代码实现。作为用户，我需要在脑图中选中 Feature 后，在右侧属性面板查看并编辑 Feature 标题与描述，并浏览其下 Story 列表（点击可跳转选中），以便管理功能模块。\n原已完成状态已重置",
+      "learnings": [],
+      "id": 103
+    },
+    {
+      "storyId": "US-007",
+      "entryDate": "2026-07-09",
+      "summary": "Story US-007 已完成",
+      "learnings": [],
+      "id": 104
+    },
+    {
+      "storyId": "US-008",
+      "entryDate": "2026-07-09",
+      "summary": "需求变更：US-008 已保存为待实现\n描述：类型：代码实现。作为用户，我需要在脑图画布左侧并排查看项目、Feature、Story 结构树，与画布共享选中态；右侧为节点属性面板，树面板与属性面板均可收起。\n原已完成状态已重置",
+      "learnings": [],
+      "id": 105
+    },
+    {
+      "storyId": "US-008",
+      "entryDate": "2026-07-09",
+      "summary": "Story US-008 已完成",
+      "learnings": [],
+      "id": 106
+    },
+    {
+      "storyId": "US-009",
+      "entryDate": "2026-07-09",
+      "summary": "需求变更：US-009 已保存为待实现\n描述：类型：代码实现。作为用户，我需要中心工作区的脑图区域自动填满可用空间，无需用户输入标题或折叠控件，且无冗余操作提示，以便获得更大的编辑视野。\n原已完成状态已重置",
+      "learnings": [],
+      "id": 107
+    },
+    {
+      "storyId": "US-009",
+      "entryDate": "2026-07-09",
+      "summary": "Story US-009 已完成",
+      "learnings": [],
+      "id": 108
+    },
+    {
+      "storyId": "US-010",
+      "entryDate": "2026-07-09",
+      "summary": "需求变更：US-010 已保存为待实现\n描述：类型：代码实现。作为用户，我需要在左侧边栏以卡片式布局查看与编辑 Codebase Patterns，长文本可展开，操作按钮独立于正文，以便舒适地维护编码约定。\n原已完成状态已重置",
+      "learnings": [],
+      "id": 109
+    },
+    {
+      "storyId": "US-010",
+      "entryDate": "2026-07-09",
+      "summary": "Story US-010 已完成",
+      "learnings": [],
+      "id": 110
+    },
+    {
+      "storyId": "US-011",
+      "entryDate": "2026-07-09",
+      "summary": "需求变更：US-011 已保存为待实现\n描述：类型：代码实现。作为用户，我需要在右侧边栏查看项目进度日志（按 Story 汇总的完成记录与 learnings），以便追踪 Agent 迭代历史与经验沉淀。\n原已完成状态已重置",
+      "learnings": [],
+      "id": 111
+    },
+    {
+      "storyId": "US-011",
+      "entryDate": "2026-07-09",
+      "summary": "Story US-011 已完成",
+      "learnings": [],
+      "id": 112
+    },
+    {
+      "storyId": "US-012",
+      "entryDate": "2026-07-09",
+      "summary": "需求变更：US-012 已保存为待实现\n描述：类型：代码实现。作为项目负责人，我需要在 Dashboard 编辑项目元信息（描述、Git 分支、愿景摘要），以便 Agent 理解项目背景与目标，而不只依赖 Story 列表。\n原已完成状态已重置",
+      "learnings": [],
+      "id": 113
+    },
+    {
+      "storyId": "US-012",
+      "entryDate": "2026-07-09",
+      "summary": "Story US-012 已完成",
+      "learnings": [],
+      "id": 114
+    },
+    {
+      "storyId": "US-013",
+      "entryDate": "2026-07-09",
+      "summary": "需求变更：US-013 已保存为待实现\n描述：类型：代码实现。作为用户，我需要为 Milestone 设置目标日期和版本号，并在脑图筛选栏与属性中展示，以便按时间阶段规划 Story 交付。\n原已完成状态已重置",
+      "learnings": [],
+      "id": 115
+    },
+    {
+      "storyId": "US-013",
+      "entryDate": "2026-07-09",
+      "summary": "Story US-013 已完成",
+      "learnings": [],
+      "id": 116
+    },
+    {
+      "storyId": "US-014",
+      "entryDate": "2026-07-09",
+      "summary": "需求变更：US-014 已保存为待实现\n描述：类型：代码实现。作为项目维护者，我需要识别并清理没有任何 Story 的空叶子 Feature，并在规划时避免继续产生不可执行的 FT 空节点，以便脑图结构始终服务于可执行 Story。\n原已完成状态已重置",
+      "learnings": [],
+      "id": 117
+    },
+    {
+      "storyId": "US-014",
+      "entryDate": "2026-07-09",
+      "summary": "Story US-014 已完成",
+      "learnings": [],
+      "id": 118
+    },
+    {
+      "storyId": "US-015",
+      "entryDate": "2026-07-09",
+      "summary": "需求变更：US-015 已保存为待实现\n描述：类型：代码实现。作为项目负责人，我需要用 CLI 初始化 Loop 项目并查看当前整体状态，以便让 Dashboard、Agent 与 loop-data 在统一的项目上下文中工作。\n原已完成状态已重置",
+      "learnings": [],
+      "id": 119
+    },
+    {
+      "storyId": "US-015",
+      "entryDate": "2026-07-09",
+      "summary": "Story US-015 已完成",
+      "learnings": [],
+      "id": 120
+    },
+    {
+      "storyId": "US-038",
+      "entryDate": "2026-07-09",
+      "summary": "需求变更：US-038 已保存为待实现\n描述：类型：代码实现。作为用户，我需要在左侧 TreeView 组件下方直接看到 draft 状态的 Story 列表，并在同一区域完成确认，以便在浏览需求树时顺手处理待确认项。\n原已完成状态已重置",
+      "learnings": [],
+      "id": 121
+    },
+    {
+      "storyId": "US-038",
+      "entryDate": "2026-07-09",
+      "summary": "Story US-038 已完成",
+      "learnings": [],
+      "id": 122
+    },
+    {
+      "storyId": "US-005",
+      "entryDate": "2026-07-09",
+      "summary": "需求补充：前端需要显示并编辑 Story 类型\n描述：类型：代码实现。作为用户，我需要在脑图中选中 Story 后，在右侧属性面板分区查看并编辑 Story 字段；编辑区合并标题、描述、类型、AC 与操作按钮，依赖与里程碑、进度日志为独立可折叠分区，布局偏好需持久化。\n验收标准：选中 Story 节点时右侧显示 Story 属性面板（可 Splitter 收起）；编辑分区：可修改标题、描述、Story 类型、验收标准、状态（draft/ready）、优先级；操作按钮（确认/完成/归档等）置于编辑区内；Story 类型至少支持：代码实现、文档补全、规划/PRD、测试补充、重构，并持久化到 loop-data；前端需显示当前 Story 类型，并支持用户直接编辑与保存；依赖与里程碑分区：可管理 Story 依赖关系与 Milestone 标签；进度日志分区：展示该 Story 的历史进度条目；各分区可独立折叠，折叠状态 localStorage 持久化；useSyncedStoryFields：Dashboard 定时刷新不覆盖未保存编辑；保存后与 loop-data 同步；pnpm dev 下可正常使用；pnpm test 通过\n原已完成状态已重置",
+      "learnings": [],
+      "id": 123
+    },
+    {
+      "storyId": "US-005",
+      "entryDate": "2026-07-09",
+      "summary": "需求收敛：仅 Story 显示/编辑类型，Feature 不需要类型信息\n描述：类型：代码实现。作为用户，我需要在脑图中选中 Story 后，在右侧属性面板分区查看并编辑 Story 字段；编辑区合并标题、描述、workType、AC 与操作按钮，依赖与里程碑、进度日志为独立可折叠分区，布局偏好需持久化。Feature 不需要类型相关信息。\n验收标准：选中 Story 节点时右侧显示 Story 属性面板（可 Splitter 收起）；编辑分区：可修改标题、描述、Story workType、验收标准、状态（draft/ready）、优先级；操作按钮（确认/完成/归档等）置于编辑区内；前端需显示当前 Story workType，并支持用户直接编辑与保存；Feature 属性面板不显示也不编辑类型相关信息；依赖与里程碑分区：可管理 Story 依赖关系与 Milestone 标签；进度日志分区：展示该 Story 的历史进度条目；各分区可独立折叠，折叠状态 localStorage 持久化；useSyncedStoryFields：Dashboard 定时刷新不覆盖未保存编辑；保存后与 loop-data 同步；pnpm dev 下可正常使用；pnpm test 通过",
+      "learnings": [],
+      "id": 124
+    },
+    {
+      "storyId": "US-017",
+      "entryDate": "2026-07-09",
+      "summary": "需求补充：CLI/数据结构正式引入 Story workType，Feature 不加类型字段\n描述：类型：代码实现。作为规划者，我需要通过 CLI 维护 Feature 与 Story 结构，并在 Story 数据结构中正式引入 workType 字段，以便把代码实现、文档补全、规划/PRD、测试补充、重构等类型作为正式模型管理。Feature 不引入类型字段。\n验收标准：Story 数据结构正式新增 workType 字段，并持久化到 loop-data/stories/*.json；workType 至少支持：implementation、documentation、planning、testing、refactor（或等价中文枚举），并有稳定映射；add-story、update-story、status、prd、tree 等 CLI 输出支持读取与返回 Story workType；相关 HTTP API 与前端类型定义同步支持 Story workType；Feature 数据结构不新增类型字段，CLI 与 API 也不提供 Feature 类型编辑能力；历史 Story 缺省值有兼容策略，旧数据可正常读取；pnpm test 通过",
+      "learnings": [],
+      "id": 125
+    },
+    {
+      "storyId": "US-005",
+      "entryDate": "2026-07-09",
+      "summary": "Story US-005 已完成",
+      "learnings": [],
+      "id": 126
+    },
+    {
+      "storyId": "US-005",
+      "entryDate": "2026-07-09",
+      "summary": "Story 属性面板新增 workType Select 编辑区；db/api/cli 支持 workType 读写；normalizeUserStory 从 description 推断历史缺省；useSyncedStoryFields 同步 workType；pnpm test 46/46 通过",
+      "learnings": [
+        "Story workType 用 features/story-work-type 模块；历史数据无字段时从「类型：」前缀推断"
+      ],
+      "id": 127
     }
   ],
-  "nextId": 63
+  "nextId": 128
 }

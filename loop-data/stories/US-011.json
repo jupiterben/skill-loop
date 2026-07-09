@@ -1,0 +1,26 @@
+{
+  "id": "US-011",
+  "milestoneId": null,
+  "parentId": "FT-004",
+  "dependsOn": [],
+  "title": "进度日志面板",
+  "description": "类型：代码实现。作为用户，我需要在右侧边栏查看项目进度日志（按 Story 汇总的完成记录与 learnings），以便追踪 Agent 迭代历史与经验沉淀。",
+  "acceptanceCriteria": [
+    "右侧边栏（app-sidebar--right）展示 ProgressPanel，标题为「进度记录」并显示条目总数",
+    "每条记录展示日期、关联 Story ID、摘要（summary）及 learnings 列表（若有）",
+    "记录按日期倒序排列；无记录时显示友好空状态提示",
+    "面板内容区可滚动，随 Dashboard 定时刷新同步 loop-data/progress.json",
+    "右侧 Splitter Panel 支持折叠收起，宽度可拖拽调整",
+    "pnpm dev 下可正常预览；pnpm test 通过"
+  ],
+  "priority": 0,
+  "passes": true,
+  "everCompleted": true,
+  "status": "ready",
+  "notes": "",
+  "sortOrder": 0,
+  "removalRequestedAt": null,
+  "archivedAt": null,
+  "claimedBy": null,
+  "claimedAt": null
+}

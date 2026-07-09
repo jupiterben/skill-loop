@@ -1,7 +1,7 @@
 {
   "id": "FT-005",
   "parentId": "FT-001",
-  "title": "左侧区域",
-  "description": "",
+  "title": "项目输入",
+  "description": "项目元信息、项目规范与 Codebase Patterns 等前置输入",
   "sortOrder": 2
 }

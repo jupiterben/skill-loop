@@ -1,0 +1,24 @@
+{
+  "id": "US-021",
+  "milestoneId": null,
+  "parentId": "FT-021",
+  "dependsOn": [],
+  "title": "缺陷报告与修复 Story",
+  "description": "类型：文档补全（已实现能力建档）。作为执行者，我需要通过 loop bug 将缺陷写入 AC 或派生修复 Story，以便把回归问题纳入正式流程。",
+  "acceptanceCriteria": [
+    "未完成 Story 上报缺陷时，将不应出现反例写入原 Story AC",
+    "已完成 Story 上报缺陷时，自动创建新的修复 Story，并可选择 ready",
+    "支持 change-note 与修复标题",
+    "pnpm test 通过"
+  ],
+  "priority": 0,
+  "passes": false,
+  "everCompleted": false,
+  "status": "ready",
+  "notes": "",
+  "sortOrder": 1,
+  "removalRequestedAt": null,
+  "archivedAt": null,
+  "claimedBy": null,
+  "claimedAt": null
+}

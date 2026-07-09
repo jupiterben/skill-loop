@@ -1,0 +1,24 @@
+{
+  "id": "US-019",
+  "milestoneId": null,
+  "parentId": "FT-020",
+  "dependsOn": [],
+  "title": "Story 移除、归档与恢复",
+  "description": "类型：文档补全（已实现能力建档）。作为项目维护者，我需要对不再需要的 Story 发起移除、归档与恢复，以便在不丢失历史记录的前提下清理 PRD。",
+  "acceptanceCriteria": [
+    "支持 request-removal、archive、restore 等生命周期操作",
+    "移除中的 Story 在 tree/status 中有明确标记，归档后从活动树隐藏但保留进度历史",
+    "恢复后 Story 返回活动树并保持关键字段",
+    "pnpm test 通过"
+  ],
+  "priority": 0,
+  "passes": false,
+  "everCompleted": false,
+  "status": "ready",
+  "notes": "",
+  "sortOrder": 1,
+  "removalRequestedAt": null,
+  "archivedAt": null,
+  "claimedBy": null,
+  "claimedAt": null
+}

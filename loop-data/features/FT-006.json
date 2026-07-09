@@ -1,7 +1,7 @@
 {
   "id": "FT-006",
   "parentId": null,
-  "title": "功能逻辑",
-  "description": "",
+  "title": "CLI 与状态存储",
+  "description": "loop-cli 基础命令、状态文件与 PRD/执行数据读写",
   "sortOrder": 2
 }

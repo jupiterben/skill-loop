@@ -1,0 +1,7 @@
+{
+  "id": "FT-024",
+  "parentId": "FT-023",
+  "title": "循环执行引擎",
+  "description": "run/watch、until-stop、stop/status 等外循环编排能力",
+  "sortOrder": 0
+}

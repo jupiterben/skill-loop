@@ -1,0 +1,24 @@
+{
+  "id": "US-035",
+  "milestoneId": null,
+  "parentId": "FT-017",
+  "dependsOn": [],
+  "title": "脑图中的 Story 生命周期操作",
+  "description": "类型：文档补全（已实现能力建档）。作为用户，我需要在脑图属性面板中完成等待删除、归档、恢复等 Story 生命周期操作，以便在图形界面中维护 PRD。",
+  "acceptanceCriteria": [
+    "属性面板提供 request-removal、archive、restore、永久删除等入口",
+    "不同状态的 Story 在脑图与属性面板中有清晰区分",
+    "生命周期操作与 CLI/HTTP API 状态保持一致",
+    "pnpm test 通过"
+  ],
+  "priority": 0,
+  "passes": false,
+  "everCompleted": false,
+  "status": "ready",
+  "notes": "",
+  "sortOrder": 3,
+  "removalRequestedAt": null,
+  "archivedAt": null,
+  "claimedBy": null,
+  "claimedAt": null
+}
