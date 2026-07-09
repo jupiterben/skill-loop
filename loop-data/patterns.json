@@ -23,6 +23,9 @@
     "loop run 有限轮外循环：resolveAgentPromptPath 优先级 LOOP_AGENT_PROMPT → loop-data/AGENT.md → templates/AGENT.md；run.json/runs.json 存 .loop-status/；测试 features/loop-run/loop-run.test.ts",
     "并行 Worker：claim-story/release-claim/next-stories 与 loop run --workers N；claimedBy 存 stories JSON；getNextStories 跳过已认领；测试 features/parallel-worker/parallel-worker.test.ts",
     "Agent live 输出：run-live.ts 写 .loop-status/run-live.json 与 runs/<worker>-live.json；loop run output 读 getAllRunLiveForDashboard；Dashboard AgentLivePanel 展示 phase/多 worker/空态；complete/stop 时 finishRunLiveForStory/clearAllRunLive 收尾；测试 features/run-live/run-live.test.ts",
-    "脑图节点增删：空态 mindmap-workspace__empty 提供 +Feature/+Story；选中 root/feature 时 MindMapNode 与 NodePropsPanel MindMapAddButtons 共用 openCreate→api.addFeature/addStory 写 loop-data；ReactFlow onNodesDelete 经 canDeleteFeature/canHardDeleteStory 调 deleteFeature/deleteStory 后 onRefresh；测试 features/mindmap-nodes/mindmap-nodes.test.ts"
+    "脑图节点增删：空态 mindmap-workspace__empty 提供 +Feature/+Story；选中 root/feature 时 MindMapNode 与 NodePropsPanel MindMapAddButtons 共用 openCreate→api.addFeature/addStory 写 loop-data；ReactFlow onNodesDelete 经 canDeleteFeature/canHardDeleteStory 调 deleteFeature/deleteStory 后 onRefresh；测试 features/mindmap-nodes/mindmap-nodes.test.ts",
+    "PRD 导航：loop prd/tree/next/next-stories/patterns/spec/spec-templates 输出结构化 JSON；next-stories --limit N；测试 features/prd-nav/prd-nav.test.ts",
+    "tree CLI story 节点含 workType（normalizeUserStory 推断）；TreeNode 类型同步；测试 prd-nav/prd-nav.test.ts",
+    "Story 生命周期：request-removal/archive/restore CLI 与 API；tree story 节点 removalRequested 标记等待删除；归档后 getActiveStories 排除、进度保留；restore 恢复关键字段；测试 features/story-lifecycle/story-lifecycle.test.ts"
   ]
 }

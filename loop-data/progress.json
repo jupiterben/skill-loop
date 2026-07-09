@@ -1040,7 +1040,87 @@
         "并行认领：getNextStories 跳过已认领 Story；complete/release 清除 claimedBy；测试放 features/parallel-worker/parallel-worker.test.ts"
       ],
       "id": 137
+    },
+    {
+      "storyId": "US-027",
+      "entryDate": "2026-07-09",
+      "summary": "Story US-027 已完成",
+      "learnings": [],
+      "id": 138
+    },
+    {
+      "storyId": "US-027",
+      "entryDate": "2026-07-09",
+      "summary": "Agent 实时输出能力建档完成",
+      "learnings": [
+        "run-live 存 .loop-status/run-live.json 与 runs/<worker>-live.json；loop run output 读 getAllRunLiveForDashboard；Dashboard AgentLivePanel 展示 phase/多 worker/空态；finishRunLiveForStory 在 complete 时收尾；测试 features/run-live/run-live.test.ts"
+      ],
+      "id": 139
+    },
+    {
+      "storyId": "US-032",
+      "entryDate": "2026-07-09",
+      "summary": "Story US-032 已完成",
+      "learnings": [],
+      "id": 140
+    },
+    {
+      "storyId": "US-032",
+      "entryDate": "2026-07-09",
+      "summary": "脑图节点增删能力建档完成",
+      "learnings": [
+        "空态 +Feature/+Story、MindMapNode/NodePropsPanel openCreate、onNodesDelete 经 deletable 规则删节点；测试 features/mindmap-nodes/mindmap-nodes.test.ts"
+      ],
+      "id": 141
+    },
+    {
+      "storyId": "US-016",
+      "entryDate": "2026-07-09",
+      "summary": "Story US-016 已完成",
+      "learnings": [],
+      "id": 142
+    },
+    {
+      "storyId": "US-016",
+      "entryDate": "2026-07-09",
+      "summary": "PRD 查询与导航命令建档完成",
+      "learnings": [
+        "prd/tree/next/next-stories/patterns/spec/spec-templates 均输出结构化 JSON；测试 features/prd-nav/prd-nav.test.ts"
+      ],
+      "id": 143
+    },
+    {
+      "storyId": "US-017",
+      "entryDate": "2026-07-09",
+      "summary": "Story US-017 已完成",
+      "learnings": [],
+      "id": 144
+    },
+    {
+      "storyId": "US-017",
+      "entryDate": "2026-07-09",
+      "summary": "Story workType 正式建模：CLI/API/前端同步，tree 节点补齐 workType",
+      "learnings": [
+        "workType 存 stories JSON；缺省由 description 推断；tree storyNode 返回 workType；测试 prd-nav/story-work-type"
+      ],
+      "id": 145
+    },
+    {
+      "storyId": "US-019",
+      "entryDate": "2026-07-09",
+      "summary": "Story US-019 已完成",
+      "learnings": [],
+      "id": 146
+    },
+    {
+      "storyId": "US-019",
+      "entryDate": "2026-07-09",
+      "summary": "Story 生命周期命令建档完成",
+      "learnings": [
+        "request-removal/archive/restore 在 db.ts；tree 用 removalRequested 标记；归档后 getActiveStories 排除；测试 features/story-lifecycle/story-lifecycle.test.ts"
+      ],
+      "id": 147
     }
   ],
-  "nextId": 138
+  "nextId": 148
 }
