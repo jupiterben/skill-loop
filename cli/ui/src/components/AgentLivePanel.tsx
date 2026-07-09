@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Tabs, Tag, Typography } from "antd";
 import type { RunLivePhase, RunLiveState } from "../types";
+import { WorkspaceSection } from "./WorkspaceSection";
 
 const { Text } = Typography;
 
@@ -72,6 +73,9 @@ function LiveOutput({
 function IdlePlaceholder({ isRunning }: { isRunning?: boolean }) {
   return (
     <div className="agent-live__idle">
+      <span className="agent-live__idle-icon" aria-hidden>
+        ⌁
+      </span>
       <Text type="secondary" className="agent-live__placeholder">
         {isRunning
           ? "外循环已启动，等待 Agent 输出…"
@@ -104,16 +108,18 @@ export function AgentLivePanel({ runLive, runLiveWorkers, isRunning }: Props) {
     }
   }, [workers, activeKey]);
 
-  if (!workers.length) {
-    return <IdlePlaceholder isRunning={isRunning} />;
-  }
+  const badge =
+    isRunning && workers.length > 0 ? (
+      <Tag color="processing" className="workspace-section__badge">
+        Live
+      </Tag>
+    ) : null;
 
-  if (workers.length === 1) {
-    const single = workers[0]!;
-    return <LiveOutput runLive={single} isRunning={isRunning} />;
-  }
-
-  return (
+  const body = !workers.length ? (
+    <IdlePlaceholder isRunning={isRunning} />
+  ) : workers.length === 1 ? (
+    <LiveOutput runLive={workers[0]!} isRunning={isRunning} />
+  ) : (
     <Tabs
       activeKey={activeKey}
       onChange={setActiveKey}
@@ -135,5 +141,16 @@ export function AgentLivePanel({ runLive, runLiveWorkers, isRunning }: Props) {
         };
       })}
     />
+  );
+
+  return (
+    <WorkspaceSection
+      title="Agent 实时输出"
+      icon="▸"
+      badge={badge}
+      className="agent-live-section"
+    >
+      {body}
+    </WorkspaceSection>
   );
 }

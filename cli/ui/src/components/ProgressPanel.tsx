@@ -7,9 +7,12 @@ const { Text } = Typography;
 function ProgressList({ entries }: { entries: ProgressEntry[] }) {
   if (!entries.length) {
     return (
-      <Text type="secondary" className="panel-accordion__empty">
-        暂无进度记录
-      </Text>
+      <div className="progress-panel__empty">
+        <Text type="secondary">暂无进度记录</Text>
+        <Text type="secondary" className="progress-panel__empty-hint">
+          Agent 完成 Story 后会自动写入
+        </Text>
+      </div>
     );
   }
 
@@ -53,7 +56,12 @@ export function ProgressPanel({ progress, standalone = false }: Props) {
     return (
       <div className="progress-panel progress-panel--standalone">
         <header className="progress-panel__head">
-          <h3 className="progress-panel__title">进度记录</h3>
+          <div className="progress-panel__title-wrap">
+            <span className="progress-panel__icon" aria-hidden>
+              ◷
+            </span>
+            <h3 className="progress-panel__title">进度记录</h3>
+          </div>
           <span className="progress-panel__count">{progress.length}</span>
         </header>
         <div className="progress-panel__body">

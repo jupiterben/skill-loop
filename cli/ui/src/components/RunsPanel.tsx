@@ -24,12 +24,22 @@ function runStatusColor(
   }
 }
 
+const STATUS_LABEL: Record<LoopRun["status"], string> = {
+  running: "运行中",
+  completed: "已完成",
+  failed: "失败",
+  max_iterations: "达上限",
+};
+
 function RunsList({ runs }: { runs: LoopRun[] }) {
   if (!runs.length) {
     return (
-      <Text type="secondary" className="sidebar-accordion__empty">
-        暂无记录
-      </Text>
+      <div className="runs-panel__empty">
+        <Text type="secondary">暂无迭代记录</Text>
+        <Text type="secondary" className="runs-panel__empty-hint">
+          执行 loop run 后将在此显示历史
+        </Text>
+      </div>
     );
   }
 
@@ -43,7 +53,9 @@ function RunsList({ runs }: { runs: LoopRun[] }) {
           <div className="runs-compact__content">
             <div className="runs-compact__head">
               <span className="runs-compact__iter">#{r.iteration}</span>
-              <Tag color={runStatusColor(r.status)}>{r.status}</Tag>
+              <Tag color={runStatusColor(r.status)}>
+                {STATUS_LABEL[r.status] ?? r.status}
+              </Tag>
             </div>
             {r.storyId && (
               <Text className="runs-compact__story">

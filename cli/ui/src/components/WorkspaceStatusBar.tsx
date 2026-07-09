@@ -1,4 +1,4 @@
-import { Tag, Typography } from "antd";
+import { Progress, Tag, Typography } from "antd";
 import type { LoopRun, ProjectStatus, UserStory } from "../types";
 
 const { Text } = Typography;
@@ -26,6 +26,9 @@ function resolveStory(
 }
 
 export function WorkspaceStatusBar({ status, userStories, loopRunner }: Props) {
+  const total = status.totalStories ?? 0;
+  const completed = status.completedStories ?? 0;
+  const pct = total ? Math.round((completed / total) * 100) : 0;
   const executingRuns =
     status.activeRuns && status.activeRuns.length > 0
       ? status.activeRuns
@@ -50,6 +53,19 @@ export function WorkspaceStatusBar({ status, userStories, loopRunner }: Props) {
 
   return (
     <footer className="app-workspace__status" role="status" aria-live="polite">
+      <div className="workspace-status__track">
+        <Progress
+          percent={pct}
+          size="small"
+          showInfo={false}
+          strokeColor={{
+            "0%": "#5b9cf5",
+            "100%": "#3dd68c",
+          }}
+          className="workspace-status__progress"
+        />
+      </div>
+      <div className="workspace-status__content">
       {isRunning && executingRunItems.length > 1 ? (
         <div className="workspace-status workspace-status--running">
           <span className="workspace-status__dot" aria-hidden />
@@ -116,6 +132,7 @@ export function WorkspaceStatusBar({ status, userStories, loopRunner }: Props) {
           就绪 · 暂无待执行 Story
         </Text>
       )}
+      </div>
     </footer>
   );
 }

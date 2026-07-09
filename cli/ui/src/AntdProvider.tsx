@@ -5,13 +5,20 @@ const antdTheme = {
   algorithm: theme.darkAlgorithm,
   token: {
     colorPrimary: "#5b9cf5",
-    colorBgBase: "#0b0f14",
-    colorBgContainer: "#141b24",
-    colorBgElevated: "#1c2633",
-    colorBorder: "#2a3544",
-    colorText: "#e8edf4",
+    colorBgBase: "#090d12",
+    colorBgContainer: "#121820",
+    colorBgElevated: "#1a2330",
+    colorBorder: "#283444",
+    colorText: "#edf2f8",
     colorTextSecondary: "#8b9cb3",
     borderRadius: 10,
+    fontFamily: '"Segoe UI", system-ui, -apple-system, sans-serif',
+  },
+  components: {
+    Splitter: {
+      splitBarSize: 3,
+      splitTriggerSize: 12,
+    },
   },
 };
 
