@@ -18,8 +18,11 @@
     "空叶子 FT 判定用 feature-leaf.ts / emptyLeafFeature.ts；仅空叶子可 delete-feature；脑图 sublabel 与属性面板 Alert 提示补 US 或删除",
     "Story workType 存 loop-data/stories/*.json；Dashboard 属性面板用 features/story-work-type Select 编辑；CLI --work-type 与 API workType 字段同步",
     "loop plan 单次规划：resolvePlannerPromptPath 优先级 LOOP_PLANNER_PROMPT → loop-data/PLANNER.md → templates/PLANNER.md；测试 features/plan/plan.test.ts",
-    "Dashboard CLI 状态存 loop-data/dashboard.json；start/stop/status 见 dashboard-process.ts；测试 features/dashboard/dashboard.test.ts",
-    "loop run 有限轮外循环：resolveAgentPromptPath 优先级 LOOP_AGENT_PROMPT → loop-data/AGENT.md → templates/AGENT.md；run.json 当前状态、runs.json 历史记录；测试 features/loop-run/loop-run.test.ts",
-    "并行 Worker：claim-story/release-claim/next-stories 与 loop run --workers N；claimedBy 存 stories JSON；getNextStories 跳过已认领；测试 features/parallel-worker/parallel-worker.test.ts"
+    "循环执行运行时状态存 .loop-status/（run.json、runs.json、dashboard.json、run-live 等，不进 git）；PRD/项目数据仍存 loop-data/",
+    "Dashboard CLI 进程状态存 .loop-status/dashboard.json；start/stop/status 见 dashboard-process.ts；测试 features/dashboard/dashboard.test.ts",
+    "loop run 有限轮外循环：resolveAgentPromptPath 优先级 LOOP_AGENT_PROMPT → loop-data/AGENT.md → templates/AGENT.md；run.json/runs.json 存 .loop-status/；测试 features/loop-run/loop-run.test.ts",
+    "并行 Worker：claim-story/release-claim/next-stories 与 loop run --workers N；claimedBy 存 stories JSON；getNextStories 跳过已认领；测试 features/parallel-worker/parallel-worker.test.ts",
+    "Agent live 输出：run-live.ts 写 .loop-status/run-live.json 与 runs/<worker>-live.json；loop run output 读 getAllRunLiveForDashboard；Dashboard AgentLivePanel 展示 phase/多 worker/空态；complete/stop 时 finishRunLiveForStory/clearAllRunLive 收尾；测试 features/run-live/run-live.test.ts",
+    "脑图节点增删：空态 mindmap-workspace__empty 提供 +Feature/+Story；选中 root/feature 时 MindMapNode 与 NodePropsPanel MindMapAddButtons 共用 openCreate→api.addFeature/addStory 写 loop-data；ReactFlow onNodesDelete 经 canDeleteFeature/canHardDeleteStory 调 deleteFeature/deleteStory 后 onRefresh；测试 features/mindmap-nodes/mindmap-nodes.test.ts"
   ]
 }
