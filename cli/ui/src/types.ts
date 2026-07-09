@@ -109,6 +109,7 @@ export interface ProjectStatus {
   project: string;
   branchName: string;
   description: string;
+  vision?: string;
   totalStories: number;
   completedStories: number;
   pendingStories: number;

@@ -387,6 +387,33 @@ export async function handleApiMutation(
       return true;
     }
 
+    if (req.method === "POST" && pathname === "/api/project/update") {
+      const patch: {
+        branchName?: string;
+        description?: string;
+        vision?: string;
+      } = {};
+      if (body.branchName !== undefined) {
+        patch.branchName = String(body.branchName);
+      }
+      if (body.description !== undefined) {
+        patch.description = String(body.description);
+      }
+      if (body.vision !== undefined) {
+        patch.vision = String(body.vision);
+      }
+      if (!Object.keys(patch).length) {
+        throw new Error("至少提供 branchName、description 或 vision");
+      }
+      const project = db.updateProjectMeta(projectName, patch);
+      json(res, {
+        ok: true,
+        project,
+        status: db.getStatus(projectName),
+      });
+      return true;
+    }
+
     if (req.method === "POST" && pathname === "/api/loop-run/start") {
       const { startLoopRunBackground } = await import("./loop-run-launcher.js");
       const untilStop =

@@ -1129,6 +1129,25 @@ body {
   font-size: 0.75rem;
 }
 
+.project-meta-panel__body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.project-meta-panel__form.ant-form-vertical .ant-form-item {
+  margin-bottom: 0.45rem;
+}
+
+.project-meta-panel__form .ant-form-item-label > label {
+  font-size: 0.78rem;
+}
+
+.project-meta-panel__hint {
+  display: block;
+  font-size: 0.75rem;
+}
+
 .progress-entry {
   padding: 0.75rem 0;
   border-bottom: 1px solid var(--border);

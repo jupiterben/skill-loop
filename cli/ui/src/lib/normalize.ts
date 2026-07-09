@@ -196,6 +196,9 @@ export function normalizeDashboard(raw: Record<string, unknown>): DashboardData 
     project: String(status.project ?? "—"),
     branchName: String(status.branchName ?? "—"),
     description: String(status.description ?? ""),
+    ...(status.vision !== undefined && status.vision !== null
+      ? { vision: String(status.vision) }
+      : {}),
     totalStories: Number(status.totalStories ?? activeStories.length),
     completedStories: Number(
       status.completedStories ?? activeStories.filter((s) => s.passes).length

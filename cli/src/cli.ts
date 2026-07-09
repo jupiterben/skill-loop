@@ -84,8 +84,34 @@ const COMMANDS: Record<string, Handler> = {
     if (!project) fail("缺少 --project");
     const branchName = flagStr(parsed.flags, "branch", "branch-name") ?? "main";
     const description = flagStr(parsed.flags, "description", "desc") ?? "";
-    db.upsertProject({ name: project, branchName, description });
-    return { ok: true, project, branchName, description };
+    const vision = flagStr(parsed.flags, "vision");
+    db.upsertProject({
+      name: project,
+      branchName,
+      description,
+      ...(vision !== undefined ? { vision } : {}),
+    });
+    return { ok: true, project, branchName, description, ...(vision ? { vision } : {}) };
+  },
+
+  "update-project"(db, _root, parsed) {
+    const patch: {
+      branchName?: string;
+      description?: string;
+      vision?: string;
+    } = {};
+    const branchName = flagStr(parsed.flags, "branch", "branch-name");
+    const description = flagStr(parsed.flags, "description", "desc");
+    const vision = flagStr(parsed.flags, "vision");
+    if (branchName !== undefined) patch.branchName = branchName;
+    if (description !== undefined) patch.description = description;
+    if (vision !== undefined) patch.vision = vision;
+    if (!Object.keys(patch).length) {
+      fail("至少提供 --description、--branch 或 --vision");
+    }
+    const name = projectName(db, parsed);
+    const updated = db.updateProjectMeta(name, patch);
+    return { ok: true, ...updated };
   },
 
   complete(db, root, parsed) {
@@ -459,6 +485,7 @@ function printHelp(): void {
   delete-story <US-xxx>
   add-milestone --title "..."
   update-milestone <MS-xxx> [--title "..."] [--description "..."]
+  update-project [--description "..."] [--branch "..."] [--vision "..."]
 
 循环:
   watch [--tool agent|claude|amp] [--workers N]

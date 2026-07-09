@@ -7,6 +7,7 @@ import { MindMapPanel } from "./components/MindMapPanel";
 import { AgentLivePanel } from "./components/AgentLivePanel";
 import { PatternsPanel } from "./features/patterns/PatternsPanel";
 import { ProjectSpecPanel } from "./features/project-spec/ProjectSpecPanel";
+import { ProjectMetaPanel } from "./features/project-meta/ProjectMetaPanel";
 import { ProgressPanel } from "./components/ProgressPanel";
 import { RunsPanel } from "./components/RunsPanel";
 import { WorkspaceStatusBar } from "./components/WorkspaceStatusBar";
@@ -20,6 +21,7 @@ export function App() {
   const [confirmBusy, setConfirmBusy] = useState(false);
   const [patternsBusy, setPatternsBusy] = useState(false);
   const [specBusy, setSpecBusy] = useState(false);
+  const [metaBusy, setMetaBusy] = useState(false);
   const { sizes: bodySizes, onResizeEnd: onBodySplitEnd } = useSplitSizes(
     "loop-body-split-v2",
     [280, 720, 300]
@@ -105,6 +107,27 @@ export function App() {
     [refresh]
   );
 
+  const handleSaveProjectMeta = useCallback(
+    async (draft: {
+      branchName: string;
+      description: string;
+      vision: string;
+    }) => {
+      setMetaBusy(true);
+      try {
+        await api.updateProject({
+          branchName: draft.branchName,
+          description: draft.description,
+          vision: draft.vision,
+        });
+        await refresh();
+      } finally {
+        setMetaBusy(false);
+      }
+    },
+    [refresh]
+  );
+
   if (error && !data) {
     return (
       <div className="app-shell app-shell--centered">
@@ -171,6 +194,11 @@ export function App() {
           className="app-body-splitter__sidebar app-body-splitter__sidebar--left"
         >
           <aside className="app-sidebar app-sidebar--left">
+            <ProjectMetaPanel
+              status={status}
+              busy={metaBusy}
+              onSave={handleSaveProjectMeta}
+            />
             <ProjectSpecPanel
               projectSpec={projectSpec}
               templates={projectSpecTemplates}

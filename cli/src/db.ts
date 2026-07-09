@@ -56,6 +56,7 @@ type ProjectFile = {
   name: string;
   branchName: string;
   description: string;
+  vision?: string;
   updatedAt: string;
 };
 
@@ -108,14 +109,55 @@ export class LoopStateDb {
     name: string;
     branchName: string;
     description: string;
+    vision?: string;
   }): number {
     writeJsonFile(getProjectFile(this.projectRoot), {
       name: input.name,
       branchName: input.branchName,
       description: input.description,
+      ...(input.vision !== undefined && input.vision.trim()
+        ? { vision: input.vision.trim() }
+        : {}),
       updatedAt: new Date().toISOString(),
     } satisfies ProjectFile);
     return 1;
+  }
+
+  updateProjectMeta(
+    projectName: string,
+    patch: {
+      branchName?: string;
+      description?: string;
+      vision?: string;
+    }
+  ): ProjectFile {
+    const cur = this.assertProject(projectName);
+    if (patch.branchName !== undefined && !patch.branchName.trim()) {
+      throw new Error("branchName 不能为空");
+    }
+
+    const next: ProjectFile = {
+      ...cur,
+      ...(patch.branchName !== undefined
+        ? { branchName: patch.branchName.trim() }
+        : {}),
+      ...(patch.description !== undefined
+        ? { description: patch.description }
+        : {}),
+      updatedAt: new Date().toISOString(),
+    };
+
+    if (patch.vision !== undefined) {
+      const trimmed = patch.vision.trim();
+      if (trimmed) {
+        next.vision = trimmed;
+      } else {
+        delete next.vision;
+      }
+    }
+
+    writeJsonFile(getProjectFile(this.projectRoot), next);
+    return next;
   }
 
   getMilestones(_projectName: string): Milestone[] {
@@ -1398,12 +1440,14 @@ export class LoopStateDb {
     name: string;
     branchName: string;
     description: string;
+    vision?: string;
   } {
     const row = this.assertProject(projectName);
     return {
       name: row.name,
       branchName: row.branchName,
       description: row.description,
+      ...(row.vision ? { vision: row.vision } : {}),
     };
   }
 
@@ -1424,6 +1468,7 @@ export class LoopStateDb {
       project: meta.name,
       branchName: meta.branchName,
       description: meta.description,
+      ...(meta.vision ? { vision: meta.vision } : {}),
       totalStories: counts.total,
       completedStories: counts.completed,
       pendingStories: counts.pending,
