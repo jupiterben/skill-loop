@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import {
   Alert,
   Button,
@@ -85,6 +85,7 @@ interface Props {
   onUnconfirmStory?: (storyId: string) => void;
   onSelectArchived?: (storyId: string) => void;
   onSelectNode?: (id: string, kind: SelectedMindMapNode["kind"]) => void;
+  onEditingChange?: (editing: boolean) => void;
 }
 
 function confirmAction(
@@ -197,6 +198,7 @@ function FeatureSectionsPanel({
   busy,
   onUpdateFeature,
   onSelectNode,
+  onEditingChange,
 }: {
   feature: Feature;
   parentFeature?: Feature | null;
@@ -205,25 +207,74 @@ function FeatureSectionsPanel({
   busy?: boolean;
   onUpdateFeature?: Props["onUpdateFeature"];
   onSelectNode?: Props["onSelectNode"];
+  onEditingChange?: (editing: boolean) => void;
 }) {
-  const [title, setTitle] = useState(feature.title);
-  const [description, setDescription] = useState(feature.description);
   const featureIdRef = useRef(feature.id);
+  const [detachedSnapshot, setDetachedSnapshot] = useState<Feature | null>(null);
+  const isDetached = detachedSnapshot !== null;
+  const viewFeature = detachedSnapshot ?? feature;
+
+  const [title, setTitleState] = useState(feature.title);
+  const [description, setDescriptionState] = useState(feature.description);
 
   const dirty =
-    title.trim() !== feature.title || description !== feature.description;
+    title !== feature.title || description !== feature.description;
+
+  const syncFromFeature = useCallback((source: Feature) => {
+    setTitleState(source.title);
+    setDescriptionState(source.description);
+  }, []);
+
+  const releaseDetached = useCallback(() => {
+    setDetachedSnapshot(null);
+    onEditingChange?.(false);
+  }, [onEditingChange]);
+
+  const detach = useCallback(() => {
+    setDetachedSnapshot((prev) => {
+      if (prev) return prev;
+      onEditingChange?.(true);
+      return { ...feature };
+    });
+  }, [feature, onEditingChange]);
+
+  const setTitle = useCallback(
+    (value: string) => {
+      detach();
+      setTitleState(value);
+    },
+    [detach]
+  );
+
+  const setDescription = useCallback(
+    (value: string) => {
+      detach();
+      setDescriptionState(value);
+    },
+    [detach]
+  );
 
   useEffect(() => {
     if (feature.id !== featureIdRef.current) {
       featureIdRef.current = feature.id;
-      setTitle(feature.title);
-      setDescription(feature.description);
+      setDetachedSnapshot(null);
+      onEditingChange?.(false);
+      syncFromFeature(feature);
       return;
     }
-    if (dirty) return;
-    setTitle(feature.title);
-    setDescription(feature.description);
-  }, [feature.id, feature.title, feature.description, dirty]);
+    if (isDetached) return;
+    syncFromFeature(feature);
+  }, [feature, isDetached, syncFromFeature, onEditingChange]);
+
+  useEffect(() => {
+    if (!isDetached || dirty) return;
+    releaseDetached();
+  }, [isDetached, dirty, releaseDetached]);
+
+  const cancelEdit = useCallback(() => {
+    releaseDetached();
+    syncFromFeature(feature);
+  }, [releaseDetached, syncFromFeature, feature]);
 
   return (
     <>
@@ -271,26 +322,33 @@ function FeatureSectionsPanel({
               onChange={(e) => setDescription(e.target.value)}
             />
           </div>
-          {dirty && (
+          {isDetached && dirty && (
             <Text type="warning" className="props-story-form__hint">
-              有未保存的修改；定时刷新不会覆盖当前编辑内容。
+              编辑中已脱离后台刷新；保存或放弃修改后恢复同步。
             </Text>
           )}
           {onUpdateFeature && (
-            <Button
-              type="primary"
-              block
-              disabled={busy || !title.trim() || !dirty}
-              onClick={() =>
-                onUpdateFeature({
-                  id: feature.id,
-                  title: title.trim(),
-                  description,
-                })
-              }
-            >
-              保存
-            </Button>
+            <>
+              {isDetached && dirty && (
+                <Button block disabled={busy} onClick={cancelEdit}>
+                  放弃修改
+                </Button>
+              )}
+              <Button
+                type="primary"
+                block
+                disabled={busy || !title.trim() || !dirty}
+                onClick={() => {
+                  onUpdateFeature({
+                    id: viewFeature.id,
+                    title: title.trim(),
+                    description,
+                  });
+                }}
+              >
+                保存
+              </Button>
+            </>
           )}
         </Space>
       </PropsSectionCollapse>
@@ -369,7 +427,6 @@ function StorySectionsPanel({
   story,
   busy,
   isBlocked,
-  isDraft,
   milestones,
   milestone,
   depsIn,
@@ -388,11 +445,12 @@ function StorySectionsPanel({
   onDeleteStory,
   userStories,
   progress,
+  onEditingChange,
+  onHeaderTitleChange,
 }: {
   story: UserStory;
   busy?: boolean;
   isBlocked: boolean;
-  isDraft: boolean;
   milestones: Milestone[];
   milestone: Milestone | null | undefined;
   depsIn: string[];
@@ -411,6 +469,8 @@ function StorySectionsPanel({
   onDeleteStory?: Props["onDeleteStory"];
   userStories: UserStory[];
   progress: ProgressEntry[];
+  onEditingChange?: (editing: boolean) => void;
+  onHeaderTitleChange?: (title: string) => void;
 }) {
   const {
     title,
@@ -425,23 +485,44 @@ function StorySectionsPanel({
     setChangeNote,
     parsedAcceptanceCriteria,
     dirty,
+    isDetached,
+    viewStory,
+    cancelEdit,
     resetAfterSave,
-  } = useSyncedStoryFields(story);
+  } = useSyncedStoryFields(story, onEditingChange);
+
+  const frozenProgressRef = useRef(storyProgress);
+  if (!isDetached) {
+    frozenProgressRef.current = storyProgress;
+  }
+  const displayProgress = isDetached
+    ? frozenProgressRef.current
+    : storyProgress;
+
+  const panelStory = viewStory;
+  const isDraft = !panelStory.passes && panelStory.status === "draft";
+  const panelMilestone = panelStory.milestoneId
+    ? milestones.find((m) => m.id === panelStory.milestoneId)
+    : null;
+
+  useEffect(() => {
+    onHeaderTitleChange?.(title);
+  }, [title, onHeaderTitleChange]);
 
   const [completeOpen, setCompleteOpen] = useState(false);
   const [completeSummary, setCompleteSummary] = useState("");
 
-  const canSave = Boolean(onUpdateStory) && (dirty || story.passes);
+  const canSave = Boolean(onUpdateStory) && (dirty || panelStory.passes);
   const canComplete =
     Boolean(onCompleteStory) &&
-    !story.passes &&
-    story.status === "ready" &&
+    !panelStory.passes &&
+    panelStory.status === "ready" &&
     !isBlocked &&
-    !story.removalRequestedAt;
+    !panelStory.removalRequestedAt;
 
   const submit = (status: "draft" | "ready") => {
     onUpdateStory?.({
-      storyId: story.id,
+      storyId: panelStory.id,
       title: title.trim(),
       description,
       workType,
@@ -455,7 +536,7 @@ function StorySectionsPanel({
   const submitComplete = () => {
     const summary = completeSummary.trim();
     if (!summary) return;
-    onCompleteStory?.({ storyId: story.id, summary });
+    onCompleteStory?.({ storyId: panelStory.id, summary });
     setCompleteOpen(false);
     setCompleteSummary("");
   };
@@ -517,21 +598,21 @@ function StorySectionsPanel({
             <Text type="secondary" className="props-field__label">
               状态
             </Text>
-            <StoryStatusTag story={story} isBlocked={isBlocked} />
+            <StoryStatusTag story={panelStory} isBlocked={isBlocked} />
           </div>
           <div className="props-field">
             <Text type="secondary" className="props-field__label">
               优先级
             </Text>
             <PriorityEditor
-              story={story}
-              busy={busy}
+              story={panelStory}
+              busy={busy || isDetached}
               onSetPriority={onSetStoryPriority}
             />
           </div>
-          {dirty && (
+          {isDetached && dirty && (
             <Text type="warning" className="props-story-form__hint">
-              有未保存的修改；定时刷新不会覆盖当前编辑内容。
+              编辑中已脱离后台刷新；保存或放弃修改后恢复同步。
             </Text>
           )}
           {canSave && (
@@ -549,6 +630,11 @@ function StorySectionsPanel({
                 />
               </div>
               <Space direction="vertical" size="small" style={{ width: "100%" }}>
+                {isDetached && dirty && (
+                  <Button block disabled={busy} onClick={cancelEdit}>
+                    放弃修改
+                  </Button>
+                )}
                 <Button
                   block
                   disabled={busy || !title.trim()}
@@ -566,7 +652,7 @@ function StorySectionsPanel({
                 </Button>
               </Space>
               <Text type="secondary" className="props-story-form__hint">
-                {story.passes
+                {panelStory.passes
                   ? "修改后将重置完成状态并记入进度日志。"
                   : "保存为草稿需确认后才可执行；保存为待实现将进入执行队列。"}
               </Text>
@@ -582,24 +668,24 @@ function StorySectionsPanel({
                 <Button
                   type="primary"
                   block
-                  disabled={busy}
-                  onClick={() => onConfirmStory(story.id)}
+                  disabled={busy || isDetached}
+                  onClick={() => onConfirmStory(panelStory.id)}
                 >
                   确认可执行
                 </Button>
               )}
               {!isDraft &&
-                !story.passes &&
-                story.status === "ready" &&
+                !panelStory.passes &&
+                panelStory.status === "ready" &&
                 onUnconfirmStory && (
                   <Button
                     block
-                    disabled={busy}
+                    disabled={busy || isDetached}
                     onClick={() => {
                       confirmAction(
                         "退回草稿",
-                        `将「${story.title}」退回草稿？退回后不会进入执行队列。`,
-                        () => onUnconfirmStory(story.id)
+                        `将「${panelStory.title}」退回草稿？退回后不会进入执行队列。`,
+                        () => onUnconfirmStory(panelStory.id)
                       );
                     }}
                   >
@@ -610,17 +696,17 @@ function StorySectionsPanel({
                 <Button
                   type="primary"
                   block
-                  disabled={busy}
+                  disabled={busy || isDetached}
                   onClick={() => setCompleteOpen(true)}
                 >
                   标记完成
                 </Button>
               )}
               <StoryLifecycleActions
-                story={story}
+                story={panelStory}
                 stories={userStories}
                 progress={progress}
-                busy={busy}
+                busy={busy || isDetached}
                 onRequestRemoval={onRequestRemoval}
                 onCancelRemoval={onCancelRemoval}
                 onArchiveStory={onArchiveStory}
@@ -643,25 +729,25 @@ function StorySectionsPanel({
             {milestones.length > 0 && onAssignMilestone ? (
               <div className="props-milestone-chips">
                 <MilestoneChip
-                  active={!story.milestoneId}
-                  disabled={busy}
-                  onClick={() => onAssignMilestone(story.id, null)}
+                  active={!panelStory.milestoneId}
+                  disabled={busy || isDetached}
+                  onClick={() => onAssignMilestone(panelStory.id, null)}
                 >
                   {MILESTONE_NONE_LABEL}
                 </MilestoneChip>
                 {milestones.map((m) => (
                   <MilestoneChip
                     key={m.id}
-                    active={story.milestoneId === m.id}
-                    disabled={busy}
-                    onClick={() => onAssignMilestone(story.id, m.id)}
+                    active={panelStory.milestoneId === m.id}
+                    disabled={busy || isDetached}
+                    onClick={() => onAssignMilestone(panelStory.id, m.id)}
                   >
                     {milestoneFullLabel(m)}
                   </MilestoneChip>
                 ))}
               </div>
-            ) : milestone ? (
-              <Text>{milestoneFullLabel(milestone)}</Text>
+            ) : panelMilestone ? (
+              <Text>{milestoneFullLabel(panelMilestone)}</Text>
             ) : (
               <Text type="secondary">—</Text>
             )}
@@ -697,15 +783,15 @@ function StorySectionsPanel({
               </ul>
             </div>
           )}
-          {story.notes && (
+          {panelStory.notes && (
             <div className="props-field">
               <Text type="secondary" className="props-field__label">
                 备注
               </Text>
-              <Text>{story.notes}</Text>
+              <Text>{panelStory.notes}</Text>
             </div>
           )}
-          {depsIn.length === 0 && depsOut.length === 0 && !story.notes && (
+          {depsIn.length === 0 && depsOut.length === 0 && !panelStory.notes && (
             <Text type="secondary" className="props-story-form__hint">
               在脑图中拖连线建立 Story 依赖；Milestone 用于筛选与分组。
             </Text>
@@ -717,12 +803,12 @@ function StorySectionsPanel({
         storageKey="loop-props-section-progress"
         title="进度日志"
       >
-        <ProgressLog entries={storyProgress} showTitle={false} />
+        <ProgressLog entries={displayProgress} showTitle={false} />
       </PropsSectionCollapse>
 
       <Modal
         open={completeOpen}
-        title={`标记完成 · ${story.id}`}
+        title={`标记完成 · ${panelStory.id}`}
         okText="确认完成"
         cancelText="取消"
         okButtonProps={{ disabled: busy || !completeSummary.trim() }}
@@ -1034,9 +1120,40 @@ export function NodePropsPanel({
   onUnconfirmStory,
   onSelectArchived,
   onSelectNode,
+  onEditingChange,
 }: Props) {
   const featuresById = new Map(features.map((f) => [f.id, f]));
   const storiesById = new Map(userStories.map((s) => [s.id, s]));
+  const editingStateRef = useRef({ story: false, feature: false });
+
+  const reportEditing = useCallback(() => {
+    const { story, feature } = editingStateRef.current;
+    onEditingChange?.(story || feature);
+  }, [onEditingChange]);
+
+  const handleStoryEditing = useCallback(
+    (editing: boolean) => {
+      editingStateRef.current.story = editing;
+      reportEditing();
+    },
+    [reportEditing]
+  );
+
+  const handleFeatureEditing = useCallback(
+    (editing: boolean) => {
+      editingStateRef.current.feature = editing;
+      reportEditing();
+    },
+    [reportEditing]
+  );
+
+  const [storyHeaderTitle, setStoryHeaderTitle] = useState("");
+
+  useEffect(() => {
+    editingStateRef.current = { story: false, feature: false };
+    setStoryHeaderTitle("");
+    onEditingChange?.(false);
+  }, [selected?.id, selected?.kind, onEditingChange]);
 
   if (!selected) {
     return (
@@ -1117,6 +1234,7 @@ export function NodePropsPanel({
           busy={busy}
           onUpdateFeature={onUpdateFeature}
           onSelectNode={onSelectNode}
+          onEditingChange={handleFeatureEditing}
         />
       </aside>
     );
@@ -1200,9 +1318,6 @@ export function NodePropsPanel({
     );
   }
 
-  const milestone = story.milestoneId
-    ? milestones.find((m) => m.id === story.milestoneId)
-    : null;
   const depsIn = dependencies.filter((d) => d.to === story.id).map((d) => d.from);
   const depsOut = dependencies.filter((d) => d.from === story.id).map((d) => d.to);
   const isBlocked =
@@ -1212,6 +1327,7 @@ export function NodePropsPanel({
   const storyProgress = progress
     .filter((e) => e.storyId === story.id)
     .sort((a, b) => b.entryDate.localeCompare(a.entryDate));
+  const headerTitle = storyHeaderTitle || story.title;
 
   return (
     <aside className="props-panel props-panel--story">
@@ -1221,17 +1337,16 @@ export function NodePropsPanel({
         >
           {kindLabel(selected.kind)}
         </span>
-        <h3 className="props-panel__title">{story.title}</h3>
+        <h3 className="props-panel__title">{headerTitle}</h3>
         <code className="props-panel__id">{story.id}</code>
       </header>
 
       <StorySectionsPanel
+        key={story.id}
         story={story}
         busy={busy}
         isBlocked={isBlocked}
-        isDraft={isDraft}
         milestones={milestones}
-        milestone={milestone}
         depsIn={depsIn}
         depsOut={depsOut}
         storiesById={storiesById}
@@ -1248,6 +1363,8 @@ export function NodePropsPanel({
         onDeleteStory={onDeleteStory}
         userStories={userStories}
         progress={progress}
+        onEditingChange={handleStoryEditing}
+        onHeaderTitleChange={setStoryHeaderTitle}
       />
     </aside>
   );

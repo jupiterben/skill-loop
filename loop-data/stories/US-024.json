@@ -12,13 +12,14 @@
     "pnpm test 通过"
   ],
   "priority": 0,
-  "passes": false,
-  "everCompleted": false,
+  "passes": true,
+  "everCompleted": true,
   "status": "ready",
   "notes": "",
   "sortOrder": 1,
   "removalRequestedAt": null,
   "archivedAt": null,
   "claimedBy": null,
-  "claimedAt": null
+  "claimedAt": null,
+  "workType": "documentation"
 }

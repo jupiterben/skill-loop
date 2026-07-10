@@ -1120,7 +1120,199 @@
         "request-removal/archive/restore 在 db.ts；tree 用 removalRequested 标记；归档后 getActiveStories 排除；测试 features/story-lifecycle/story-lifecycle.test.ts"
       ],
       "id": 147
+    },
+    {
+      "storyId": "US-021",
+      "entryDate": "2026-07-09",
+      "summary": "Story US-021 已完成",
+      "learnings": [],
+      "id": 148
+    },
+    {
+      "storyId": "US-021",
+      "entryDate": "2026-07-09",
+      "summary": "缺陷报告能力建档完成",
+      "learnings": [
+        "loop bug 经 reportBug/bug-ac.ts：未完成追加「不应出现」AC，已完成派生修复 Story；支持 --ready/--title/--change-note；测试 features/bug-report/bug-report.test.ts"
+      ],
+      "id": 149
+    },
+    {
+      "storyId": "US-024",
+      "entryDate": "2026-07-09",
+      "summary": "Story US-024 已完成",
+      "learnings": [],
+      "id": 150
+    },
+    {
+      "storyId": "US-024",
+      "entryDate": "2026-07-09",
+      "summary": "持续监听与优雅停止能力建档完成",
+      "learnings": [
+        "watch 等同 run --until-stop；无 ready Story 时 sleep 等待；run stop/status 见 run-process.ts；测试 features/loop-run/loop-run.test.ts 持续监听 describe"
+      ],
+      "id": 151
+    },
+    {
+      "storyId": "US-026",
+      "entryDate": "2026-07-09",
+      "summary": "Story US-026 已完成",
+      "learnings": [],
+      "id": 152
+    },
+    {
+      "storyId": "US-026",
+      "entryDate": "2026-07-09",
+      "summary": "Git worktree 隔离执行能力建档完成",
+      "learnings": [
+        "多 worker 用 worktree-pool.ts 在 .loop-status/worktrees/<workerId> 隔离；LOOP_PROJECT_ROOT 固定主项目根；迭代结束 removeWorktree/cleanupAllWorktrees；测试 features/worktree-pool/worktree-pool.test.ts"
+      ],
+      "id": 153
+    },
+    {
+      "storyId": "US-028",
+      "entryDate": "2026-07-09",
+      "summary": "Story US-028 已完成",
+      "learnings": [],
+      "id": 154
+    },
+    {
+      "storyId": "US-028",
+      "entryDate": "2026-07-09",
+      "summary": "外循环迭代历史能力建档完成",
+      "learnings": [
+        "runs.json 存 .loop-status/；db.startRun/endRun/getRuns 与 status.activeRun 共用；Dashboard RunsPanel 读 /api/dashboard.runs；测试 features/run-history/run-history.test.ts"
+      ],
+      "id": 155
+    },
+    {
+      "storyId": "US-033",
+      "entryDate": "2026-07-09",
+      "summary": "Story US-033 已完成",
+      "learnings": [],
+      "id": 156
+    },
+    {
+      "storyId": "US-033",
+      "entryDate": "2026-07-09",
+      "summary": "脑图拖拽改父级与重排能力建档完成",
+      "learnings": [
+        "moveMindMapItem/reorderFeature/reorderStory 在 db.ts；Dashboard 拖放经 mindmapReparent + api.moveMindMapItem/reorderMindMapItem；非法移动 ErrorAlert 展示；测试 features/mindmap-drag/mindmap-drag.test.ts"
+      ],
+      "id": 157
+    },
+    {
+      "storyId": "US-036",
+      "entryDate": "2026-07-09",
+      "summary": "Story US-036 已完成",
+      "learnings": [],
+      "id": 158
+    },
+    {
+      "storyId": "US-036",
+      "entryDate": "2026-07-09",
+      "summary": "Milestone 筛选与创建编辑能力建档完成",
+      "learnings": [
+        "filterTreeByMilestone 在 lib/treeFilter.ts；MindMapPanel mm-milestone-bar 提供全部/具体/无 Milestone 筛选与双击编辑；结构树与脑图共用 filteredTree；测试 features/milestones/milestone-filter.test.ts"
+      ],
+      "id": 159
+    },
+    {
+      "storyId": "US-029",
+      "entryDate": "2026-07-09",
+      "summary": "Story US-029 已完成",
+      "learnings": [],
+      "id": 160
+    },
+    {
+      "storyId": "US-029",
+      "entryDate": "2026-07-09",
+      "summary": "工作区执行状态栏能力建档完成",
+      "learnings": [
+        "WorkspaceStatusBar 用 resolveWorkspaceStatusView 解析 status+loopRunner；数据来自 GET /api/dashboard 的 loopRunner 与 status；测试 features/workspace-status/workspace-status.test.ts"
+      ],
+      "id": 161
+    },
+    {
+      "storyId": "US-034",
+      "entryDate": "2026-07-09",
+      "summary": "Story US-034 已完成",
+      "learnings": [],
+      "id": 162
+    },
+    {
+      "storyId": "US-034",
+      "entryDate": "2026-07-09",
+      "summary": "Story 依赖连线能力建档完成",
+      "learnings": [
+        "db.addStoryDependency/removeStoryDependency 经 dep-out→dep-in 语义；MindMapPanel onConnect/onEdgesDelete 调 api；环路与自依赖在 setStoryDependsOn 拦截；测试 features/story-dependency/story-dependency.test.ts"
+      ],
+      "id": 163
+    },
+    {
+      "storyId": "US-037",
+      "entryDate": "2026-07-09",
+      "summary": "Story US-037 已完成",
+      "learnings": [],
+      "id": 164
+    },
+    {
+      "storyId": "US-037",
+      "entryDate": "2026-07-09",
+      "summary": "顶栏项目概览能力建档完成",
+      "learnings": [
+        "resolveAppToolbarView（features/app-toolbar）从 status 聚合字段解析统计/运行态/完成标记；AppToolbar 消费该 view；测试 features/app-toolbar/app-toolbar.test.ts"
+      ],
+      "id": 165
+    },
+    {
+      "storyId": "US-030",
+      "entryDate": "2026-07-09",
+      "summary": "Story US-030 已完成",
+      "learnings": [],
+      "id": 166
+    },
+    {
+      "storyId": "US-030",
+      "entryDate": "2026-07-09",
+      "summary": "运行中 Story 高亮能力建档完成",
+      "learnings": [
+        "resolveRunningStoryIds（lib/runningStories）合并 activeRun/activeRuns/loopRunner/runLive；App.tsx 传入 MindMapPanel runningStoryIds；脑图 mm-node--running、结构树 project-tree-view__running；测试 features/running-story-highlight/running-story-highlight.test.ts"
+      ],
+      "id": 167
+    },
+    {
+      "storyId": "US-035",
+      "entryDate": "2026-07-09",
+      "summary": "Story US-035 已完成",
+      "learnings": [],
+      "id": 168
+    },
+    {
+      "storyId": "US-035",
+      "entryDate": "2026-07-09",
+      "summary": "脑图 Story 生命周期操作能力建档完成",
+      "learnings": [
+        "StoryLifecycleActions（NodePropsPanel）+ deletable can* 权限；request-removal/archive/restore/purge 经 api.ts 调 HTTP；脑图 pending_removal kind + mm-node--pending_removal；归档 TrashList + archived 属性面板；测试 features/story-lifecycle/story-lifecycle.test.ts"
+      ],
+      "id": 169
+    },
+    {
+      "storyId": "US-031",
+      "entryDate": "2026-07-09",
+      "summary": "Story US-031 已完成",
+      "learnings": [],
+      "id": 170
+    },
+    {
+      "storyId": "US-031",
+      "entryDate": "2026-07-09",
+      "summary": "Dashboard 外循环启停：LoopRunControl 配置 tool/workers/持续或有限轮，调用 startLoopRun/stopLoopRun API，启停后 refresh 联动 AgentLivePanel/RunsPanel/WorkspaceStatusBar；pnpm test 194/194 通过",
+      "learnings": [
+        "外循环控制放 features/loop-run-control，buildStartLoopRunPayload 与 CLI --until-stop/--workers 语义对齐"
+      ],
+      "id": 171
     }
   ],
-  "nextId": 148
+  "nextId": 172
 }

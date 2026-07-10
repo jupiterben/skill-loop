@@ -26,6 +26,18 @@
     "脑图节点增删：空态 mindmap-workspace__empty 提供 +Feature/+Story；选中 root/feature 时 MindMapNode 与 NodePropsPanel MindMapAddButtons 共用 openCreate→api.addFeature/addStory 写 loop-data；ReactFlow onNodesDelete 经 canDeleteFeature/canHardDeleteStory 调 deleteFeature/deleteStory 后 onRefresh；测试 features/mindmap-nodes/mindmap-nodes.test.ts",
     "PRD 导航：loop prd/tree/next/next-stories/patterns/spec/spec-templates 输出结构化 JSON；next-stories --limit N；测试 features/prd-nav/prd-nav.test.ts",
     "tree CLI story 节点含 workType（normalizeUserStory 推断）；TreeNode 类型同步；测试 prd-nav/prd-nav.test.ts",
-    "Story 生命周期：request-removal/archive/restore CLI 与 API；tree story 节点 removalRequested 标记等待删除；归档后 getActiveStories 排除、进度保留；restore 恢复关键字段；测试 features/story-lifecycle/story-lifecycle.test.ts"
+    "Story 生命周期：request-removal/archive/restore CLI 与 API；tree story 节点 removalRequested 标记等待删除；归档后 getActiveStories 排除、进度保留；restore 恢复关键字段；测试 features/story-lifecycle/story-lifecycle.test.ts",
+    "loop bug：未完成 Story 追加不应出现 AC（reportBug appended），已完成派生修复 Story（created + 不应再出现）；CLI --ready/--title/--change-note；测试 features/bug-report/bug-report.test.ts",
+    "持续监听：watch 或 run --until-stop 在无 ready Story 时 sleep 等待不退出；run stop [--worker w0] 与 run status 见 run-process.ts；状态存 .loop-status/run.json 与 run-coordinator.json；测试 features/loop-run/loop-run.test.ts",
+    "Git worktree 并行：workers>1 时 worktree-pool.ts 在 .loop-status/worktrees/<workerId> 创建 loop/<worker>-<story> 分支；LOOP_PROJECT_ROOT 固定主项目根保证 loop-data 读写；迭代结束 removeWorktree，外循环结束 cleanupAllWorktrees；测试 features/worktree-pool/worktree-pool.test.ts",
+    "外循环迭代历史：runs.json 存 .loop-status/（iteration/tool/storyId/workerId/status/startedAt/endedAt）；db.startRun/endRun/getRuns 与 status.activeRun 共用；Dashboard RunsPanel 展示；测试 features/run-history/run-history.test.ts",
+    "脑图拖拽改父级：db.moveMindMapItem + reorderFeature/reorderStory；UI 拖放 mindmapReparent（resolveDropTargetId/dropTargetToParentId）+ MindMapPanel onNodeDragStop；同级重排 reorder.ts + 节点上下按钮/PageUp/PageDown；非法移动 db 抛错经 run()→ErrorAlert；测试 features/mindmap-drag/mindmap-drag.test.ts",
+    "Milestone 筛选：filterTreeByMilestone（lib/treeFilter.ts）+ MindMapPanel mm-milestone-bar（全部/具体/无/新建）；结构树与脑图共用 filteredTree；创建编辑 api.addMilestone/updateMilestone，双击 Tag 编辑；测试 features/milestones/milestone-filter.test.ts",
+    "工作区状态栏：resolveWorkspaceStatusView（features/workspace-status）合并 status.activeRun/activeRuns 与 loopRunner；App.tsx 底部 WorkspaceStatusBar 读 data.loopRunner；GET /api/dashboard 含 getLoopRunStatus；测试 features/workspace-status/workspace-status.test.ts",
+    "Story 依赖：db.addStoryDependency/removeStoryDependency（from→to 写入 dependsOn）；MindMapPanel 仅 dep-out→dep-in 连线触发 api；buildProjectMindMap 生成 dep: 边，isDependencyEdge 识别；环路与自依赖在 db.setStoryDependsOn 拦截；测试 features/story-dependency/story-dependency.test.ts",
+    "顶栏项目概览：resolveAppToolbarView（features/app-toolbar）从 db.getStatus 聚合字段解析完成/待做/草稿/阻塞/进度与 activeRun 运行态；AppToolbar 消费 view 展示项目名/分支/统计胶囊；测试 features/app-toolbar/app-toolbar.test.ts",
+    "运行中 Story 高亮：resolveRunningStoryIds（lib/runningStories）合并 activeRun/activeRuns/loopRunner/runLive；App.tsx→MindMapPanel runningStoryIds；脑图 mm-node--running/执行中 badge、结构树 project-tree-view__running；测试 features/running-story-highlight/running-story-highlight.test.ts",
+    "脑图 Story 生命周期：StoryLifecycleActions（NodePropsPanel）+ deletable can* 权限；request-removal/archive/restore/purge 经 api.ts 调 HTTP；脑图 pending_removal kind + mm-node--pending_removal；归档 TrashList + archived 属性面板；测试 features/story-lifecycle/story-lifecycle.test.ts",
+    "Dashboard 外循环启停：features/loop-run-control/LoopRunControl 调用 api.startLoopRun/stopLoopRun；buildStartLoopRunPayload 对齐 CLI --tool/--workers/--until-stop；启停后 App refresh 联动 AgentLivePanel/RunsPanel/WorkspaceStatusBar"
   ]
 }

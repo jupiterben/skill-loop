@@ -1,5 +1,5 @@
 import { Collapse } from "antd";
-import { useState, type ReactNode } from "react";
+import { useMemo, useState, type ReactNode } from "react";
 
 interface Props {
   storageKey: string;
@@ -25,6 +25,17 @@ export function PropsSectionCollapse({
     }
   });
 
+  const items = useMemo(
+    () => [
+      {
+        key: "section",
+        label: <span className="props-section__title">{title}</span>,
+        children: <div className="props-section__body">{children}</div>,
+      },
+    ],
+    [title, children]
+  );
+
   return (
     <Collapse
       className="props-section"
@@ -42,15 +53,7 @@ export function PropsSectionCollapse({
           /* ignore */
         }
       }}
-      items={[
-        {
-          key: "section",
-          label: <span className="props-section__title">{title}</span>,
-          children: (
-            <div className="props-section__body">{children}</div>
-          ),
-        },
-      ]}
+      items={items}
     />
   );
 }
