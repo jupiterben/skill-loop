@@ -86,6 +86,10 @@ export const api = {
     post("/api/stories/milestone", { storyId, milestoneId }),
   setStoryPriority: (storyId: string, priority: number) =>
     post("/api/stories/priority", { storyId, priority }),
+  setStoryPreferredTool: (
+    storyId: string,
+    preferredTool: import("../types").PreferredTool | null
+  ) => post("/api/stories/preferred-tool", { storyId, preferredTool }),
   updateStory: (input: {
     storyId: string;
     title?: string;

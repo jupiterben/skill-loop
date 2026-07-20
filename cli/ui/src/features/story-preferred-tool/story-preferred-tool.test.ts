@@ -84,4 +84,32 @@ describe("Story preferredTool", () => {
     expect(apiSrc).toContain('pathname === "/api/stories/preferred-tool"');
     expect(apiSrc).toContain("setStoryPreferredTool");
   });
+
+  it("前端 api.setStoryPreferredTool 调用 preferred-tool 端点", () => {
+    const here = dirname(fileURLToPath(import.meta.url));
+    const apiSrc = readFileSync(join(here, "../../lib/api.ts"), "utf8");
+    expect(apiSrc).toContain('post("/api/stories/preferred-tool"');
+    expect(apiSrc).toContain("setStoryPreferredTool");
+  });
+
+  it("NodePropsPanel 提供 Agent 偏好选择", () => {
+    const here = dirname(fileURLToPath(import.meta.url));
+    const src = readFileSync(
+      join(here, "../../components/NodePropsPanel.tsx"),
+      "utf8"
+    );
+    expect(src).toContain("onSetStoryPreferredTool");
+    expect(src).toContain("preferredTool");
+    expect(src).toMatch(/Agent/);
+  });
+
+  it("MindMapPanel 接线 setStoryPreferredTool", () => {
+    const here = dirname(fileURLToPath(import.meta.url));
+    const src = readFileSync(
+      join(here, "../../components/MindMapPanel.tsx"),
+      "utf8"
+    );
+    expect(src).toContain("onSetStoryPreferredTool");
+    expect(src).toContain("api.setStoryPreferredTool");
+  });
 });

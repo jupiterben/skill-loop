@@ -15,6 +15,7 @@ import {
 import type {
   Feature,
   Milestone,
+  PreferredTool,
   ProgressEntry,
   SelectedMindMapNode,
   StoryDependency,
@@ -54,6 +55,10 @@ interface Props {
   busy?: boolean;
   onAssignMilestone?: (storyId: string, milestoneId: string | null) => void;
   onSetStoryPriority?: (storyId: string, priority: number) => void;
+  onSetStoryPreferredTool?: (
+    storyId: string,
+    preferredTool: PreferredTool | null
+  ) => void;
   onAddFeature?: () => void;
   onAddStory?: () => void;
   onUpdateFeature?: (input: {
@@ -437,6 +442,7 @@ function StorySectionsPanel({
   onCompleteStory,
   onAssignMilestone,
   onSetStoryPriority,
+  onSetStoryPreferredTool,
   onConfirmStory,
   onUnconfirmStory,
   onRequestRemoval,
@@ -461,6 +467,7 @@ function StorySectionsPanel({
   onCompleteStory?: Props["onCompleteStory"];
   onAssignMilestone?: Props["onAssignMilestone"];
   onSetStoryPriority?: Props["onSetStoryPriority"];
+  onSetStoryPreferredTool?: Props["onSetStoryPreferredTool"];
   onConfirmStory?: Props["onConfirmStory"];
   onUnconfirmStory?: Props["onUnconfirmStory"];
   onRequestRemoval?: Props["onRequestRemoval"];
@@ -608,6 +615,30 @@ function StorySectionsPanel({
               story={panelStory}
               busy={busy || isDetached}
               onSetPriority={onSetStoryPriority}
+            />
+          </div>
+          <div className="props-field">
+            <Text type="secondary" className="props-field__label">
+              Agent
+            </Text>
+            <Select
+              size="small"
+              disabled={busy || isDetached || !onSetStoryPreferredTool}
+              value={panelStory.preferredTool ?? ""}
+              options={[
+                { value: "", label: "未指定" },
+                { value: "agent", label: "agent" },
+                { value: "claude", label: "claude" },
+                { value: "codex", label: "codex" },
+                { value: "cursor", label: "cursor" },
+              ]}
+              onChange={(v: string) =>
+                onSetStoryPreferredTool?.(
+                  panelStory.id,
+                  v === "" ? null : (v as PreferredTool)
+                )
+              }
+              style={{ width: "100%" }}
             />
           </div>
           {isDetached && dirty && (
@@ -1104,6 +1135,7 @@ export function NodePropsPanel({
   busy,
   onAssignMilestone,
   onSetStoryPriority,
+  onSetStoryPreferredTool,
   onAddFeature,
   onAddStory,
   onUpdateFeature,
@@ -1355,6 +1387,7 @@ export function NodePropsPanel({
         onCompleteStory={onCompleteStory}
         onAssignMilestone={onAssignMilestone}
         onSetStoryPriority={onSetStoryPriority}
+        onSetStoryPreferredTool={onSetStoryPreferredTool}
         onConfirmStory={onConfirmStory}
         onUnconfirmStory={onUnconfirmStory}
         onRequestRemoval={onRequestRemoval}

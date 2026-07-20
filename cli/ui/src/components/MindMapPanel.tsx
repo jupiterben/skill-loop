@@ -1214,6 +1214,9 @@ export function MindMapPanel({
           onSetStoryPriority={(storyId, priority) =>
             run(() => api.setStoryPriority(storyId, priority))
           }
+          onSetStoryPreferredTool={(storyId, preferredTool) =>
+            run(() => api.setStoryPreferredTool(storyId, preferredTool))
+          }
           onAddFeature={handleAddFeature}
           onAddStory={handleAddStory}
           onUpdateFeature={(input) =>
