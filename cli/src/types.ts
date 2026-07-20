@@ -26,6 +26,8 @@ export type StoryWorkType =
   | "testing"
   | "refactor";
 
+export type PreferredTool = "agent" | "claude" | "codex" | "cursor";
+
 export interface UserStory {
   id: string;
   milestoneId: string | null;
@@ -51,6 +53,8 @@ export interface UserStory {
   /** 并行 worker 认领（如 w0、w1） */
   claimedBy?: string | null;
   claimedAt?: string | null;
+  /** 外循环执行该 Story 时的偏好工具；null/缺省 = 未指定 */
+  preferredTool?: PreferredTool | null;
 }
 
 export type TreeNodeKind = "feature" | "story";

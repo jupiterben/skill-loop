@@ -1290,6 +1290,32 @@ export class LoopStateDb {
     return updated;
   }
 
+  setStoryPreferredTool(
+    projectName: string,
+    storyId: string,
+    preferredTool: import("./types.js").PreferredTool | null
+  ): UserStory {
+    const story = this.getStories(projectName).find((s) => s.id === storyId);
+    if (!story) throw new Error(`找不到 UserStory: ${storyId}`);
+    if (story.archivedAt) throw new Error("已归档 Story 不能修改");
+    const allowed = ["agent", "claude", "codex", "cursor"] as const;
+    let next: (typeof allowed)[number] | null = null;
+    if (preferredTool != null) {
+      const t = String(preferredTool).trim().toLowerCase();
+      if (!allowed.includes(t as (typeof allowed)[number])) {
+        throw new Error(
+          `preferredTool 必须为 ${allowed.join(" | ")} 或 null`
+        );
+      }
+      next = t as (typeof allowed)[number];
+    }
+    if ((story.preferredTool ?? null) === next) return story;
+    const updated = { ...story, preferredTool: next };
+    writeEntity(getStoriesDir(this.projectRoot), updated);
+    this.touchProject();
+    return updated;
+  }
+
   getTree(projectName: string): TreeNode[] {
     return buildTree(
       this.getFeatures(projectName),

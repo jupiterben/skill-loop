@@ -8,8 +8,14 @@ import type {
   UserStory,
 } from "./types.js";
 
+const VALID_PREFERRED = new Set(["agent", "claude", "codex", "cursor"]);
+
 export function normalizeUserStory(story: UserStory): UserStory {
-  const raw = story as UserStory & { status?: StoryStatus; workType?: UserStory["workType"] };
+  const raw = story as UserStory & {
+    status?: StoryStatus;
+    workType?: UserStory["workType"];
+    preferredTool?: unknown;
+  };
   const everCompleted = Boolean(raw.everCompleted ?? raw.passes);
   return {
     ...story,
@@ -20,6 +26,10 @@ export function normalizeUserStory(story: UserStory): UserStory {
     archivedAt: story.archivedAt ?? null,
     claimedBy: story.claimedBy ?? null,
     claimedAt: story.claimedAt ?? null,
+    preferredTool:
+      raw.preferredTool != null && VALID_PREFERRED.has(String(raw.preferredTool))
+        ? (String(raw.preferredTool) as UserStory["preferredTool"])
+        : null,
   };
 }
 
