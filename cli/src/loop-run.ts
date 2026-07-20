@@ -387,6 +387,8 @@ async function runWorkerIteration(
   try {
     db.claimStory(projectName, story.id, workerId);
 
+    const effectiveTool = resolveStoryTool(story, tool);
+
     const cwd = useWorktree
       ? (worktree = createWorktree(
           projectRoot,
@@ -399,7 +401,7 @@ async function runWorkerIteration(
     const run = db.startRun(
       projectName,
       iteration,
-      tool,
+      effectiveTool,
       story.id,
       workerId
     );
@@ -410,13 +412,13 @@ async function runWorkerIteration(
       workerId,
       iteration,
       storyId: story.id,
-      tool,
+      tool: effectiveTool,
       phase: "starting",
     });
 
     writeWorkerRunState(projectRoot, workerId, {
       pid: process.pid,
-      tool,
+      tool: effectiveTool,
       startedAt: new Date().toISOString(),
       mode: "until-stop",
       stopRequested: false,
@@ -428,7 +430,7 @@ async function runWorkerIteration(
     const env = buildWorkerEnv(process.env, workerId, story.id, projectRoot);
     const prompt = buildAgentPrompt(promptPath, { workerId, story });
     const output = await invokeToolWithPrompt(
-      tool,
+      effectiveTool,
       prompt,
       cwd,
       projectRoot,

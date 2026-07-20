@@ -1,6 +1,7 @@
-import { mkdtempSync, rmSync } from "node:fs";
+import { mkdtempSync, readFileSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
-import { join } from "node:path";
+import { dirname, join } from "node:path";
+import { fileURLToPath } from "node:url";
 import { afterEach, describe, expect, it } from "vitest";
 import { LoopStateDb } from "../../../../src/db.js";
 
@@ -62,5 +63,15 @@ describe("Story preferredTool", () => {
     expect(() =>
       db.setStoryPreferredTool("demo", story.id, "claude")
     ).toThrow(/归档/);
+  });
+
+  it("runWorkerIteration 使用 resolveStoryTool", () => {
+    const here = dirname(fileURLToPath(import.meta.url));
+    const src = readFileSync(
+      join(here, "../../../../src/loop-run.ts"),
+      "utf8"
+    );
+    expect(src).toContain("resolveStoryTool(");
+    expect(src).toMatch(/effectiveTool|storyTool/);
   });
 });
