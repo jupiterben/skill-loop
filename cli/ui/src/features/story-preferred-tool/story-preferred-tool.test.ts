@@ -74,4 +74,14 @@ describe("Story preferredTool", () => {
     expect(src).toContain("resolveStoryTool(");
     expect(src).toMatch(/effectiveTool|storyTool/);
   });
+
+  it("API 暴露 /api/stories/preferred-tool", () => {
+    const here = dirname(fileURLToPath(import.meta.url));
+    const apiSrc = readFileSync(
+      join(here, "../../../../src/api.ts"),
+      "utf8"
+    );
+    expect(apiSrc).toContain('pathname === "/api/stories/preferred-tool"');
+    expect(apiSrc).toContain("setStoryPreferredTool");
+  });
 });

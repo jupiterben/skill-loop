@@ -308,6 +308,23 @@ export async function handleApiMutation(
       return true;
     }
 
+    if (req.method === "POST" && pathname === "/api/stories/preferred-tool") {
+      const storyId = String(body.storyId ?? "");
+      if (!storyId) throw new Error("storyId 必填");
+      const raw = body.preferredTool;
+      const preferredTool =
+        raw === null || raw === undefined || raw === ""
+          ? null
+          : String(raw);
+      const story = db.setStoryPreferredTool(
+        projectName,
+        storyId,
+        preferredTool as import("./types.js").PreferredTool | null
+      );
+      json(res, { ok: true, story });
+      return true;
+    }
+
     if (req.method === "POST" && pathname === "/api/stories/update") {
       const storyId = String(body.storyId ?? "");
       if (!storyId) throw new Error("storyId 必填");
