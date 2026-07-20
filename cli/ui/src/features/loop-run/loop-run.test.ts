@@ -6,6 +6,7 @@ import { LoopStateDb } from "../../../../src/db.js";
 import {
   resolveAgentPromptPath,
   resolveRunTool,
+  resolveStoryTool,
   runLoop,
 } from "../../../../src/loop-run.js";
 import {
@@ -93,7 +94,51 @@ describe("有限轮外循环执行", () => {
 
   it("resolveRunTool 将 cursor 映射为 agent（若已安装）", () => {
     const tool = resolveRunTool("cursor");
-    expect(["agent", "claude", "amp"]).toContain(tool);
+    expect(["agent", "claude", "codex"]).toContain(tool);
+  });
+
+  it("resolveStoryTool 优先 Story.preferredTool", () => {
+    const tool = resolveStoryTool(
+      { preferredTool: "claude" },
+      "agent",
+      { isAvailable: (cmd) => cmd === "claude" || cmd === "agent" }
+    );
+    expect(tool).toBe("claude");
+  });
+
+  it("resolveStoryTool 偏好不可用时回退 runPreferred", () => {
+    const tool = resolveStoryTool(
+      { preferredTool: "claude" },
+      "codex",
+      { isAvailable: (cmd) => cmd === "codex" }
+    );
+    expect(tool).toBe("codex");
+  });
+
+  it("resolveStoryTool 再回退自动探测", () => {
+    const tool = resolveStoryTool(
+      { preferredTool: "claude" },
+      "codex",
+      { isAvailable: (cmd) => cmd === "agent" }
+    );
+    expect(tool).toBe("agent");
+  });
+
+  it("resolveStoryTool 全不可用时抛错", () => {
+    expect(() =>
+      resolveStoryTool({ preferredTool: "claude" }, "codex", {
+        isAvailable: () => false,
+      })
+    ).toThrow(/未找到 AI 工具/);
+  });
+
+  it("resolveStoryTool cursor 映射为 agent", () => {
+    const tool = resolveStoryTool(
+      { preferredTool: "cursor" },
+      null,
+      { isAvailable: (cmd) => cmd === "agent" }
+    );
+    expect(tool).toBe("agent");
   });
 
   it("startRun/endRun 写入 runs.json", () => {
