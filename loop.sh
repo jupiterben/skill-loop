@@ -2,7 +2,7 @@
 # Loop 快捷脚本
 # 日常命令: ./loop.sh status | next | complete US-001 | dashboard | dashboard dev | help ...
 # 持续循环: ./loop.sh watch [--tool agent] [--workers 3]（监听 Story，不退出的）
-# 有限迭代: ./loop.sh [--tool agent|claude|amp] [max_iterations]（须显式传参）
+# 有限迭代: ./loop.sh [--tool agent|claude|codex] [max_iterations]（须显式传参）
 
 set -e
 
