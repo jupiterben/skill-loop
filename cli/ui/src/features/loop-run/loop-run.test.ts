@@ -94,7 +94,7 @@ describe("有限轮外循环执行", () => {
 
   it("resolveRunTool 将 cursor 映射为 agent（若已安装）", () => {
     const tool = resolveRunTool("cursor");
-    expect(["agent", "claude", "codex"]).toContain(tool);
+    expect(["agent", "claude", "amp"]).toContain(tool);
   });
 
   it("resolveStoryTool 优先 Story.preferredTool", () => {
@@ -139,6 +139,15 @@ describe("有限轮外循环执行", () => {
       { isAvailable: (cmd) => cmd === "agent" }
     );
     expect(tool).toBe("agent");
+  });
+
+  it("resolveStoryTool 非法 preferredTool 静默回退 runPreferred", () => {
+    const tool = resolveStoryTool(
+      { preferredTool: "gpt" },
+      "codex",
+      { isAvailable: (cmd) => cmd === "codex" }
+    );
+    expect(tool).toBe("codex");
   });
 
   it("startRun/endRun 写入 runs.json", () => {

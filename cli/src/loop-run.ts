@@ -46,8 +46,10 @@ import {
 import type { UserStory } from "./types.js";
 
 const COMPLETE_TAG = "<promise>COMPLETE</promise>";
-const VALID_TOOLS = ["claude", "codex", "agent", "cursor"] as const;
+const VALID_TOOLS = ["claude", "amp", "agent", "cursor"] as const;
+const STORY_RESOLVE_TOOLS = ["claude", "codex", "agent", "cursor"] as const;
 type RunTool = (typeof VALID_TOOLS)[number];
+type StoryResolvedTool = (typeof STORY_RESOLVE_TOOLS)[number];
 
 export type LoopRunOptions = {
   tool?: string;
@@ -86,7 +88,7 @@ function resolveTool(preferred?: string): RunTool {
     if (tool === "cursor") {
       if (commandExists("agent")) return "agent";
     } else if (!VALID_TOOLS.includes(tool as RunTool)) {
-      throw new Error(`无效 --tool: ${preferred}（支持 claude | codex | agent | cursor）`);
+      throw new Error(`无效 --tool: ${preferred}（支持 claude | amp | agent | cursor）`);
     } else if (commandExists(tool === "agent" ? "agent" : tool)) {
       return tool as RunTool;
     } else if (tool !== "agent" && tool !== "cursor") {
@@ -96,15 +98,14 @@ function resolveTool(preferred?: string): RunTool {
 
   if (commandExists("agent")) return "agent";
   if (commandExists("claude")) return "claude";
-  if (commandExists("codex")) return "codex";
+  if (commandExists("amp")) return "amp";
 
   throw new Error(
     [
-      "未找到 AI 工具（agent / claude / codex）。",
+      "未找到 AI 工具（agent / claude / amp）。",
       "",
       "  Cursor: 安装 Cursor CLI 后使用 agent",
       "  Claude: npm install -g @anthropic-ai/claude-code",
-      "  Codex: 安装 OpenAI Codex CLI 后使用 codex",
       "  或指定: pnpm loop run --tool claude 10",
     ].join("\n")
   );
@@ -117,17 +118,17 @@ export function resolveRunTool(preferred?: string): RunTool {
 function tryMapPreferred(
   preferred: string | null | undefined,
   isAvailable: (cmd: string) => boolean
-): RunTool | null {
+): StoryResolvedTool | null {
   const tool = preferred?.trim().toLowerCase();
   if (!tool) return null;
-  if (!VALID_TOOLS.includes(tool as RunTool)) return null;
+  if (!STORY_RESOLVE_TOOLS.includes(tool as StoryResolvedTool)) return null;
   if (tool === "cursor") {
     return isAvailable("agent") ? "agent" : null;
   }
-  return isAvailable(tool) ? (tool as RunTool) : null;
+  return isAvailable(tool) ? (tool as StoryResolvedTool) : null;
 }
 
-function autoDetectTool(isAvailable: (cmd: string) => boolean): RunTool {
+function autoDetectTool(isAvailable: (cmd: string) => boolean): StoryResolvedTool {
   if (isAvailable("agent")) return "agent";
   if (isAvailable("claude")) return "claude";
   if (isAvailable("codex")) return "codex";
@@ -147,7 +148,7 @@ export function resolveStoryTool(
   story: { preferredTool?: string | null },
   runPreferred?: string | null,
   options?: { isAvailable?: (cmd: string) => boolean }
-): RunTool {
+): StoryResolvedTool {
   const isAvailable = options?.isAvailable ?? commandExists;
   return (
     tryMapPreferred(story.preferredTool, isAvailable) ??
@@ -246,22 +247,18 @@ async function invokeToolWithPrompt(
     });
   }
 
-  if (tool === "codex") {
-    const child = spawn(
-      "codex",
-      ["exec", "--dangerously-bypass-approvals-and-sandbox", "-"],
-      {
-        cwd,
-        env,
-        shell: process.platform === "win32",
-        stdio: ["pipe", "pipe", "pipe"],
-      }
-    );
+  if (tool === "amp") {
+    const child = spawn("amp", ["--dangerously-allow-all"], {
+      cwd,
+      env,
+      shell: process.platform === "win32",
+      stdio: ["pipe", "pipe", "pipe"],
+    });
     child.stdin?.write(prompt);
     child.stdin?.end();
     const { output, code } = await streamProcessOutput(projectRoot, child, workerId);
     if (code !== 0 && !output.trim()) {
-      throw new Error(`codex 退出码 ${code ?? "unknown"}`);
+      throw new Error(`amp 退出码 ${code ?? "unknown"}`);
     }
     return output;
   }
