@@ -49,7 +49,8 @@ const COMPLETE_TAG = "<promise>COMPLETE</promise>";
 const VALID_TOOLS = ["claude", "amp", "agent", "cursor"] as const;
 const STORY_RESOLVE_TOOLS = ["claude", "codex", "agent", "cursor"] as const;
 type RunTool = (typeof VALID_TOOLS)[number];
-type StoryResolvedTool = (typeof STORY_RESOLVE_TOOLS)[number];
+type StoryPreferredTool = (typeof STORY_RESOLVE_TOOLS)[number];
+type StoryResolvedTool = StoryPreferredTool | Extract<RunTool, "amp">;
 
 export type LoopRunOptions = {
   tool?: string;
@@ -118,17 +119,26 @@ export function resolveRunTool(preferred?: string): RunTool {
 function tryMapPreferred(
   preferred: string | null | undefined,
   isAvailable: (cmd: string) => boolean
-): StoryResolvedTool | null {
+): StoryPreferredTool | null {
   const tool = preferred?.trim().toLowerCase();
   if (!tool) return null;
-  if (!STORY_RESOLVE_TOOLS.includes(tool as StoryResolvedTool)) return null;
+  if (!STORY_RESOLVE_TOOLS.includes(tool as StoryPreferredTool)) return null;
   if (tool === "cursor") {
     return isAvailable("agent") ? "agent" : null;
   }
-  return isAvailable(tool) ? (tool as StoryResolvedTool) : null;
+  return isAvailable(tool) ? (tool as StoryPreferredTool) : null;
 }
 
-function autoDetectTool(isAvailable: (cmd: string) => boolean): StoryResolvedTool {
+function tryMapRunPreferred(
+  preferred: string | null | undefined,
+  isAvailable: (cmd: string) => boolean
+): StoryResolvedTool | null {
+  const tool = preferred?.trim().toLowerCase();
+  if (tool === "amp") return isAvailable("amp") ? "amp" : null;
+  return tryMapPreferred(preferred, isAvailable);
+}
+
+function autoDetectTool(isAvailable: (cmd: string) => boolean): StoryPreferredTool {
   if (isAvailable("agent")) return "agent";
   if (isAvailable("claude")) return "claude";
   if (isAvailable("codex")) return "codex";
@@ -152,7 +162,7 @@ export function resolveStoryTool(
   const isAvailable = options?.isAvailable ?? commandExists;
   return (
     tryMapPreferred(story.preferredTool, isAvailable) ??
-    tryMapPreferred(runPreferred, isAvailable) ??
+    tryMapRunPreferred(runPreferred, isAvailable) ??
     autoDetectTool(isAvailable)
   );
 }
@@ -224,8 +234,8 @@ function streamProcessOutput(
   });
 }
 
-async function invokeToolWithPrompt(
-  tool: RunTool,
+export async function invokeToolWithPrompt(
+  tool: StoryResolvedTool,
   prompt: string,
   cwd: string,
   projectRoot: string,
@@ -259,6 +269,26 @@ async function invokeToolWithPrompt(
     const { output, code } = await streamProcessOutput(projectRoot, child, workerId);
     if (code !== 0 && !output.trim()) {
       throw new Error(`amp 退出码 ${code ?? "unknown"}`);
+    }
+    return output;
+  }
+
+  if (tool === "codex") {
+    const child = spawn(
+      "codex",
+      ["exec", "--dangerously-bypass-approvals-and-sandbox", "-"],
+      {
+        cwd,
+        env,
+        shell: process.platform === "win32",
+        stdio: ["pipe", "pipe", "pipe"],
+      }
+    );
+    child.stdin?.write(prompt);
+    child.stdin?.end();
+    const { output, code } = await streamProcessOutput(projectRoot, child, workerId);
+    if (code !== 0 && !output.trim()) {
+      throw new Error(`codex 退出码 ${code ?? "unknown"}`);
     }
     return output;
   }

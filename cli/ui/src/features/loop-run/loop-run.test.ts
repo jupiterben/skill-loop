@@ -1,9 +1,17 @@
-import { readFileSync, mkdtempSync, mkdirSync, rmSync, writeFileSync } from "node:fs";
+import {
+  chmodSync,
+  readFileSync,
+  mkdtempSync,
+  mkdirSync,
+  rmSync,
+  writeFileSync,
+} from "node:fs";
 import { tmpdir } from "node:os";
-import { join } from "node:path";
+import { delimiter, join } from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
 import { LoopStateDb } from "../../../../src/db.js";
 import {
+  invokeToolWithPrompt,
   resolveAgentPromptPath,
   resolveRunTool,
   resolveStoryTool,
@@ -113,6 +121,53 @@ describe("有限轮外循环执行", () => {
       { isAvailable: (cmd) => cmd === "codex" }
     );
     expect(tool).toBe("codex");
+  });
+
+  it("resolveStoryTool 接受 launcher 的 amp 回退，但 Story preferredTool 仍不接受 amp", () => {
+    expect(
+      resolveStoryTool(
+        { preferredTool: "claude" },
+        "amp",
+        { isAvailable: (cmd) => cmd === "amp" }
+      )
+    ).toBe("amp");
+    expect(
+      resolveStoryTool(
+        { preferredTool: "amp" },
+        "codex",
+        { isAvailable: (cmd) => cmd === "amp" || cmd === "codex" }
+      )
+    ).toBe("codex");
+  });
+
+  it("resolveStoryTool 返回 codex 后可由 invokeToolWithPrompt 执行", async () => {
+    const root = createProjectRoot();
+    const binDir = join(root, "bin");
+    mkdirSync(binDir);
+    const codexPath = join(binDir, "codex");
+    writeFileSync(
+      codexPath,
+      "#!/bin/sh\nprintf 'args:%s\\n' \"$*\"\nprintf 'stdin:'\ncat\n"
+    );
+    chmodSync(codexPath, 0o755);
+    const tool = resolveStoryTool(
+      { preferredTool: "codex" },
+      "amp",
+      { isAvailable: (cmd) => cmd === "codex" || cmd === "amp" }
+    );
+
+    const output = await invokeToolWithPrompt(
+      tool,
+      "story prompt",
+      root,
+      root,
+      { ...process.env, PATH: `${binDir}${delimiter}${process.env.PATH ?? ""}` }
+    );
+
+    expect(output).toContain(
+      "args:exec --dangerously-bypass-approvals-and-sandbox -"
+    );
+    expect(output).toContain("stdin:story prompt");
   });
 
   it("resolveStoryTool 再回退自动探测", () => {
