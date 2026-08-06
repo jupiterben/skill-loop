@@ -102,7 +102,7 @@ describe("有限轮外循环执行", () => {
 
   it("resolveRunTool 将 cursor 映射为 agent（若已安装）", () => {
     const tool = resolveRunTool("cursor");
-    expect(["agent", "claude", "amp"]).toContain(tool);
+    expect(["agent", "claude", "codebuddy"]).toContain(tool);
   });
 
   it("resolveStoryTool 优先 Story.preferredTool", () => {
@@ -123,19 +123,21 @@ describe("有限轮外循环执行", () => {
     expect(tool).toBe("codex");
   });
 
-  it("resolveStoryTool 接受 launcher 的 amp 回退，但 Story preferredTool 仍不接受 amp", () => {
-    expect(
+  it("resolveStoryTool 不再接受 amp（amp 已不支持）", () => {
+    // runPreferred=amp 不被识别，回退 autoDetect；当仅 amp 可用时抛错
+    expect(() =>
       resolveStoryTool(
         { preferredTool: "claude" },
         "amp",
         { isAvailable: (cmd) => cmd === "amp" }
       )
-    ).toBe("amp");
+    ).toThrow(/amp 已不再支持|未找到 AI 工具/);
+    // Story.preferredTool=amp 同样被忽略，回退 runPreferred=codex
     expect(
       resolveStoryTool(
         { preferredTool: "amp" },
         "codex",
-        { isAvailable: (cmd) => cmd === "amp" || cmd === "codex" }
+        { isAvailable: (cmd) => cmd === "codex" }
       )
     ).toBe("codex");
   });
@@ -152,8 +154,8 @@ describe("有限轮外循环执行", () => {
     chmodSync(codexPath, 0o755);
     const tool = resolveStoryTool(
       { preferredTool: "codex" },
-      "amp",
-      { isAvailable: (cmd) => cmd === "codex" || cmd === "amp" }
+      "agent",
+      { isAvailable: (cmd) => cmd === "codex" || cmd === "agent" }
     );
 
     const output = await invokeToolWithPrompt(

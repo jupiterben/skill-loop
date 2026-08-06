@@ -540,9 +540,9 @@ function printHelp(): void {
   update-project [--description "..."] [--branch "..."] [--vision "..."]
 
 循环:
-  watch [--tool agent|claude|amp] [--workers N]
+  watch [--tool agent|claude|codebuddy] [--workers N]
                       持续外循环，监听 Story 不退出的（等同 run --until-stop；全部完成后仍等待新 Story）
-  run [--tool agent|claude|amp] [--max-iterations 10] [--workers N] [N]
+  run [--tool agent|claude|codebuddy] [--max-iterations 10] [--workers N] [N]
                       外循环（默认最多 10 轮，workers 默认 1）
   run --until-stop [--tool agent] [--workers 3]
                       持续外循环，直到 loop run stop

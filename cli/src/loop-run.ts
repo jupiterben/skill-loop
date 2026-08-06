@@ -35,7 +35,7 @@ function clearLoopRunCurrentStory(projectRoot: string): void {
     writeLoopRunState(projectRoot, { ...runState, currentStoryId: null });
   }
 }
-import { invokeClaudeProcess } from "./claude-invoke.js";
+import { invokeClaudeProcess, invokeCodebuddyProcess } from "./claude-invoke.js";
 import {
   cleanupAllWorktrees,
   createWorktree,
@@ -46,11 +46,11 @@ import {
 import type { UserStory } from "./types.js";
 
 const COMPLETE_TAG = "<promise>COMPLETE</promise>";
-const VALID_TOOLS = ["claude", "amp", "agent", "cursor"] as const;
-const STORY_RESOLVE_TOOLS = ["claude", "codex", "agent", "cursor"] as const;
+const VALID_TOOLS = ["claude", "codebuddy", "agent", "cursor"] as const;
+const STORY_RESOLVE_TOOLS = ["claude", "codebuddy", "codex", "agent", "cursor"] as const;
 type RunTool = (typeof VALID_TOOLS)[number];
 type StoryPreferredTool = (typeof STORY_RESOLVE_TOOLS)[number];
-type StoryResolvedTool = StoryPreferredTool | Extract<RunTool, "amp">;
+type StoryResolvedTool = StoryPreferredTool;
 
 export type LoopRunOptions = {
   tool?: string;
@@ -86,10 +86,13 @@ function commandExists(cmd: string): boolean {
 function resolveTool(preferred?: string): RunTool {
   const tool = preferred?.trim().toLowerCase();
   if (tool) {
+    if (tool === "amp") {
+      throw new Error("amp 已不再支持");
+    }
     if (tool === "cursor") {
       if (commandExists("agent")) return "agent";
     } else if (!VALID_TOOLS.includes(tool as RunTool)) {
-      throw new Error(`无效 --tool: ${preferred}（支持 claude | amp | agent | cursor）`);
+      throw new Error(`无效 --tool: ${preferred}（支持 claude | codebuddy | agent | cursor）`);
     } else if (commandExists(tool === "agent" ? "agent" : tool)) {
       return tool as RunTool;
     } else if (tool !== "agent" && tool !== "cursor") {
@@ -99,14 +102,15 @@ function resolveTool(preferred?: string): RunTool {
 
   if (commandExists("agent")) return "agent";
   if (commandExists("claude")) return "claude";
-  if (commandExists("amp")) return "amp";
+  if (commandExists("codebuddy")) return "codebuddy";
 
   throw new Error(
     [
-      "未找到 AI 工具（agent / claude / amp）。",
+      "未找到 AI 工具（agent / claude / codebuddy）。",
       "",
       "  Cursor: 安装 Cursor CLI 后使用 agent",
       "  Claude: npm install -g @anthropic-ai/claude-code",
+      "  CodeBuddy: 安装 CodeBuddy Code CLI 后使用 codebuddy",
       "  或指定: pnpm loop run --tool claude 10",
     ].join("\n")
   );
@@ -133,21 +137,21 @@ function tryMapRunPreferred(
   preferred: string | null | undefined,
   isAvailable: (cmd: string) => boolean
 ): StoryResolvedTool | null {
-  const tool = preferred?.trim().toLowerCase();
-  if (tool === "amp") return isAvailable("amp") ? "amp" : null;
   return tryMapPreferred(preferred, isAvailable);
 }
 
 function autoDetectTool(isAvailable: (cmd: string) => boolean): StoryPreferredTool {
-  if (isAvailable("agent")) return "agent";
+  if (isAvailable("codebuddy")) return "codebuddy";
   if (isAvailable("claude")) return "claude";
+  if (isAvailable("agent")) return "agent";
   if (isAvailable("codex")) return "codex";
   throw new Error(
     [
       "未找到 AI 工具（agent / claude / codex）。",
       "",
-      "  Cursor: 安装 Cursor CLI 后使用 agent",
+      "  CodeBuddy: 安装 CodeBuddy Code CLI（codebuddy）",
       "  Claude: npm install -g @anthropic-ai/claude-code",
+      "  Cursor: 安装 Cursor CLI 后使用 agent",
       "  Codex: 安装 OpenAI Codex CLI 后使用 codex",
       "  或指定: pnpm loop run --tool claude 10",
     ].join("\n")
@@ -257,20 +261,17 @@ export async function invokeToolWithPrompt(
     });
   }
 
-  if (tool === "amp") {
-    const child = spawn("amp", ["--dangerously-allow-all"], {
+  if (tool === "codebuddy") {
+    return invokeCodebuddyProcess(prompt, {
       cwd,
       env,
-      shell: process.platform === "win32",
-      stdio: ["pipe", "pipe", "pipe"],
+      handlers: {
+        onDisplay: (text) => {
+          appendRunLiveOutput(projectRoot, text, workerId);
+          if (text.trim()) process.stdout.write(text);
+        },
+      },
     });
-    child.stdin?.write(prompt);
-    child.stdin?.end();
-    const { output, code } = await streamProcessOutput(projectRoot, child, workerId);
-    if (code !== 0 && !output.trim()) {
-      throw new Error(`amp 退出码 ${code ?? "unknown"}`);
-    }
-    return output;
   }
 
   if (tool === "codex") {

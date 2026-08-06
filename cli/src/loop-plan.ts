@@ -70,33 +70,6 @@ async function invokeTool(
     });
   }
 
-  if (tool === "amp") {
-    const child = spawn("amp", ["--dangerously-allow-all"], {
-      cwd,
-      shell: process.platform === "win32",
-      stdio: ["pipe", "pipe", "pipe"],
-    });
-    child.stdin?.write(prompt);
-    child.stdin?.end();
-    return new Promise((resolve, reject) => {
-      let output = "";
-      child.stdout?.on("data", (chunk) => {
-        output += String(chunk);
-      });
-      child.stderr?.on("data", (chunk) => {
-        output += String(chunk);
-      });
-      child.on("error", reject);
-      child.on("close", (code) => {
-        if (code !== 0 && !output.trim()) {
-          reject(new Error(`amp 退出码 ${code ?? "unknown"}`));
-          return;
-        }
-        resolve(output);
-      });
-    });
-  }
-
   const child = spawn("agent", ["-p", "--force", prompt], {
     cwd,
     shell: process.platform === "win32",
