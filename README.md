@@ -63,7 +63,6 @@ cd cli && pnpm install && pnpm build
 .\loop.ps1 dashboard              # 生产模式，默认 http://localhost:3460
 .\loop.ps1 dashboard dev          # 开发模式（热更新），http://localhost:5173
 .\loop.ps1 dashboard stop
-.\dev.ps1                         # 同上 dev 快捷方式
 ```
 
 ## 需求规划
