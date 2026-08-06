@@ -1,0 +1,28 @@
+{
+  "id": "US-042",
+  "milestoneId": null,
+  "parentId": "FT-027",
+  "dependsOn": [],
+  "title": "删除多余 Dashboard 启动路径与 dev.sh",
+  "description": "类型：重构。Dashboard 启动路径有 4 种（cli dashboard、node dist/dashboard.js、--foreground、dev.sh），精简到统一的 cli dashboard start/stop/status/dev 四种。",
+  "acceptanceCriteria": [
+    "删除独立入口 cli/src/dashboard.ts（其逻辑并入 cli dashboard --foreground 等价路径或删除）",
+    "删除 handleDashboardCommand 中的 --foreground 分支或保留为 start 别名",
+    "删除 dev.sh 脚本（其作用完全等价于 loop.sh dashboard dev）",
+    "cli dashboard 启动路径收敛为 start / stop / status / dev 四个子命令",
+    "SKILL.md / README.md 中关于 dev.sh 的引用移除",
+    "pnpm build 与 pnpm test 通过"
+  ],
+  "priority": 2,
+  "passes": true,
+  "everCompleted": true,
+  "status": "ready",
+  "notes": "",
+  "sortOrder": 1,
+  "removalRequestedAt": null,
+  "archivedAt": null,
+  "claimedBy": null,
+  "claimedAt": null,
+  "workType": "refactor",
+  "preferredTool": null
+}

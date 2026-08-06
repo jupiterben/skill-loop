@@ -1,0 +1,27 @@
+{
+  "id": "US-051",
+  "milestoneId": null,
+  "parentId": "FT-030",
+  "dependsOn": [],
+  "title": "workType 强制显式选择（description 推断仅作兜底）",
+  "description": "类型：重构。当前 workType 既是独立字段又从 description 第一行正则推断，约定与实现割裂。让 UI/CLI 入口强制选择，description 推断仅作为历史数据兜底。",
+  "acceptanceCriteria": [
+    "loop add-story / api.ts addStory 接收 workType 参数（CLI 已有 --work-type，确认 API 同步）",
+    "未提供 workType 时给出明确错误（'--work-type 必填：implementation | documentation | planning | testing | refactor'），不再静默默认 implementation",
+    "normalizeStoryWorkType 推断逻辑保留为历史数据迁移用途（tree.ts normalizeUserStory 仍可兜底）",
+    "addStoryFromApi / cli add-story 拒绝 workType 不在白名单内的值",
+    "新增 Story 默认 workType=implementation 但只在显式传入时使用（避免沉默错误）",
+    "pnpm build 与 pnpm test 通过"
+  ],
+  "priority": 2,
+  "passes": false,
+  "everCompleted": false,
+  "status": "draft",
+  "notes": "",
+  "sortOrder": 1,
+  "removalRequestedAt": null,
+  "archivedAt": null,
+  "claimedBy": null,
+  "claimedAt": null,
+  "workType": "refactor"
+}

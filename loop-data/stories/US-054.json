@@ -1,0 +1,26 @@
+{
+  "id": "US-054",
+  "milestoneId": null,
+  "parentId": "FT-030",
+  "dependsOn": [],
+  "title": "抽取 API body 字段提取 helper",
+  "description": "类型：重构。api.ts 30+ 路由重复 if (body.title !== undefined) patch.title = String(body.title) 模式。提取 pickString / pickNumber / pickInteger / pickEnum / pickBoolean 等 helper。",
+  "acceptanceCriteria": [
+    "cli/src/api-helpers.ts 导出 pickString(body, key) / pickNumber / pickInteger / pickEnum / pickBoolean",
+    "缺字段时支持默认与必填两种语义（pickString(body, 'title') 必填，pickString(body, 'title', '') 可选）",
+    "api.ts 全部路由改用 helper 替换手写提取",
+    "重构后单路由处理逻辑减少 50% 行数",
+    "pnpm build 与 pnpm test 通过；Dashboard 行为不变"
+  ],
+  "priority": 3,
+  "passes": false,
+  "everCompleted": false,
+  "status": "draft",
+  "notes": "",
+  "sortOrder": 1,
+  "removalRequestedAt": null,
+  "archivedAt": null,
+  "claimedBy": null,
+  "claimedAt": null,
+  "workType": "refactor"
+}

@@ -1,0 +1,25 @@
+{
+  "id": "US-064",
+  "milestoneId": null,
+  "parentId": "FT-032",
+  "dependsOn": [],
+  "title": "命名统一后文档引用同步",
+  "description": "类型：文档补全。loop-cli → loop 命名统一（US-041）后，README / SKILL.md / 帮助文本 / release 注释中的 loop-cli 引用同步更新。",
+  "acceptanceCriteria": [
+    "README 中所有 loop-cli 出现位置改为 loop",
+    "SKILL.md 同步",
+    "scripts/release.mjs 的注释同步",
+    "release 输出目录名 release/loop-cli 重命名为 release/loop（如有）"
+  ],
+  "priority": 3,
+  "passes": false,
+  "everCompleted": false,
+  "status": "draft",
+  "notes": "",
+  "sortOrder": 1,
+  "removalRequestedAt": null,
+  "archivedAt": null,
+  "claimedBy": null,
+  "claimedAt": null,
+  "workType": "documentation"
+}

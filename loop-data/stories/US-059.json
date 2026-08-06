@@ -1,0 +1,28 @@
+{
+  "id": "US-059",
+  "milestoneId": null,
+  "parentId": "FT-031",
+  "dependsOn": [],
+  "title": "补 db.ts 单元测试（生命周期/依赖环/bug 派生/claim 冲突）",
+  "description": "类型：测试补充。db.ts 是状态机核心，业务规则密集但无测试。补完整测试。",
+  "acceptanceCriteria": [
+    "testAddStory / testConfirmStory / testUnconfirmStory：状态机与 everCompleted 处理",
+    "testCompleteStoryWithProgress：未完成 / 已完成 / worker 错配等场景",
+    "testAddStoryDependency + testWouldCreateDependencyCycle：自依赖、环依赖、跨 Feature 依赖",
+    "testReportBug：未完成 Story 追加 AC、已完成 Story 派生修复 Story",
+    "testClaimStory / testReleaseClaim：worker 冲突、释放权限",
+    "testRequestRemoval / testArchiveStory / testRestoreStory / testPurgeStory：完整生命周期",
+    "覆盖率：db.ts 核心方法 > 80%"
+  ],
+  "priority": 1,
+  "passes": false,
+  "everCompleted": false,
+  "status": "draft",
+  "notes": "",
+  "sortOrder": 1,
+  "removalRequestedAt": null,
+  "archivedAt": null,
+  "claimedBy": null,
+  "claimedAt": null,
+  "workType": "testing"
+}

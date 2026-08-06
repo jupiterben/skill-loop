@@ -1,0 +1,28 @@
+{
+  "id": "US-040",
+  "milestoneId": null,
+  "parentId": "FT-027",
+  "dependsOn": [],
+  "title": "删除冗余命令别名（中文/forever/MCP 残留）",
+  "description": "类型：重构。WATCH_COMMANDS 里的中文\"循环\"、--forever flag、ALIASES 中 MCP 时代的 snake_case 别名（get-status/get-next-story 等）已无实际使用价值，删除以降低认知负担。",
+  "acceptanceCriteria": [
+    "WATCH_COMMANDS 仅保留 'watch'，删除 '循环' 与 'forever'",
+    "handleRunCommand 中移除 parsed.flags.forever 分支",
+    "ALIASES 表仅保留 confirm / unconfirm 等真正高频简写",
+    "删除自指别名 'update-milestone': 'update-milestone'",
+    "loop help 中 WATCH_COMMANDS 相关文本同步更新",
+    "pnpm build 通过"
+  ],
+  "priority": 2,
+  "passes": true,
+  "everCompleted": true,
+  "status": "ready",
+  "notes": "",
+  "sortOrder": 1,
+  "removalRequestedAt": null,
+  "archivedAt": null,
+  "claimedBy": null,
+  "claimedAt": null,
+  "workType": "refactor",
+  "preferredTool": null
+}

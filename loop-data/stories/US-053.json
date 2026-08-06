@@ -1,0 +1,27 @@
+{
+  "id": "US-053",
+  "milestoneId": null,
+  "parentId": "FT-030",
+  "dependsOn": [],
+  "title": "抽取工具启动公共函数（claude / codex / agent）",
+  "description": "类型：重构。loop-run.ts 与 loop-plan.ts 各有 amp / codex / agent 的 spawn + stdin.write + streamProcessOutput 重复逻辑。提取为 tool-invoke.ts 中的 invokeToolWithPrompt 统一处理（amp 移除后仅剩 claude / codex / agent）。",
+  "acceptanceCriteria": [
+    "cli/src/tool-invoke.ts 导出 invokeToolWithPrompt(tool, prompt, options)",
+    "统一处理 stdin.write、stdout/stderr 流、退出码、错误抛出",
+    "loop-run.ts 与 loop-plan.ts 共用同一份",
+    "CLAUDE_STREAM_ARGS 与 invokeClaudeProcess 保留作为 claude 特有实现",
+    "拆分后 amp 相关代码已删除（见 US-039）",
+    "pnpm build 与 pnpm test 通过"
+  ],
+  "priority": 2,
+  "passes": false,
+  "everCompleted": false,
+  "status": "draft",
+  "notes": "",
+  "sortOrder": 1,
+  "removalRequestedAt": null,
+  "archivedAt": null,
+  "claimedBy": null,
+  "claimedAt": null,
+  "workType": "refactor"
+}

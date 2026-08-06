@@ -1,0 +1,27 @@
+{
+  "id": "US-055",
+  "milestoneId": null,
+  "parentId": "FT-030",
+  "dependsOn": [],
+  "title": "合并 deletable 概念（UI 与 CLI 统一）",
+  "description": "类型：重构。UI 端 ui/src/lib/deletable.ts 与 CLI 端 cli/src/feature-leaf.ts 都计算空叶子 Feature。统一为单一函数（保留在 cli/src/feature-leaf.ts），UI 调 API 取得。",
+  "acceptanceCriteria": [
+    "确认 ui/src/lib/deletable.ts 与 cli/src/feature-leaf.ts 概念重叠",
+    "保留 cli/src/feature-leaf.ts 作为权威实现",
+    "UI 端 canDeleteFeature / canHardDeleteStory 通过 API 字段返回（isEmptyLeaf）",
+    "删除 ui/src/lib/deletable.ts 或简化为 re-export",
+    "脑图与属性面板删除按钮行为不变",
+    "pnpm build 与 pnpm test 通过"
+  ],
+  "priority": 3,
+  "passes": false,
+  "everCompleted": false,
+  "status": "draft",
+  "notes": "",
+  "sortOrder": 1,
+  "removalRequestedAt": null,
+  "archivedAt": null,
+  "claimedBy": null,
+  "claimedAt": null,
+  "workType": "refactor"
+}

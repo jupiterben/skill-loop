@@ -1,0 +1,28 @@
+{
+  "id": "US-041",
+  "milestoneId": null,
+  "parentId": "FT-027",
+  "dependsOn": [],
+  "title": "统一 loop-cli → loop 命名",
+  "description": "类型：重构。包名 loop-cli、二进制 loop-cli、用户命令 loop、帮助文本 loop-cli 命名混乱，统一定义为 loop 减少歧义。",
+  "acceptanceCriteria": [
+    "package.json 的 name 改为 loop，bin 入口为 loop",
+    "cli.ts 帮助文本顶部 'loop-cli' 改为 'loop'",
+    "loop.sh / loop.ps1 / dev.sh 中的引用同步更新",
+    "SKILL.md / README.md 中 'pnpm loop' 提法保持不变（已正确）",
+    "若 release 脚本有命名引用，同步更新",
+    "pnpm build 与 pnpm test 通过"
+  ],
+  "priority": 1,
+  "passes": true,
+  "everCompleted": true,
+  "status": "ready",
+  "notes": "",
+  "sortOrder": 1,
+  "removalRequestedAt": null,
+  "archivedAt": null,
+  "claimedBy": null,
+  "claimedAt": null,
+  "workType": "refactor",
+  "preferredTool": null
+}

@@ -1,0 +1,27 @@
+{
+  "id": "US-052",
+  "milestoneId": null,
+  "parentId": "FT-030",
+  "dependsOn": [],
+  "title": "合并 run 状态路径（单 worker / 多 worker 统一）",
+  "description": "类型：重构。.loop-status/ 同时存在 run.json（单 worker）与 run-coordinator.json（多 worker）+ runs/<id>.json（per-worker）三套，run-process.ts 有两套平行 read/write/clear。统一为 coordinator 模式（workers=1 时协调器管 1 个 worker）。",
+  "acceptanceCriteria": [
+    "run-process.ts 删除 readLoopRunState / writeLoopRunState / clearLoopRunState 等单 worker 路径",
+    "协调器始终存在，workers=1 时协调器也只管理一个 worker 状态",
+    "getLoopRunStatus 简化为仅基于协调器状态返回 workers[]",
+    "paths.ts 中 getLoopRunStateFile / getLoopCoordinatorStateFile 合并为单一 getCoordinatorStateFile",
+    "waitForLoopRunStart 不再回退到 run.json",
+    "pnpm build 与 pnpm test 通过"
+  ],
+  "priority": 2,
+  "passes": false,
+  "everCompleted": false,
+  "status": "draft",
+  "notes": "",
+  "sortOrder": 1,
+  "removalRequestedAt": null,
+  "archivedAt": null,
+  "claimedBy": null,
+  "claimedAt": null,
+  "workType": "refactor"
+}

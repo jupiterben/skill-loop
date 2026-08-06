@@ -1,0 +1,7 @@
+{
+  "id": "FT-030",
+  "parentId": null,
+  "title": "重复逻辑与 API 设计收敛",
+  "description": "收敛 touchProject 散落调用、workType 强制选择、run 状态路径合并、amp 启动公共、API 字段提取 helper、deletable 概念合并、pattern 稳定 ID、API RESTful 统一",
+  "sortOrder": 4
+}

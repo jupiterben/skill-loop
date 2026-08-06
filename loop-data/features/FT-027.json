@@ -1,0 +1,7 @@
+{
+  "id": "FT-027",
+  "parentId": null,
+  "title": "CLI 表面清理与命名统一",
+  "description": "删除半残废的 amp 工具、冗余别名（WATCH_COMMANDS/中文/--forever/MCP 残留）、多余 dashboard 启动路径与自指配置；统一 loop-cli → loop 命名",
+  "sortOrder": 1
+}

@@ -10,6 +10,19 @@ export const CLAUDE_STREAM_ARGS = [
   "--include-partial-messages",
 ] as const;
 
+/** codebuddy (CodeBuddy Code) 的 stream-json 参数；与 claude 同协议 */
+export const CODEBUDDY_STREAM_ARGS = [
+  "--dangerously-skip-permissions",
+  "--print",
+  "--output-format",
+  "stream-json",
+  "--include-partial-messages",
+] as const;
+
+/**
+ * 解析 claude / codebuddy 的 stream-json 行。
+ * 两者协议一致（Anthropic SSE 风格）：stream_event.text_delta、tool_use、result。
+ */
 export function parseClaudeStreamLine(line: string): {
   display: string;
   resultText: string | null;
@@ -43,6 +56,9 @@ export function parseClaudeStreamLine(line: string): {
   }
   return { display: "", resultText: null };
 }
+
+/** parseClaudeStreamLine 的别名，语义上两者协议一致 */
+export const parseCodebuddyStreamLine = parseClaudeStreamLine;
 
 type StreamHandlers = {
   onDisplay: (text: string) => void;
@@ -102,6 +118,26 @@ export function invokeClaudeProcess(
   }
 ): Promise<string> {
   const child = spawn("claude", [...CLAUDE_STREAM_ARGS], {
+    cwd: options.cwd,
+    env: options.env,
+    shell: process.platform === "win32",
+    stdio: ["pipe", "pipe", "pipe"],
+  });
+  child.stdin?.write(prompt);
+  child.stdin?.end();
+  return collectClaudeStream(child, options.handlers);
+}
+
+/** 调用 codebuddy (CodeBuddy Code)，与 claude 同协议 */
+export function invokeCodebuddyProcess(
+  prompt: string,
+  options: {
+    cwd: string;
+    env?: NodeJS.ProcessEnv;
+    handlers: StreamHandlers;
+  }
+): Promise<string> {
+  const child = spawn("codebuddy", [...CODEBUDDY_STREAM_ARGS], {
     cwd: options.cwd,
     env: options.env,
     shell: process.platform === "win32",

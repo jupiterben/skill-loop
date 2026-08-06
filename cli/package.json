@@ -10,8 +10,7 @@
   "files": [
     "dist",
     "public",
-    "templates",
-    "loop-cli.config.json"
+    "templates"
   ],
   "scripts": {
     "build": "tsc && pnpm build:ui",

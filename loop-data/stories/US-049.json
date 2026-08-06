@@ -1,0 +1,27 @@
+{
+  "id": "US-049",
+  "milestoneId": null,
+  "parentId": "FT-029",
+  "dependsOn": [],
+  "title": "拆分 api.ts（路由注册式）",
+  "description": "类型：重构。api.ts 30+ 路由用一长串 if/else 串联，每路由手动解析 body 并做类型转换。改为注册式：handleApiMutation 仅做 method+pathname 匹配，分发到 modules/*/route.ts。",
+  "acceptanceCriteria": [
+    "api/modules/ 下按资源分目录：milestones/ features/ stories/ patterns/ project-spec/ project/ loop-run/ dependencies/",
+    "每个 route.ts 导出 handler 签名 (db, projectName, body) => result",
+    "api.ts 仅保留 method+pathname 路由表与公共 helper（json / readJsonBody）",
+    "新增 pickString / pickNumber / pickEnum 等通用 body 字段提取 helper",
+    "拆分后单文件不超过 150 行",
+    "pnpm build 与 pnpm test 通过；现有 Dashboard UI 行为不变"
+  ],
+  "priority": 2,
+  "passes": false,
+  "everCompleted": false,
+  "status": "draft",
+  "notes": "",
+  "sortOrder": 1,
+  "removalRequestedAt": null,
+  "archivedAt": null,
+  "claimedBy": null,
+  "claimedAt": null,
+  "workType": "refactor"
+}

@@ -1,0 +1,7 @@
+{
+  "id": "FT-032",
+  "parentId": null,
+  "title": "文档同步",
+  "description": "README / SKILL.md / 帮助文本与代码不一致处（dashboard 首次 build 缺失、MCP 别名残留、命名统一后引用更新）",
+  "sortOrder": 6
+}

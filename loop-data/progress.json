@@ -1312,7 +1312,79 @@
         "外循环控制放 features/loop-run-control，buildStartLoopRunPayload 与 CLI --until-stop/--workers 语义对齐"
       ],
       "id": 171
+    },
+    {
+      "storyId": "US-041",
+      "entryDate": "2026-08-06",
+      "summary": "Story US-041 已完成",
+      "learnings": [],
+      "id": 172
+    },
+    {
+      "storyId": "US-041",
+      "entryDate": "2026-08-06",
+      "summary": "统一命名：package.json name 由 @loop-agent/loop-cli 改为 loop，bin 入口由 loop-cli 改为 loop；cli.ts 帮助文本与全部 用法: 提示的 loop-cli 改为 loop。shell 脚本与 release 脚本已无 loop-cli 引用。仅提交重命名改动，未混入其他 Story 的 codebuddy 改动。",
+      "learnings": [],
+      "id": 173
+    },
+    {
+      "storyId": "US-058",
+      "entryDate": "2026-08-06",
+      "summary": "Story US-058 已完成",
+      "learnings": [],
+      "id": 174
+    },
+    {
+      "storyId": "US-058",
+      "entryDate": "2026-08-06",
+      "summary": "为 cli/ 增加 vitest.config.ts（指向 src/**/*.test.ts，开启 passWithNoTests 以兼容空测试目录），并在 package.json 新增 test:cli 与 test:all，将 test 指向 test:all，使 pnpm test 同时覆盖 UI 与 CLI 且 CLI 部分空跑通过。",
+      "learnings": [
+        "本沙箱 git init 默认分支非 main，导致 worktree-pool 测试 git worktree add ... main 失败；运行 UI 测试套件前需 git config --global init.defaultBranch main。该失败与 US-058 无关，属环境配置问题。"
+      ],
+      "id": 175
+    },
+    {
+      "storyId": "US-039",
+      "entryDate": "2026-08-06",
+      "summary": "Story US-039 已完成",
+      "learnings": [],
+      "id": 176
+    },
+    {
+      "storyId": "US-039",
+      "entryDate": "2026-08-06",
+      "summary": "从 VALID_TOOLS 移除 amp，删除 loop-run.ts 与 loop-plan.ts 中 amp 的 spawn 分支，autoDetectTool 错误消息改为仅列 agent/claude/codex，help 文本移除 amp，loop run --tool amp 现抛出明确错误 'amp 已不再支持'；同步更新依赖旧 amp 回退行为的测试。",
+      "learnings": [],
+      "id": 177
+    },
+    {
+      "storyId": "US-040",
+      "entryDate": "2026-08-06",
+      "summary": "Story US-040 已完成",
+      "learnings": [],
+      "id": 178
+    },
+    {
+      "storyId": "US-040",
+      "entryDate": "2026-08-06",
+      "summary": "删除 WATCH_COMMANDS 的 循环/forever 别名与 ALIASES 中 MCP 时代 snake_case 长别名，handleRunCommand 移除 forever 分支，help 章节标题 循环 改为 外循环。",
+      "learnings": [],
+      "id": 179
+    },
+    {
+      "storyId": "US-042",
+      "entryDate": "2026-08-06",
+      "summary": "Story US-042 已完成",
+      "learnings": [],
+      "id": 180
+    },
+    {
+      "storyId": "US-042",
+      "entryDate": "2026-08-06",
+      "summary": "删除独立的 cli/src/dashboard.ts（其前台逻辑保留在 cli dashboard --foreground 别名）、dev.sh 与 dev.ps1（等价于 loop.sh/loop.ps1 dashboard dev），并移除 README 中 dev.ps1 引用；cli dashboard 收敛为 start/stop/status/dev 四子命令，build 与 214 个测试通过。",
+      "learnings": [],
+      "id": 181
     }
   ],
-  "nextId": 172
+  "nextId": 182
 }

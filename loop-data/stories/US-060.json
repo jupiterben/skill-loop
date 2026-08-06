@@ -1,0 +1,26 @@
+{
+  "id": "US-060",
+  "milestoneId": null,
+  "parentId": "FT-031",
+  "dependsOn": [],
+  "title": "补 tree.ts 单元测试",
+  "description": "类型：测试补充。tree.ts 包含脑图树构建、下一 Story 选择、依赖环检测，但 0 测试。",
+  "acceptanceCriteria": [
+    "testBuildTree：Feature 嵌套 / Story 排序 / 孤立 Story 提升为 root",
+    "testGetNextStories：ready 过滤、blocked、draft、removal-pending、claimed 跳过、limit 限制",
+    "testIsStoryReady：依赖未完成、status=draft、已通过、已归档",
+    "testWouldCreateDependencyCycle：自环 / 双向环 / 跨链路环 / 无环",
+    "testIsDraftStory / testIsActiveStory / testIsPendingRemoval 边界"
+  ],
+  "priority": 2,
+  "passes": false,
+  "everCompleted": false,
+  "status": "draft",
+  "notes": "",
+  "sortOrder": 1,
+  "removalRequestedAt": null,
+  "archivedAt": null,
+  "claimedBy": null,
+  "claimedAt": null,
+  "workType": "testing"
+}

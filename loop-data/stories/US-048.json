@@ -1,0 +1,27 @@
+{
+  "id": "US-048",
+  "milestoneId": null,
+  "parentId": "FT-029",
+  "dependsOn": [],
+  "title": "拆分 loop-run.ts（tool-invoke / worker / coordinator）",
+  "description": "类型：重构。loop-run.ts 包含工具解析、提示词拼装、worker 迭代、协调器调度、git worktree、归档、状态机，918 行。拆为 tool-invoke.ts / agent-prompt.ts / worker-iteration.ts / coordinator.ts / run-state.ts（外循环状态机）。",
+  "acceptanceCriteria": [
+    "cli/src/tool-invoke.ts 抽出 claude / amp / codex / agent 启动逻辑（amp 移除见 US-039）",
+    "cli/src/agent-prompt.ts 抽出 buildAgentPrompt 与提示词路径解析",
+    "cli/src/worker-iteration.ts 抽出单 worker 迭代 runWorkerIteration",
+    "cli/src/coordinator.ts 抽出多 worker 调度逻辑（与 run-state 配合）",
+    "loop-run.ts 保留 runLoop 入口与状态机推进",
+    "pnpm build 与 pnpm test 通过"
+  ],
+  "priority": 1,
+  "passes": false,
+  "everCompleted": false,
+  "status": "draft",
+  "notes": "",
+  "sortOrder": 1,
+  "removalRequestedAt": null,
+  "archivedAt": null,
+  "claimedBy": null,
+  "claimedAt": null,
+  "workType": "refactor"
+}

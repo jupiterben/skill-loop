@@ -1,0 +1,7 @@
+{
+  "id": "FT-028",
+  "parentId": null,
+  "title": "死代码与历史包袱清理",
+  "description": "移除分支归档逻辑、legacy 状态文件迁移项等历史包袱，让 .loop-status/ 只保留真正运行所需的状态",
+  "sortOrder": 2
+}

@@ -1,0 +1,28 @@
+{
+  "id": "US-056",
+  "milestoneId": null,
+  "parentId": "FT-030",
+  "dependsOn": [],
+  "title": "Pattern 改用稳定 ID（消除 index 定位的 footgun）",
+  "description": "类型：重构。loop add-pattern / update-pattern / delete-pattern 用数组下标定位，删除一条会全乱。改为 PAT-001 / PAT-002 稳定 ID，UI 与 CLI 一致。",
+  "acceptanceCriteria": [
+    "patterns.json 数据结构从 {items: string[]} 改为 {items: Array<{id: string, content: string}>}",
+    "新增 nextPatternId 工具分配 PAT-001 / PAT-002 ...（与 Story/Feature 同风格）",
+    "loop update-pattern / delete-pattern 接收 --id PAT-001 而非 --index 0；老 --index 调用报错并提示新用法",
+    "api.ts /api/patterns/* 同步改用 id 字段",
+    "UI 端 features/patterns/* 改用 id 定位 pattern",
+    "旧 patterns.json 首次读取时一次性迁移为新结构（id 自增）",
+    "pnpm build 与 pnpm test 通过；现有 pattern 不丢失"
+  ],
+  "priority": 2,
+  "passes": false,
+  "everCompleted": false,
+  "status": "draft",
+  "notes": "",
+  "sortOrder": 1,
+  "removalRequestedAt": null,
+  "archivedAt": null,
+  "claimedBy": null,
+  "claimedAt": null,
+  "workType": "refactor"
+}

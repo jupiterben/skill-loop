@@ -1,0 +1,24 @@
+{
+  "id": "US-063",
+  "milestoneId": null,
+  "parentId": "FT-032",
+  "dependsOn": [],
+  "title": "SKILL.md 移除 MCP 残留提示",
+  "description": "类型：文档补全。SKILL.md / README 中\"输出 JSON / 不配置 MCP\"是好的，但与 ALIASES 中保留的 MCP snake_case 别名（get-status 等）矛盾。删除别名后同步文档。",
+  "acceptanceCriteria": [
+    "SKILL.md \"## 常用命令\"表格中不出现被删除的别名",
+    "README \"## 日常命令\"表格同步",
+    "loop help 输出（cli.ts printHelp）作为权威，文档与之一致"
+  ],
+  "priority": 2,
+  "passes": false,
+  "everCompleted": false,
+  "status": "ready",
+  "notes": "",
+  "sortOrder": 1,
+  "removalRequestedAt": null,
+  "archivedAt": null,
+  "claimedBy": null,
+  "claimedAt": null,
+  "workType": "documentation"
+}

@@ -1,0 +1,28 @@
+{
+  "id": "US-039",
+  "milestoneId": null,
+  "parentId": "FT-027",
+  "dependsOn": [],
+  "title": "删除 amp 工具支持",
+  "description": "类型：重构。amp 工具当前在 VALID_TOOLS 中保留但 autoDetectTool 不再支持，导致 spawn 分支和帮助文本与实际行为不一致，应当整体移除以减少误导。",
+  "acceptanceCriteria": [
+    "从 loop-run.ts 的 VALID_TOOLS 数组移除 amp",
+    "删除 invokeToolWithPrompt 中 amp 的 spawn 分支（loop-run.ts 与 loop-plan.ts 两处）",
+    "autoDetectTool 的错误消息改为只列 agent / claude / codex",
+    "帮助文本与 SKILL.md 中所有 agent|claude|amp 列表移除 amp",
+    "loop run --tool amp 给出明确错误（\"amp 已不再支持\"）而非抛无效工具错误",
+    "pnpm build 与 pnpm test 通过"
+  ],
+  "priority": 2,
+  "passes": true,
+  "everCompleted": true,
+  "status": "ready",
+  "notes": "",
+  "sortOrder": 1,
+  "removalRequestedAt": null,
+  "archivedAt": null,
+  "claimedBy": null,
+  "claimedAt": null,
+  "workType": "refactor",
+  "preferredTool": null
+}

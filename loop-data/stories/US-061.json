@@ -1,0 +1,26 @@
+{
+  "id": "US-061",
+  "milestoneId": null,
+  "parentId": "FT-031",
+  "dependsOn": [],
+  "title": "补 loop-run.ts 单元测试（工具解析/提示词拼装）",
+  "description": "类型：测试补充。loop-run.ts 工具解析（resolveStoryTool / resolveRunTool / autoDetectTool）与提示词拼装（buildAgentPrompt）是纯函数，易测。",
+  "acceptanceCriteria": [
+    "testResolveRunTool：传入有效 / 无效 / 不可用命令 / cursor 别名",
+    "testResolveStoryTool：story.preferredTool / runPreferred / autoDetect 优先级",
+    "testBuildAgentPrompt：workerId、Story 标题、AC、空字段处理",
+    "testResolveAgentPromptPath：环境变量 > loop-data/AGENT.md > templates/AGENT.md 优先级",
+    "对 spawn 启动的部分保留 integration 测试（可选，本 Story 聚焦纯函数）"
+  ],
+  "priority": 2,
+  "passes": false,
+  "everCompleted": false,
+  "status": "draft",
+  "notes": "",
+  "sortOrder": 1,
+  "removalRequestedAt": null,
+  "archivedAt": null,
+  "claimedBy": null,
+  "claimedAt": null,
+  "workType": "testing"
+}

@@ -1,0 +1,27 @@
+{
+  "id": "US-057",
+  "milestoneId": null,
+  "parentId": "FT-030",
+  "dependsOn": [],
+  "title": "API 统一 RESTful（删除重复 /update 路径）",
+  "description": "类型：重构。api.ts 同一资源既有 POST /api/X 又有 POST /api/X/update（milestones 重复两套），stories 缺 PATCH。统一为 POST 创建 / PATCH 更新 / DELETE 删除，删除 /update 重复路径。",
+  "acceptanceCriteria": [
+    "POST /api/milestones 创建 / PATCH /api/milestones 更新（删除 POST /api/milestones/update）",
+    "POST /api/features 创建 / PATCH /api/features 更新 / DELETE /api/features 删除（合并 delete 路径）",
+    "POST /api/stories 创建 / PATCH /api/stories 更新（与 stories/confirm、stories/delete 独立保留）",
+    "前端 ui/src/lib/api.ts 调用同步更新",
+    "确认无 Dashboard 功能回归",
+    "pnpm build 与 pnpm test 通过"
+  ],
+  "priority": 2,
+  "passes": false,
+  "everCompleted": false,
+  "status": "draft",
+  "notes": "",
+  "sortOrder": 1,
+  "removalRequestedAt": null,
+  "archivedAt": null,
+  "claimedBy": null,
+  "claimedAt": null,
+  "workType": "refactor"
+}

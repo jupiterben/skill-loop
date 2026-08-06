@@ -1,0 +1,7 @@
+{
+  "id": "FT-029",
+  "parentId": null,
+  "title": "God file 拆分重构",
+  "description": "db.ts (1581 行)、loop-run.ts (918 行)、api.ts (505 行)、cli.ts (839 行) 按职责拆分，提升可维护性与测试可行性",
+  "sortOrder": 3
+}

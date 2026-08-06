@@ -1,0 +1,24 @@
+{
+  "id": "US-062",
+  "milestoneId": null,
+  "parentId": "FT-032",
+  "dependsOn": [],
+  "title": "README 增加 dashboard 首次 build 提示",
+  "description": "类型：文档补全。cli/public/index.html 是 build 产物（被 .gitignore），README 写\"日常使用无需安装依赖或 build\"与实际行为不符。补全说明。",
+  "acceptanceCriteria": [
+    "README \"安装\"小节明确：'首次运行 dashboard 前需执行 cd cli && pnpm install && pnpm build'",
+    "或将构建产物 cli/public/index.html 入 git（任选其一）",
+    "解决路径明确：用户 clone 后立即能跑 dashboard，不被 404 打断"
+  ],
+  "priority": 2,
+  "passes": false,
+  "everCompleted": false,
+  "status": "ready",
+  "notes": "",
+  "sortOrder": 1,
+  "removalRequestedAt": null,
+  "archivedAt": null,
+  "claimedBy": null,
+  "claimedAt": null,
+  "workType": "documentation"
+}

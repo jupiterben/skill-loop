@@ -1,0 +1,7 @@
+{
+  "id": "FT-031",
+  "parentId": null,
+  "title": "CLI 核心测试覆盖",
+  "description": "CLI 状态机（db / tree / loop-run）目前 0 测试，3388 行核心代码无任何保护。补齐单元测试与 vitest 配置。",
+  "sortOrder": 5
+}

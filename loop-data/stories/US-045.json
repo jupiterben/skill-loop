@@ -1,0 +1,27 @@
+{
+  "id": "US-045",
+  "milestoneId": null,
+  "parentId": "FT-028",
+  "dependsOn": [],
+  "title": "删除分支归档与 .last-branch 状态",
+  "description": "类型：重构。maybeArchivePreviousRun 在每次 loop run 时写 .last-branch 并在分支变化时复制 state 到 .loop-status/archive/，几乎从不触发且带来额外 I/O，删除。",
+  "acceptanceCriteria": [
+    "删除 loop-run.ts 的 maybeArchivePreviousRun 函数及其调用",
+    "删除 paths.ts 的 getLastBranchFile / getRunArchiveDir 导出",
+    "删除 imports 中对上述函数与 node:fs 中 copyFileSync 的引用",
+    "删除 import { getRunArchiveDir, getRunsFile } 中无用的部分",
+    ".loop-status/ 中残留的 archive/ 与 .last-branch 视为可清理（非必需清理）",
+    "pnpm build 与 pnpm test 通过"
+  ],
+  "priority": 2,
+  "passes": false,
+  "everCompleted": false,
+  "status": "draft",
+  "notes": "",
+  "sortOrder": 1,
+  "removalRequestedAt": null,
+  "archivedAt": null,
+  "claimedBy": null,
+  "claimedAt": null,
+  "workType": "refactor"
+}

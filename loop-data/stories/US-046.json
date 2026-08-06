@@ -1,0 +1,25 @@
+{
+  "id": "US-046",
+  "milestoneId": null,
+  "parentId": "FT-028",
+  "dependsOn": [],
+  "title": "清理 LEGACY_STATUS_FILES 中未使用项",
+  "description": "类型：重构。paths.ts 的 LEGACY_STATUS_FILES / LEGACY_STATUS_DIRS 列出多项历史文件名，但 run-coordinator.json 是当前还在用、runs/ 与 archive/ 即将被 FT-028-1 移除，迁移项需对应收敛。",
+  "acceptanceCriteria": [
+    "LEGACY_STATUS_DIRS 中移除 archive（已不再使用）与 runs（仅在并行模式首次跑前存在）",
+    "LEGACY_STATUS_FILES 保留 run.json / run-coordinator.json / run-live.json / dashboard.json，去除 runs.json 与 .last-branch",
+    "migrateLegacyStatusFiles 文档化其唯一作用是旧版升级兼容",
+    "pnpm build 通过"
+  ],
+  "priority": 3,
+  "passes": false,
+  "everCompleted": false,
+  "status": "draft",
+  "notes": "",
+  "sortOrder": 1,
+  "removalRequestedAt": null,
+  "archivedAt": null,
+  "claimedBy": null,
+  "claimedAt": null,
+  "workType": "refactor"
+}

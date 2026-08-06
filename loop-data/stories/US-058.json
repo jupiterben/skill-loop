@@ -1,0 +1,26 @@
+{
+  "id": "US-058",
+  "milestoneId": null,
+  "parentId": "FT-031",
+  "dependsOn": [],
+  "title": "为 CLI 配 vitest",
+  "description": "类型：测试补充。CLI 目前无 vitest 配置，仅 UI 端跑 vitest。为 cli/ 增加 vitest.config.ts，并行到现有 ui/vitest.config.ts。",
+  "acceptanceCriteria": [
+    "cli/vitest.config.ts 配置指向 src/**/*.test.ts",
+    "package.json scripts 增加 test:cli 与 test:all（test = test:all）",
+    "现有 UI 测试不受影响（pnpm test 仍跑全部）",
+    "pnpm test 通过（CLI 部分可能因无测试文件而空跑）"
+  ],
+  "priority": 1,
+  "passes": true,
+  "everCompleted": true,
+  "status": "ready",
+  "notes": "",
+  "sortOrder": 1,
+  "removalRequestedAt": null,
+  "archivedAt": null,
+  "claimedBy": null,
+  "claimedAt": null,
+  "workType": "testing",
+  "preferredTool": null
+}

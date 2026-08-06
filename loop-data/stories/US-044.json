@@ -1,0 +1,28 @@
+{
+  "id": "US-044",
+  "milestoneId": null,
+  "parentId": "FT-027",
+  "dependsOn": [],
+  "title": "删除 loop-cli.config.json 自指黑魔法",
+  "description": "类型：重构。loop-cli.config.json 用 projectRoot: '..' 让 cli 目录能读到父项目状态，对自指开发有便利但对正常用户是 footgun。删除并让 resolveProjectRoot 只走环境变量与 cwd 检测。",
+  "acceptanceCriteria": [
+    "删除 cli/loop-cli.config.json 文件",
+    "cli/src/config.ts 中删除 readConfigFile 与 fromConfig 分支",
+    "package.json 的 files 字段移除 loop-cli.config.json",
+    "resolveProjectRoot 仅基于 LOOP_PROJECT_ROOT / cwd 含 loop-data/ / 报错三种情况",
+    "release 流程不包含该文件",
+    "pnpm build 通过"
+  ],
+  "priority": 2,
+  "passes": false,
+  "everCompleted": false,
+  "status": "ready",
+  "notes": "",
+  "sortOrder": 1,
+  "removalRequestedAt": null,
+  "archivedAt": null,
+  "claimedBy": "w0",
+  "claimedAt": "2026-08-06T16:01:32.024Z",
+  "workType": "refactor",
+  "preferredTool": null
+}

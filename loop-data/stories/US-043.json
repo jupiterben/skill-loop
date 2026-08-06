@@ -1,0 +1,24 @@
+{
+  "id": "US-043",
+  "milestoneId": null,
+  "parentId": "FT-027",
+  "dependsOn": [],
+  "title": "删除 pnpm-workspace.yaml（单包不需要）",
+  "description": "类型：重构。cli/pnpm-workspace.yaml 仅启用 esbuild，但 cli 本身是单包（非 monorepo），pnpm 8+ 默认已支持。删除避免误导。",
+  "acceptanceCriteria": [
+    "删除 cli/pnpm-workspace.yaml 文件",
+    "pnpm install / pnpm build / pnpm test 均能正常执行",
+    "release 流程不依赖该文件"
+  ],
+  "priority": 3,
+  "passes": false,
+  "everCompleted": false,
+  "status": "ready",
+  "notes": "",
+  "sortOrder": 1,
+  "removalRequestedAt": null,
+  "archivedAt": null,
+  "claimedBy": null,
+  "claimedAt": null,
+  "workType": "refactor"
+}

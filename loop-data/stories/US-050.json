@@ -1,0 +1,27 @@
+{
+  "id": "US-050",
+  "milestoneId": null,
+  "parentId": "FT-029",
+  "dependsOn": [],
+  "title": "拆分 cli.ts（commands / aliases / main）",
+  "description": "类型：重构。cli.ts 839 行包含 24 个命令、17 个别名、WATCH/DASHBOARD 集合、run/dashboard 子命令分发、main() 全部逻辑。拆为 cli/commands.ts + cli/aliases.ts + cli/run-command.ts + cli/dashboard-command.ts + cli/main.ts。",
+  "acceptanceCriteria": [
+    "cli/src/commands/ 目录下按命令分组：status.ts、prd.ts、stories.ts、features.ts、milestones.ts、patterns.ts、spec.ts、project.ts、runs.ts",
+    "cli/src/aliases.ts 单独导出 ALIASES 与 WATCH_COMMANDS / DASHBOARD_START / DASHBOARD_STOP 集合",
+    "handleRunCommand / handleDashboardCommand 拆为 cli/run-command.ts / cli/dashboard-command.ts",
+    "cli.ts 仅保留 main() 入口",
+    "拆分后单文件不超过 200 行",
+    "pnpm build 与 pnpm test 通过"
+  ],
+  "priority": 2,
+  "passes": false,
+  "everCompleted": false,
+  "status": "draft",
+  "notes": "",
+  "sortOrder": 1,
+  "removalRequestedAt": null,
+  "archivedAt": null,
+  "claimedBy": null,
+  "claimedAt": null,
+  "workType": "refactor"
+}

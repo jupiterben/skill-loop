@@ -1,0 +1,27 @@
+{
+  "id": "US-047",
+  "milestoneId": null,
+  "parentId": "FT-029",
+  "dependsOn": [],
+  "title": "拆分 db.ts（按 entity 拆 facade）",
+  "description": "类型：重构。db.ts 单个 LoopStateDb 类承载 Project / Feature / Story / Milestone / Pattern / Runs / ProjectSpec 全部 CRUD，1581 行难以维护。拆为 db/index.ts + db/project.ts + db/feature.ts + db/story.ts + db/milestone.ts + db/pattern.ts + db/runs.ts + db/spec.ts 八个文件，LoopStateDb 仅做组合。",
+  "acceptanceCriteria": [
+    "db/ 目录下新增上述子文件，按 entity 分文件提供方法",
+    "LoopStateDb 类保留作为 facade，方法签名不变（保持兼容性）",
+    "db.ts 改为 db/index.ts 仅做 re-export",
+    "拆分后总行数可读性显著提升，单文件不超过 400 行",
+    "所有现有测试与 CLI 命令行为不变",
+    "pnpm build 与 pnpm test 通过"
+  ],
+  "priority": 1,
+  "passes": false,
+  "everCompleted": false,
+  "status": "draft",
+  "notes": "",
+  "sortOrder": 1,
+  "removalRequestedAt": null,
+  "archivedAt": null,
+  "claimedBy": null,
+  "claimedAt": null,
+  "workType": "refactor"
+}
