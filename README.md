@@ -6,9 +6,11 @@
 
 需要 Node.js 18+。
 
-发布包已包含编译产物（`cli/dist/` + `cli/public/`），**日常使用无需安装依赖或 build**。
+> 首次运行 dashboard 前需执行 `cd cli && pnpm install && pnpm build` —— 前端编译产物 `cli/dist/`、`cli/public/assets` 已被 `.gitignore` 忽略，clone 仓库时不会随代码下载，直接启动 dashboard 会因加载不到前端资源而 404。
 
-开发者修改源码时：
+若你使用的是已发布的精简包（`./scripts/release.sh` 产物），其中已包含编译产物，`日常使用无需安装依赖或 build`。
+
+从源码运行或开发者修改源码时：
 
 ```bash
 cd cli && pnpm install && pnpm build
