@@ -1,11 +1,11 @@
 {
-  "name": "@loop-agent/loop-cli",
+  "name": "loop",
   "version": "0.2.0",
   "description": "CLI + dashboard for Loop Engineering project runtime state (JSON file store)",
   "type": "module",
   "main": "./dist/cli.js",
   "bin": {
-    "loop-cli": "./dist/cli.js"
+    "loop": "./dist/cli.js"
   },
   "files": [
     "dist",

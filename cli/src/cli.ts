@@ -1,9 +1,9 @@
 #!/usr/bin/env node
 /**
- * loop-cli CLI — 对齐 MCP 常用命令，供 Agent 通过 Shell 调用（无需 MCP）。
+ * loop CLI — 对齐 MCP 常用命令，供 Agent 通过 Shell 调用（无需 MCP）。
  *
- * LOOP_PROJECT_ROOT=... loop-cli status
- * LOOP_PROJECT_ROOT=... loop-cli complete US-001
+ * LOOP_PROJECT_ROOT=... loop status
+ * LOOP_PROJECT_ROOT=... loop complete US-001
  */
 import { LoopStateDb } from "./db.js";
 import { isStoryWorkType } from "./story-work-type.js";
@@ -117,7 +117,7 @@ const COMMANDS: Record<string, Handler> = {
 
   complete(db, root, parsed) {
     const storyId = parsed.positional[0] ?? flagStr(parsed.flags, "story-id", "id");
-    if (!storyId) fail("用法: loop-cli complete US-001");
+    if (!storyId) fail("用法: loop complete US-001");
     const workerId =
       flagStr(parsed.flags, "worker-id", "worker") ??
       process.env.LOOP_WORKER_ID?.trim();
@@ -142,14 +142,14 @@ const COMMANDS: Record<string, Handler> = {
       flagStr(parsed.flags, "worker-id", "worker") ??
       process.env.LOOP_WORKER_ID?.trim();
     if (!storyId || !workerId) {
-      fail("用法: loop-cli claim-story US-001 --worker-id w0");
+      fail("用法: loop claim-story US-001 --worker-id w0");
     }
     return db.claimStory(projectName(db, parsed), storyId, workerId);
   },
 
   "release-claim"(db, _root, parsed) {
     const storyId = parsed.positional[0] ?? flagStr(parsed.flags, "story-id", "id");
-    if (!storyId) fail("用法: loop-cli release-claim US-001 [--worker-id w0]");
+    if (!storyId) fail("用法: loop release-claim US-001 [--worker-id w0]");
     const workerId =
       flagStr(parsed.flags, "worker-id", "worker") ??
       process.env.LOOP_WORKER_ID?.trim();
@@ -163,13 +163,13 @@ const COMMANDS: Record<string, Handler> = {
 
   "confirm-story"(db, _root, parsed) {
     const storyId = parsed.positional[0] ?? flagStr(parsed.flags, "story-id", "id");
-    if (!storyId) fail("用法: loop-cli confirm-story US-001");
+    if (!storyId) fail("用法: loop confirm-story US-001");
     return db.confirmStory(projectName(db, parsed), storyId);
   },
 
   "unconfirm-story"(db, _root, parsed) {
     const storyId = parsed.positional[0] ?? flagStr(parsed.flags, "story-id", "id");
-    if (!storyId) fail("用法: loop-cli unconfirm-story US-001");
+    if (!storyId) fail("用法: loop unconfirm-story US-001");
     return db.unconfirmStory(projectName(db, parsed), storyId);
   },
 
@@ -231,7 +231,7 @@ const COMMANDS: Record<string, Handler> = {
   "update-feature"(db, _root, parsed) {
     const featureId =
       parsed.positional[0] ?? flagStr(parsed.flags, "feature-id", "id");
-    if (!featureId) fail("用法: loop-cli update-feature FT-001 [--title \"...\"]");
+    if (!featureId) fail("用法: loop update-feature FT-001 [--title \"...\"]");
     const patch: { title?: string; description?: string } = {};
     const title = flagStr(parsed.flags, "title");
     const description = flagStr(parsed.flags, "description", "desc");
@@ -244,7 +244,7 @@ const COMMANDS: Record<string, Handler> = {
   "update-story"(db, _root, parsed) {
     const storyId =
       parsed.positional[0] ?? flagStr(parsed.flags, "story-id", "id");
-    if (!storyId) fail("用法: loop-cli update-story US-001 [--title \"...\"] --status draft|ready");
+    if (!storyId) fail("用法: loop update-story US-001 [--title \"...\"] --status draft|ready");
     const status = flagStr(parsed.flags, "status");
     if (!status || (status !== "draft" && status !== "ready")) {
       fail("缺少或无效 --status（draft | ready）");
@@ -288,7 +288,7 @@ const COMMANDS: Record<string, Handler> = {
   "move-story"(db, _root, parsed) {
     const storyId =
       parsed.positional[0] ?? flagStr(parsed.flags, "story-id", "id");
-    if (!storyId) fail("用法: loop-cli move-story US-001 --parent-id FT-004");
+    if (!storyId) fail("用法: loop move-story US-001 --parent-id FT-004");
     const parentId = flagStr(parsed.flags, "parent-id");
     if (!parentId) fail("缺少 --parent-id");
     return db.moveStory(projectName(db, parsed), storyId, parentId);
@@ -297,7 +297,7 @@ const COMMANDS: Record<string, Handler> = {
   "delete-story"(db, _root, parsed) {
     const storyId =
       parsed.positional[0] ?? flagStr(parsed.flags, "story-id", "id");
-    if (!storyId) fail("用法: loop-cli delete-story US-001");
+    if (!storyId) fail("用法: loop delete-story US-001");
     db.deleteStory(projectName(db, parsed), storyId);
     return { ok: true, deleted: storyId };
   },
@@ -305,7 +305,7 @@ const COMMANDS: Record<string, Handler> = {
   "delete-feature"(db, _root, parsed) {
     const featureId =
       parsed.positional[0] ?? flagStr(parsed.flags, "feature-id", "id");
-    if (!featureId) fail("用法: loop-cli delete-feature FT-001");
+    if (!featureId) fail("用法: loop delete-feature FT-001");
     const deletedIds = db.deleteFeature(projectName(db, parsed), featureId);
     return { ok: true, deletedIds };
   },
@@ -326,7 +326,7 @@ const COMMANDS: Record<string, Handler> = {
       parsed.positional[0] ?? flagStr(parsed.flags, "milestone-id", "id");
     if (!milestoneId) {
       fail(
-        "用法: loop-cli update-milestone MS-001 [--title \"...\"] [--target-date YYYY-MM-DD] [--version v0.1]"
+        "用法: loop update-milestone MS-001 [--title \"...\"] [--target-date YYYY-MM-DD] [--version v0.1]"
       );
     }
     const patch: {
@@ -365,7 +365,7 @@ const COMMANDS: Record<string, Handler> = {
   "add-pattern"(db, _root, parsed) {
     const content =
       flagStr(parsed.flags, "content") ?? parsed.positional.join(" ");
-    if (!content) fail("用法: loop-cli add-pattern \"模式描述\"");
+    if (!content) fail("用法: loop add-pattern \"模式描述\"");
     const name = projectName(db, parsed);
     db.addPattern(name, content);
     return { ok: true, patterns: db.getPatterns(name) };
@@ -374,11 +374,11 @@ const COMMANDS: Record<string, Handler> = {
   "update-pattern"(db, _root, parsed) {
     const index = flagNum(parsed.flags, "index");
     if (index === undefined || index < 0 || !Number.isInteger(index)) {
-      fail("用法: loop-cli update-pattern --index 0 \"新模式描述\"");
+      fail("用法: loop update-pattern --index 0 \"新模式描述\"");
     }
     const content =
       flagStr(parsed.flags, "content") ?? parsed.positional.join(" ");
-    if (!content) fail("用法: loop-cli update-pattern --index 0 \"新模式描述\"");
+    if (!content) fail("用法: loop update-pattern --index 0 \"新模式描述\"");
     const name = projectName(db, parsed);
     db.updatePattern(name, index, content);
     return { ok: true, patterns: db.getPatterns(name) };
@@ -391,7 +391,7 @@ const COMMANDS: Record<string, Handler> = {
         ? Number(parsed.positional[0])
         : undefined);
     if (index === undefined || index < 0 || !Number.isInteger(index)) {
-      fail("用法: loop-cli delete-pattern --index 0");
+      fail("用法: loop delete-pattern --index 0");
     }
     const name = projectName(db, parsed);
     db.deletePattern(name, index);
@@ -407,7 +407,7 @@ const COMMANDS: Record<string, Handler> = {
     const content =
       flagStr(parsed.flags, "content") ?? parsed.positional.join("\n");
     if (!content && content !== "") {
-      fail('用法: loop-cli update-spec "规范内容" 或 --content "..."');
+      fail('用法: loop update-spec "规范内容" 或 --content "..."');
     }
     const name = projectName(db, parsed);
     const spec = db.updateProjectSpec(name, content);
@@ -422,7 +422,7 @@ const COMMANDS: Record<string, Handler> = {
     const templateId =
       parsed.positional[0] ?? flagStr(parsed.flags, "template-id", "id");
     if (!templateId) {
-      fail("用法: loop-cli apply-spec-template <template-id> [--append]");
+      fail("用法: loop apply-spec-template <template-id> [--append]");
     }
     const name = projectName(db, parsed);
     const spec = db.applyProjectSpecTemplate(name, templateId, {
@@ -457,7 +457,7 @@ const COMMANDS: Record<string, Handler> = {
 
   "request-removal"(db, _root, parsed) {
     const storyId = parsed.positional[0] ?? flagStr(parsed.flags, "story-id");
-    if (!storyId) fail("用法: loop-cli request-removal US-001");
+    if (!storyId) fail("用法: loop request-removal US-001");
     return db.requestStoryRemoval(
       projectName(db, parsed),
       storyId,
@@ -467,7 +467,7 @@ const COMMANDS: Record<string, Handler> = {
 
   archive(db, _root, parsed) {
     const storyId = parsed.positional[0] ?? flagStr(parsed.flags, "story-id");
-    if (!storyId) fail("用法: loop-cli archive US-001");
+    if (!storyId) fail("用法: loop archive US-001");
     return db.archiveStory(
       projectName(db, parsed),
       storyId,
@@ -477,7 +477,7 @@ const COMMANDS: Record<string, Handler> = {
 
   restore(db, _root, parsed) {
     const storyId = parsed.positional[0] ?? flagStr(parsed.flags, "story-id");
-    if (!storyId) fail("用法: loop-cli restore US-001");
+    if (!storyId) fail("用法: loop restore US-001");
     return db.restoreStory(projectName(db, parsed), storyId);
   },
 };
@@ -501,13 +501,13 @@ const ALIASES: Record<string, string> = {
 const WATCH_COMMANDS = new Set(["watch", "循环", "forever"]);
 
 function printHelp(): void {
-  console.log(`loop-cli — Loop 工程迭代状态 CLI（通过 Shell 调用，无需 MCP）
+  console.log(`loop — Loop 工程迭代状态 CLI（通过 Shell 调用，无需 MCP）
 
 环境变量:
   LOOP_PROJECT_ROOT   项目根目录（状态在 loop-data/）
 
 用法:
-  loop-cli <command> [options]
+  loop <command> [options]
 
 查询:
   status [--project NAME]              总览进度
@@ -820,7 +820,7 @@ async function main(): Promise<void> {
   }
 
   const handler = COMMANDS[command];
-  if (!handler) fail(`未知命令: ${parsed.command}（loop-cli help 查看帮助）`);
+  if (!handler) fail(`未知命令: ${parsed.command}（loop help 查看帮助）`);
 
   const projectRoot = getProjectRoot();
   const db = new LoopStateDb(projectRoot);
