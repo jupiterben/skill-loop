@@ -83,6 +83,7 @@ cd cli && pnpm install && pnpm build
 | `.\loop.ps1 plan --requirement "..."` | 需求规划 Agent |
 | `.\loop.ps1 status` | 查看进度 |
 | `.\loop.ps1 next` | 下一个 Story |
+| `.\loop.ps1 patterns` | Codebase Patterns |
 | `.\loop.ps1 complete US-xxx` | 标记完成 |
 | `.\loop.ps1 add-story --title "..."` | 添加 Story |
 | `.\loop.ps1 bug US-xxx "描述"` | 记录缺陷 |
