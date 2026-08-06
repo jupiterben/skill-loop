@@ -484,21 +484,11 @@ const COMMANDS: Record<string, Handler> = {
 
 const ALIASES: Record<string, string> = {
   ls: "status",
-  "get-status": "status",
-  "get-next-story": "next",
-  "get-patterns": "patterns",
-  "get-prd": "prd",
-  "get-tree": "tree",
-  "complete-story": "complete",
-  "approve-story": "confirm-story",
   "confirm": "confirm-story",
-  "revert-story": "unconfirm-story",
   "unconfirm": "unconfirm-story",
-  "append-progress": "progress",
-  "update-milestone": "update-milestone",
 };
 
-const WATCH_COMMANDS = new Set(["watch", "循环", "forever"]);
+const WATCH_COMMANDS = new Set(["watch"]);
 
 function printHelp(): void {
   console.log(`loop — Loop 工程迭代状态 CLI（通过 Shell 调用，无需 MCP）
@@ -539,7 +529,7 @@ function printHelp(): void {
   update-milestone <MS-xxx> [--title "..."] [--description "..."] [--target-date YYYY-MM-DD] [--version v0.1]
   update-project [--description "..."] [--branch "..."] [--vision "..."]
 
-循环:
+外循环:
   watch [--tool agent|claude|codebuddy] [--workers N]
                       持续外循环，监听 Story 不退出的（等同 run --until-stop；全部完成后仍等待新 Story）
   run [--tool agent|claude|codebuddy] [--max-iterations 10] [--workers N] [N]
@@ -641,8 +631,7 @@ async function handleRunCommand(
     return;
   }
 
-  const untilStop =
-    parsed.flags["until-stop"] === true || parsed.flags.forever === true;
+  const untilStop = parsed.flags["until-stop"] === true;
 
   if (sub && !untilStop && !/^\d+$/.test(sub)) {
     fail(`未知 run 子命令: ${sub}（支持 stop | status | output）`);
