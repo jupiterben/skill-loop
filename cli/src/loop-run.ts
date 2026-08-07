@@ -36,6 +36,7 @@ function clearLoopRunCurrentStory(projectRoot: string): void {
   }
 }
 import { invokeClaudeProcess, invokeCodebuddyProcess } from "./claude-invoke.js";
+import { invokeOpencodeProcess } from "./opencode-invoke.js";
 import {
   cleanupAllWorktrees,
   createWorktree,
@@ -46,8 +47,10 @@ import {
 import type { UserStory } from "./types.js";
 
 const COMPLETE_TAG = "<promise>COMPLETE</promise>";
-const VALID_TOOLS = ["claude", "codebuddy", "agent", "cursor"] as const;
-const STORY_RESOLVE_TOOLS = ["claude", "codebuddy", "codex", "agent", "cursor"] as const;
+const VALID_TOOLS = ["claude", "codebuddy", "opencode", "minimax", "agent", "cursor"] as const;
+const STORY_RESOLVE_TOOLS = ["claude", "codebuddy", "opencode", "minimax", "codex", "agent", "cursor"] as const;
+/** minimax 是 opencode + minimax-m3 模型的别名（MiniMax 官方 CLI 暂无） */
+const MINIMAX_MODEL = "free/minimax-m3";
 type RunTool = (typeof VALID_TOOLS)[number];
 type StoryPreferredTool = (typeof STORY_RESOLVE_TOOLS)[number];
 type StoryResolvedTool = StoryPreferredTool;
@@ -91,8 +94,11 @@ function resolveTool(preferred?: string): RunTool {
     }
     if (tool === "cursor") {
       if (commandExists("agent")) return "agent";
+    } else if (tool === "minimax") {
+      if (commandExists("opencode")) return "minimax";
+      throw new Error("minimax 需要先安装 opencode CLI（minimax 走 opencode + minimax-m3 模型）");
     } else if (!VALID_TOOLS.includes(tool as RunTool)) {
-      throw new Error(`无效 --tool: ${preferred}（支持 claude | codebuddy | agent | cursor）`);
+      throw new Error(`无效 --tool: ${preferred}（支持 claude | codebuddy | opencode | minimax | agent | cursor）`);
     } else if (commandExists(tool === "agent" ? "agent" : tool)) {
       return tool as RunTool;
     } else if (tool !== "agent" && tool !== "cursor") {
@@ -103,14 +109,17 @@ function resolveTool(preferred?: string): RunTool {
   if (commandExists("agent")) return "agent";
   if (commandExists("claude")) return "claude";
   if (commandExists("codebuddy")) return "codebuddy";
+  if (commandExists("opencode")) return "opencode";
 
   throw new Error(
     [
-      "未找到 AI 工具（agent / claude / codebuddy）。",
+      "未找到 AI 工具（agent / claude / codebuddy / opencode）。",
       "",
       "  Cursor: 安装 Cursor CLI 后使用 agent",
       "  Claude: npm install -g @anthropic-ai/claude-code",
       "  CodeBuddy: 安装 CodeBuddy Code CLI 后使用 codebuddy",
+      "  OpenCode: snap install opencode 后使用 opencode（默认 free/deepseek-v4-flash）",
+      "  MiniMax: 复用 opencode 调用 minimax-m3 模型（--tool minimax）",
       "  或指定: pnpm loop run --tool claude 10",
     ].join("\n")
   );
@@ -130,6 +139,10 @@ function tryMapPreferred(
   if (tool === "cursor") {
     return isAvailable("agent") ? "agent" : null;
   }
+  if (tool === "minimax") {
+    // minimax 不是 CLI 命令，复用 opencode 调用 minimax-m3 模型
+    return isAvailable("opencode") ? "minimax" : null;
+  }
   return isAvailable(tool) ? (tool as StoryPreferredTool) : null;
 }
 
@@ -141,14 +154,17 @@ function tryMapRunPreferred(
 }
 
 function autoDetectTool(isAvailable: (cmd: string) => boolean): StoryPreferredTool {
+  if (isAvailable("opencode")) return "opencode";
   if (isAvailable("codebuddy")) return "codebuddy";
   if (isAvailable("claude")) return "claude";
   if (isAvailable("agent")) return "agent";
   if (isAvailable("codex")) return "codex";
   throw new Error(
     [
-      "未找到 AI 工具（agent / claude / codex）。",
+      "未找到 AI 工具（opencode / codebuddy / claude / agent / codex）。",
       "",
+      "  OpenCode: snap install opencode 后使用 opencode（默认 free/deepseek-v4-flash）",
+      "  MiniMax: 复用 opencode 调用 minimax-m3 模型（--tool minimax）",
       "  CodeBuddy: 安装 CodeBuddy Code CLI（codebuddy）",
       "  Claude: npm install -g @anthropic-ai/claude-code",
       "  Cursor: 安装 Cursor CLI 后使用 agent",
@@ -265,6 +281,33 @@ export async function invokeToolWithPrompt(
     return invokeCodebuddyProcess(prompt, {
       cwd,
       env,
+      handlers: {
+        onDisplay: (text) => {
+          appendRunLiveOutput(projectRoot, text, workerId);
+          if (text.trim()) process.stdout.write(text);
+        },
+      },
+    });
+  }
+
+  if (tool === "opencode") {
+    return invokeOpencodeProcess(prompt, {
+      cwd,
+      env,
+      handlers: {
+        onDisplay: (text) => {
+          appendRunLiveOutput(projectRoot, text, workerId);
+          if (text.trim()) process.stdout.write(text);
+        },
+      },
+    });
+  }
+
+  if (tool === "minimax") {
+    return invokeOpencodeProcess(prompt, {
+      cwd,
+      env,
+      model: MINIMAX_MODEL,
       handlers: {
         onDisplay: (text) => {
           appendRunLiveOutput(projectRoot, text, workerId);

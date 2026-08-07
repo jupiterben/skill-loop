@@ -11,8 +11,8 @@
     "loop help 输出（cli.ts printHelp）作为权威，文档与之一致"
   ],
   "priority": 2,
-  "passes": false,
-  "everCompleted": false,
+  "passes": true,
+  "everCompleted": true,
   "status": "ready",
   "notes": "",
   "sortOrder": 1,
@@ -20,5 +20,6 @@
   "archivedAt": null,
   "claimedBy": null,
   "claimedAt": null,
-  "workType": "documentation"
+  "workType": "documentation",
+  "preferredTool": null
 }

@@ -1384,7 +1384,55 @@
       "summary": "删除独立的 cli/src/dashboard.ts（其前台逻辑保留在 cli dashboard --foreground 别名）、dev.sh 与 dev.ps1（等价于 loop.sh/loop.ps1 dashboard dev），并移除 README 中 dev.ps1 引用；cli dashboard 收敛为 start/stop/status/dev 四子命令，build 与 214 个测试通过。",
       "learnings": [],
       "id": 181
+    },
+    {
+      "storyId": "US-044",
+      "entryDate": "2026-08-06",
+      "summary": "Story US-044 已完成",
+      "learnings": [],
+      "id": 182
+    },
+    {
+      "storyId": "US-044",
+      "entryDate": "2026-08-06",
+      "summary": "移除 cli/loop-cli.config.json 自指配置与 readConfigFile/fromConfig 分支，resolveProjectRoot 现在仅依赖 LOOP_PROJECT_ROOT 与 cwd 检测。package.json files 与 release.mjs 均不再包含该文件。",
+      "learnings": [
+        "loop 项目根目录解析应只走环境变量 + cwd 检测，避免打包自指配置文件造成的 footgun。"
+      ],
+      "id": 183
+    },
+    {
+      "storyId": "US-062",
+      "entryDate": "2026-08-06",
+      "summary": "Story US-062 已完成",
+      "learnings": [],
+      "id": 184
+    },
+    {
+      "storyId": "US-062",
+      "entryDate": "2026-08-06",
+      "summary": "README 安装小节新增醒目提示：首次运行 dashboard 前需 cd cli && pnpm install && pnpm build；并澄清 git clone 不含被 gitignore 的前端产物，仅发布精简包无需 build。",
+      "learnings": [
+        "cli/dist 与 cli/public/assets 被 .gitignore 忽略且不入 git，clone 后必须 build 才能跑 dashboard；README 不应声称 clone 即无需 build。"
+      ],
+      "id": 185
+    },
+    {
+      "storyId": "US-063",
+      "entryDate": "2026-08-06",
+      "summary": "Story US-063 已完成",
+      "learnings": [],
+      "id": 186
+    },
+    {
+      "storyId": "US-063",
+      "entryDate": "2026-08-06",
+      "summary": "确认 SKILL.md 与 README 常用命令表格均不含已删除的 MCP snake_case 别名（get-status 等，US-040 已从 ALIASES 移除）；并将 README 日常命令表格同步至权威 printHelp，补充 patterns 命令。",
+      "learnings": [
+        "loop help（cli.ts printHelp）是命令表的权威来源；文档命令表应以 printHelp 为准，删除别名时同步清理文档。"
+      ],
+      "id": 187
     }
   ],
-  "nextId": 182
+  "nextId": 188
 }

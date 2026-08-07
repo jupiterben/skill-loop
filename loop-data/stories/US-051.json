@@ -16,12 +16,13 @@
   "priority": 2,
   "passes": false,
   "everCompleted": false,
-  "status": "draft",
+  "status": "ready",
   "notes": "",
   "sortOrder": 1,
   "removalRequestedAt": null,
   "archivedAt": null,
-  "claimedBy": null,
-  "claimedAt": null,
-  "workType": "refactor"
+  "claimedBy": "w0",
+  "claimedAt": "2026-08-06T17:55:07.912Z",
+  "workType": "refactor",
+  "preferredTool": null
 }

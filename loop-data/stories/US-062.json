@@ -11,8 +11,8 @@
     "解决路径明确：用户 clone 后立即能跑 dashboard，不被 404 打断"
   ],
   "priority": 2,
-  "passes": false,
-  "everCompleted": false,
+  "passes": true,
+  "everCompleted": true,
   "status": "ready",
   "notes": "",
   "sortOrder": 1,
@@ -20,5 +20,6 @@
   "archivedAt": null,
   "claimedBy": null,
   "claimedAt": null,
-  "workType": "documentation"
+  "workType": "documentation",
+  "preferredTool": null
 }

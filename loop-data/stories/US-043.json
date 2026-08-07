@@ -13,12 +13,13 @@
   "priority": 3,
   "passes": false,
   "everCompleted": false,
-  "status": "ready",
+  "status": "draft",
   "notes": "",
   "sortOrder": 1,
   "removalRequestedAt": null,
   "archivedAt": null,
   "claimedBy": null,
   "claimedAt": null,
-  "workType": "refactor"
+  "workType": "refactor",
+  "preferredTool": null
 }
