@@ -6,8 +6,7 @@ import {
   writeFileSync,
 } from "node:fs";
 import {
-  getLoopCoordinatorStateFile,
-  getLoopRunStateFile,
+  getCoordinatorStateFile,
   getWorkerRunStateFile,
   getWorkerRunsDir,
 } from "./paths.js";
@@ -35,36 +34,10 @@ export type LoopCoordinatorState = {
   workerIds: string[];
 };
 
-export function readLoopRunState(projectRoot: string): LoopRunState | null {
-  const path = getLoopRunStateFile(projectRoot);
-  if (!existsSync(path)) return null;
-  try {
-    return JSON.parse(readFileSync(path, "utf8")) as LoopRunState;
-  } catch {
-    return null;
-  }
-}
-
-export function writeLoopRunState(
-  projectRoot: string,
-  state: LoopRunState
-): void {
-  writeFileSync(
-    getLoopRunStateFile(projectRoot),
-    JSON.stringify(state, null, 2) + "\n",
-    "utf8"
-  );
-}
-
-export function clearLoopRunState(projectRoot: string): void {
-  const path = getLoopRunStateFile(projectRoot);
-  if (existsSync(path)) unlinkSync(path);
-}
-
 export function readCoordinatorState(
   projectRoot: string
 ): LoopCoordinatorState | null {
-  const path = getLoopCoordinatorStateFile(projectRoot);
+  const path = getCoordinatorStateFile(projectRoot);
   if (!existsSync(path)) return null;
   try {
     return JSON.parse(readFileSync(path, "utf8")) as LoopCoordinatorState;
@@ -78,14 +51,14 @@ export function writeCoordinatorState(
   state: LoopCoordinatorState
 ): void {
   writeFileSync(
-    getLoopCoordinatorStateFile(projectRoot),
+    getCoordinatorStateFile(projectRoot),
     JSON.stringify(state, null, 2) + "\n",
     "utf8"
   );
 }
 
 export function clearCoordinatorState(projectRoot: string): void {
-  const path = getLoopCoordinatorStateFile(projectRoot);
+  const path = getCoordinatorStateFile(projectRoot);
   if (existsSync(path)) unlinkSync(path);
 }
 
@@ -142,9 +115,7 @@ export function isPidAlive(pid: number): boolean {
 }
 
 export function isLoopRunStopRequested(projectRoot: string): boolean {
-  const coord = readCoordinatorState(projectRoot);
-  if (coord?.stopRequested) return true;
-  return readLoopRunState(projectRoot)?.stopRequested === true;
+  return readCoordinatorState(projectRoot)?.stopRequested === true;
 }
 
 export function requestLoopRunStop(
@@ -172,35 +143,21 @@ export function requestLoopRunStop(
   }
 
   const coord = readCoordinatorState(projectRoot);
-  if (coord) {
-    writeCoordinatorState(projectRoot, { ...coord, stopRequested: true });
-    if (!isPidAlive(coord.pid)) {
-      clearCoordinatorState(projectRoot);
-      clearAllWorkerRunStates(projectRoot);
-      return { ok: true, message: "外循环进程已结束，已清理状态" };
-    }
-    return {
-      ok: true,
-      pid: coord.pid,
-      message: "已发送停止请求，当前轮结束后退出",
-    };
-  }
-
-  const state = readLoopRunState(projectRoot);
-  if (!state) {
+  if (!coord) {
     return { ok: false, message: "外循环未在运行" };
   }
 
-  writeLoopRunState(projectRoot, { ...state, stopRequested: true });
+  writeCoordinatorState(projectRoot, { ...coord, stopRequested: true });
 
-  if (!isPidAlive(state.pid)) {
-    clearLoopRunState(projectRoot);
+  if (!isPidAlive(coord.pid)) {
+    clearCoordinatorState(projectRoot);
+    clearAllWorkerRunStates(projectRoot);
     return { ok: true, message: "外循环进程已结束，已清理状态" };
   }
 
   return {
     ok: true,
-    pid: state.pid,
+    pid: coord.pid,
     message: "已发送停止请求，当前轮结束后退出",
   };
 }
@@ -213,32 +170,7 @@ export function getLoopRunStatus(projectRoot: string): {
   workers: LoopRunState[];
 } {
   const coordinator = readCoordinatorState(projectRoot);
-  if (coordinator) {
-    if (!isPidAlive(coordinator.pid)) {
-      clearCoordinatorState(projectRoot);
-      clearAllWorkerRunStates(projectRoot);
-      return {
-        running: false,
-        stopRequested: false,
-        state: null,
-        coordinator: null,
-        workers: [],
-      };
-    }
-    const workers = coordinator.workerIds
-      .map((id) => readWorkerRunState(projectRoot, id))
-      .filter((s): s is LoopRunState => s != null);
-    return {
-      running: true,
-      stopRequested: coordinator.stopRequested === true,
-      state: workers[0] ?? null,
-      coordinator,
-      workers,
-    };
-  }
-
-  const state = readLoopRunState(projectRoot);
-  if (!state) {
+  if (!coordinator) {
     return {
       running: false,
       stopRequested: false,
@@ -248,8 +180,9 @@ export function getLoopRunStatus(projectRoot: string): {
     };
   }
 
-  if (!isPidAlive(state.pid)) {
-    clearLoopRunState(projectRoot);
+  if (!isPidAlive(coordinator.pid)) {
+    clearCoordinatorState(projectRoot);
+    clearAllWorkerRunStates(projectRoot);
     return {
       running: false,
       stopRequested: false,
@@ -258,12 +191,16 @@ export function getLoopRunStatus(projectRoot: string): {
       workers: [],
     };
   }
+
+  const workers = coordinator.workerIds
+    .map((id) => readWorkerRunState(projectRoot, id))
+    .filter((s): s is LoopRunState => s != null);
 
   return {
     running: true,
-    stopRequested: state.stopRequested === true,
-    state,
-    coordinator: null,
-    workers: [state],
+    stopRequested: coordinator.stopRequested === true,
+    state: workers[0] ?? null,
+    coordinator,
+    workers,
   };
 }

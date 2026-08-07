@@ -118,11 +118,7 @@ export function getDashboardStateFile(projectRoot: string): string {
   return join(getStatusDir(projectRoot), "dashboard.json");
 }
 
-export function getLoopRunStateFile(projectRoot: string): string {
-  return join(getStatusDir(projectRoot), "run.json");
-}
-
-export function getLoopCoordinatorStateFile(projectRoot: string): string {
+export function getCoordinatorStateFile(projectRoot: string): string {
   return join(getStatusDir(projectRoot), "run-coordinator.json");
 }
 

@@ -13,12 +13,9 @@ import { getProjectName } from "./get-project-name.js";
 import { getLastBranchFile, getRunArchiveDir, getRunsFile, getStateDir } from "./paths.js";
 import {
   clearCoordinatorState,
-  clearLoopRunState,
   clearAllWorkerRunStates,
   isLoopRunStopRequested,
-  readLoopRunState,
   writeCoordinatorState,
-  writeLoopRunState,
   writeWorkerRunState,
   clearWorkerRunState,
 } from "./run-process.js";
@@ -28,13 +25,6 @@ import {
   initRunLive,
   patchRunLivePhase,
 } from "./run-live.js";
-
-function clearLoopRunCurrentStory(projectRoot: string): void {
-  const runState = readLoopRunState(projectRoot);
-  if (runState?.currentStoryId) {
-    writeLoopRunState(projectRoot, { ...runState, currentStoryId: null });
-  }
-}
 import { invokeClaudeProcess, invokeCodebuddyProcess } from "./claude-invoke.js";
 import { invokeOpencodeProcess } from "./opencode-invoke.js";
 import {
@@ -748,171 +738,6 @@ async function runParallelLoop(
   }
 }
 
-async function runSequentialLoop(
-  db: LoopStateDb,
-  projectRoot: string,
-  options: {
-    untilStop: boolean;
-    maxIterations: number | null;
-    sleepMs: number;
-    tool: RunTool;
-    projectName: string;
-    promptPath: string;
-  }
-): Promise<LoopRunResult> {
-  const { untilStop, maxIterations, sleepMs, tool, projectName, promptPath } =
-    options;
-
-  writeLoopRunState(projectRoot, {
-    pid: process.pid,
-    tool,
-    startedAt: new Date().toISOString(),
-    mode: untilStop ? "until-stop" : "limited",
-    maxIterations: maxIterations ?? undefined,
-    stopRequested: false,
-  });
-
-  const finish = (result: LoopRunResult): LoopRunResult => {
-    waitStatusLine.clear();
-    releaseAllClaims(db, projectName);
-    patchRunLivePhase(projectRoot, "done");
-    clearLoopRunState(projectRoot);
-    return result;
-  };
-
-  console.error(
-    untilStop
-      ? `Loop 外循环启动 — 工具: ${tool} — 持续运行（loop run stop 结束）`
-      : `Loop 外循环启动 — 工具: ${tool} — 最多 ${maxIterations} 轮`
-  );
-  console.error(`提示词: ${promptPath}`);
-  console.error(`项目: ${projectName} @ ${projectRoot}`);
-
-  try {
-    for (let i = 1; ; i++) {
-      if (isLoopRunStopRequested(projectRoot)) {
-        const active = db.getActiveRun(projectName);
-        if (active?.id != null) {
-          db.endRun(active.id, "completed", "stopped by user");
-        }
-        console.error("");
-        console.error(`Loop 已停止（用户请求，共 ${i - 1} 轮）`);
-        return finish({
-          completed: false,
-          iterations: Math.max(0, i - 1),
-          maxIterations,
-          untilStop,
-          tool,
-          workers: 1,
-          reason: "用户请求停止",
-        });
-      }
-
-      if (!untilStop && db.getStatus(projectName).isComplete) {
-        return finish({
-          completed: true,
-          iterations: i - 1,
-          maxIterations,
-          untilStop,
-          tool,
-          workers: 1,
-          reason: "所有 Story 已完成",
-        });
-      }
-
-      if (!untilStop && maxIterations != null && i > maxIterations) {
-        break;
-      }
-
-      const currentStory = db.getNextStory(projectName);
-      if (!currentStory) {
-        clearLoopRunCurrentStory(projectRoot);
-        waitStatusLine.write(
-          db.getStatus(projectName).isComplete
-            ? "所有 Story 已完成，继续监听…"
-            : "无可执行 Story，等待…"
-        );
-        await sleep(sleepMs);
-        continue;
-      }
-
-      waitStatusLine.clear();
-      const iterLabel = untilStop ? `${i} (∞)` : `${i} / ${maxIterations}`;
-      console.error("");
-      console.error("===============================================================");
-      console.error(` Loop 迭代 ${iterLabel} (${tool})`);
-      console.error("===============================================================");
-
-      const result = await runWorkerIteration(db, projectRoot, projectName, {
-        workerId: "w0",
-        story: currentStory,
-        iteration: i,
-        tool,
-        promptPath,
-        baseBranch: db.getProjectMeta(projectName).branchName,
-        useWorktree: false,
-      });
-
-      const runState = readLoopRunState(projectRoot);
-      if (runState) {
-        writeLoopRunState(projectRoot, {
-          ...runState,
-          iteration: i,
-          currentStoryId: currentStory.id,
-        });
-      }
-
-      if (result.completed) {
-        if (!untilStop) {
-          console.error("");
-          console.error(`Loop 完成！（第 ${i} 轮）`);
-          return finish({
-            completed: true,
-            iterations: i,
-            maxIterations,
-            untilStop,
-            tool,
-            workers: 1,
-            reason: "agent 返回 COMPLETE 或全部 Story 已完成",
-          });
-        }
-        waitStatusLine.write("所有 Story 已完成，继续监听…");
-        clearLoopRunCurrentStory(projectRoot);
-        await sleep(sleepMs);
-        continue;
-      }
-
-      waitStatusLine.clear();
-      console.error(`第 ${i} 轮结束，继续下一轮…`);
-      clearLoopRunCurrentStory(projectRoot);
-      await sleep(sleepMs);
-    }
-
-    const active = db.getActiveRun(projectName);
-    if (active?.id != null) {
-      db.endRun(
-        active.id,
-        "max_iterations",
-        `已达最大迭代次数 (${maxIterations})`
-      );
-    }
-
-    return finish({
-      completed: false,
-      iterations: maxIterations ?? 0,
-      maxIterations,
-      untilStop,
-      tool,
-      workers: 1,
-      reason: `已达最大迭代次数 (${maxIterations})`,
-    });
-  } catch (err) {
-    patchRunLivePhase(projectRoot, "done");
-    clearLoopRunState(projectRoot);
-    throw err;
-  }
-}
-
 export async function runLoop(
   db: LoopStateDb,
   projectRoot: string,
@@ -955,8 +780,5 @@ export async function runLoop(
     promptPath,
   };
 
-  if (workers > 1) {
-    return runParallelLoop(db, projectRoot, { ...common, workers });
-  }
-  return runSequentialLoop(db, projectRoot, common);
+  return runParallelLoop(db, projectRoot, { ...common, workers });
 }

@@ -1,9 +1,5 @@
 import { resolveDistEntry, spawnDetachedNodeProcess } from "./runtime-entry.js";
-import {
-  getLoopRunStatus,
-  isPidAlive,
-  readLoopRunState,
-} from "./run-process.js";
+import { getLoopRunStatus } from "./run-process.js";
 
 export type StartLoopRunOptions = {
   tool?: string;
@@ -25,10 +21,6 @@ async function waitForLoopRunStart(
     const status = getLoopRunStatus(projectRoot);
     if (status.running) return status;
     await sleep(120);
-  }
-  const state = readLoopRunState(projectRoot);
-  if (state && isPidAlive(state.pid)) {
-    return getLoopRunStatus(projectRoot);
   }
   return getLoopRunStatus(projectRoot);
 }

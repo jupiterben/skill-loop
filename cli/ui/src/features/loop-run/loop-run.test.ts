@@ -18,18 +18,16 @@ import {
   runLoop,
 } from "../../../../src/loop-run.js";
 import {
-  getLoopRunStateFile,
+  getCoordinatorStateFile,
   getRunsFile,
 } from "../../../../src/paths.js";
 import {
   clearAllWorkerRunStates,
   clearCoordinatorState,
-  clearLoopRunState,
   getLoopRunStatus,
-  readLoopRunState,
+  readCoordinatorState,
   requestLoopRunStop,
   writeCoordinatorState,
-  writeLoopRunState,
   writeWorkerRunState,
 } from "../../../../src/run-process.js";
 
@@ -231,9 +229,19 @@ describe("有限轮外循环执行", () => {
     expect(saved?.message).toBe("iteration finished");
   });
 
-  it("writeLoopRunState 持久化有限轮 run.json（含 maxIterations）", () => {
+  it("writeCoordinatorState 持久化协调器状态（含 maxIterations）", () => {
     const root = createProjectRoot();
-    writeLoopRunState(root, {
+    writeCoordinatorState(root, {
+      pid: process.pid,
+      tool: "agent",
+      startedAt: "2026-07-09T07:00:00.000Z",
+      mode: "limited",
+      maxIterations: 10,
+      stopRequested: false,
+      workers: 1,
+      workerIds: ["w0"],
+    });
+    writeWorkerRunState(root, "w0", {
       pid: process.pid,
       tool: "agent",
       startedAt: "2026-07-09T07:00:00.000Z",
@@ -242,34 +250,47 @@ describe("有限轮外循环执行", () => {
       stopRequested: false,
       iteration: 1,
       currentStoryId: "US-001",
+      workerId: "w0",
     });
 
-    const state = readLoopRunState(root);
-    expect(state?.mode).toBe("limited");
-    expect(state?.maxIterations).toBe(10);
-    expect(state?.currentStoryId).toBe("US-001");
-    expect(readFileSync(getLoopRunStateFile(root), "utf8")).toContain(
+    const coord = readCoordinatorState(root);
+    expect(coord?.mode).toBe("limited");
+    expect(coord?.maxIterations).toBe(10);
+    expect(readFileSync(getCoordinatorStateFile(root), "utf8")).toContain(
       '"maxIterations": 10'
     );
   });
 
   it("getLoopRunStatus 检测到存活进程时返回 running", () => {
     const root = createProjectRoot();
-    writeLoopRunState(root, {
+    writeCoordinatorState(root, {
       pid: process.pid,
       tool: "agent",
       startedAt: "2026-07-09T07:00:00.000Z",
       mode: "limited",
       maxIterations: 5,
       stopRequested: false,
+      workers: 1,
+      workerIds: ["w0"],
+    });
+    writeWorkerRunState(root, "w0", {
+      pid: process.pid,
+      tool: "agent",
+      startedAt: "2026-07-09T07:00:00.000Z",
+      mode: "limited",
+      maxIterations: 5,
+      stopRequested: false,
+      workerId: "w0",
     });
 
     const status = getLoopRunStatus(root);
     expect(status.running).toBe(true);
-    expect(status.state?.tool).toBe("agent");
-    expect(status.state?.maxIterations).toBe(5);
+    expect(status.coordinator?.tool).toBe("agent");
+    expect(status.coordinator?.maxIterations).toBe(5);
+    expect(status.workers).toHaveLength(1);
 
-    clearLoopRunState(root);
+    clearCoordinatorState(root);
+    clearAllWorkerRunStates(root);
     expect(getLoopRunStatus(root).running).toBe(false);
   });
 
@@ -333,13 +354,23 @@ describe("持续监听与优雅停止", () => {
 
   it("requestLoopRunStop 为 until-stop 外循环设置 stopRequested", () => {
     const root = createProjectRoot();
-    writeLoopRunState(root, {
+    writeCoordinatorState(root, {
+      pid: process.pid,
+      tool: "agent",
+      startedAt: "2026-07-09T08:00:00.000Z",
+      mode: "until-stop",
+      stopRequested: false,
+      workers: 1,
+      workerIds: ["w0"],
+    });
+    writeWorkerRunState(root, "w0", {
       pid: process.pid,
       tool: "agent",
       startedAt: "2026-07-09T08:00:00.000Z",
       mode: "until-stop",
       stopRequested: false,
       iteration: 3,
+      workerId: "w0",
     });
 
     const result = requestLoopRunStop(root);
@@ -348,10 +379,11 @@ describe("持续监听与优雅停止", () => {
     const status = getLoopRunStatus(root);
     expect(status.running).toBe(true);
     expect(status.stopRequested).toBe(true);
-    expect(status.state?.mode).toBe("until-stop");
-    expect(status.state?.iteration).toBe(3);
+    expect(status.coordinator?.mode).toBe("until-stop");
+    expect(status.workers[0]?.iteration).toBe(3);
 
-    clearLoopRunState(root);
+    clearCoordinatorState(root);
+    clearAllWorkerRunStates(root);
   });
 
   it("requestLoopRunStop --worker 仅标记指定 worker，协调器 stop 停止整轮外循环", () => {
@@ -421,7 +453,7 @@ describe("持续监听与优雅停止", () => {
     await new Promise((r) => setTimeout(r, 100));
     const status = getLoopRunStatus(root);
     expect(status.running).toBe(true);
-    expect(status.state?.mode).toBe("until-stop");
+    expect(status.coordinator?.mode).toBe("until-stop");
 
     requestLoopRunStop(root);
     const result = await loopPromise;

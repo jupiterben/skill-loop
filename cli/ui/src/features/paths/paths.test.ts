@@ -10,8 +10,8 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
 import {
+  getCoordinatorStateFile,
   getDashboardStateFile,
-  getLoopRunStateFile,
   getRunsFile,
   getStatusDir,
   getWorkerRunStateFile,
@@ -37,7 +37,9 @@ describe("paths", () => {
     const root = createProjectRoot();
     expect(getStatusDir(root)).toBe(join(root, ".loop-status"));
     expect(getRunsFile(root)).toBe(join(root, ".loop-status", "runs.json"));
-    expect(getLoopRunStateFile(root)).toBe(join(root, ".loop-status", "run.json"));
+    expect(getCoordinatorStateFile(root)).toBe(
+      join(root, ".loop-status", "run-coordinator.json")
+    );
     expect(getDashboardStateFile(root)).toBe(
       join(root, ".loop-status", "dashboard.json")
     );
@@ -48,7 +50,7 @@ describe("paths", () => {
 
   it("首次访问时从 loop-data 迁移遗留运行时文件", () => {
     const root = createProjectRoot();
-    const legacyRun = join(root, "loop-data", "run.json");
+    const legacyRun = join(root, "loop-data", "run-coordinator.json");
     writeFileSync(
       legacyRun,
       JSON.stringify({ pid: 1, tool: "agent" }, null, 2) + "\n",
@@ -58,6 +60,8 @@ describe("paths", () => {
     getStatusDir(root);
 
     expect(existsSync(legacyRun)).toBe(false);
-    expect(readFileSync(getLoopRunStateFile(root), "utf8")).toContain('"pid": 1');
+    expect(readFileSync(getCoordinatorStateFile(root), "utf8")).toContain(
+      '"pid": 1'
+    );
   });
 });
