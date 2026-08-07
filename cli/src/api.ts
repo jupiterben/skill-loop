@@ -1,11 +1,20 @@
 import type { IncomingMessage, ServerResponse } from "node:http";
 import type { LoopStateDb } from "./db.js";
+import {
+  patchString,
+  pickBoolean,
+  pickEnum,
+  pickInteger,
+  pickNullableString,
+  pickNumber,
+  pickOptionalEnum,
+  pickOptionalString,
+  pickString,
+  pickStringArray,
+} from "./api-helpers.js";
 import { getProjectName } from "./get-project-name.js";
 import { finishRunLiveForStory } from "./run-live.js";
-import {
-  isStoryWorkType,
-  parseRequiredStoryWorkType,
-} from "./story-work-type.js";
+import { parseRequiredStoryWorkType } from "./story-work-type.js";
 
 function json(res: ServerResponse, data: unknown, status = 200): void {
   res.writeHead(status, {
@@ -27,6 +36,12 @@ function resolveProjectName(db: LoopStateDb): string {
   return getProjectName(db, process.env.LOOP_PROJECT_NAME?.trim());
 }
 
+function requireId(body: Record<string, unknown>, key: string): string {
+  const value = pickString(body, key, "").trim();
+  if (!value) throw new Error(`${key} 必填`);
+  return value;
+}
+
 export async function handleApiMutation(
   req: IncomingMessage,
   res: ServerResponse,
@@ -43,115 +58,71 @@ export async function handleApiMutation(
     const body = await readJsonBody(req);
 
     if (req.method === "POST" && pathname === "/api/milestones") {
-      const title = String(body.title ?? "").trim();
+      const title = pickString(body, "title", "").trim();
       if (!title) throw new Error("title 必填");
       const milestone = db.addMilestone(projectName, {
         title,
-        description: String(body.description ?? ""),
-        targetDate:
-          body.targetDate !== undefined ? String(body.targetDate) : undefined,
-        version: body.version !== undefined ? String(body.version) : undefined,
+        description: pickString(body, "description", ""),
+        targetDate: pickOptionalString(body, "targetDate"),
+        version: pickOptionalString(body, "version"),
       });
       json(res, { ok: true, milestone });
       return true;
     }
 
-    if (req.method === "PATCH" && pathname === "/api/milestones") {
-      const id = String(body.id ?? "");
-      if (!id) throw new Error("id 必填");
+    if (
+      (req.method === "PATCH" && pathname === "/api/milestones") ||
+      (req.method === "POST" && pathname === "/api/milestones/update")
+    ) {
+      const id = requireId(body, "id");
       const patch: {
         title?: string;
         description?: string;
         targetDate?: string;
         version?: string;
       } = {};
-      if (body.title !== undefined) {
-        patch.title = String(body.title).trim();
-      }
-      if (body.description !== undefined) {
-        patch.description = String(body.description);
-      }
-      if (body.targetDate !== undefined) {
-        patch.targetDate = String(body.targetDate);
-      }
-      if (body.version !== undefined) {
-        patch.version = String(body.version);
-      }
-      const milestone = db.updateMilestone(projectName, id, patch);
-      json(res, { ok: true, milestone });
-      return true;
-    }
-
-    if (req.method === "POST" && pathname === "/api/milestones/update") {
-      const id = String(body.id ?? "");
-      if (!id) throw new Error("id 必填");
-      const patch: {
-        title?: string;
-        description?: string;
-        targetDate?: string;
-        version?: string;
-      } = {};
-      if (body.title !== undefined) {
-        patch.title = String(body.title).trim();
-      }
-      if (body.description !== undefined) {
-        patch.description = String(body.description);
-      }
-      if (body.targetDate !== undefined) {
-        patch.targetDate = String(body.targetDate);
-      }
-      if (body.version !== undefined) {
-        patch.version = String(body.version);
-      }
+      patchString(patch, body, "title", true);
+      patchString(patch, body, "description");
+      patchString(patch, body, "targetDate");
+      patchString(patch, body, "version");
       const milestone = db.updateMilestone(projectName, id, patch);
       json(res, { ok: true, milestone });
       return true;
     }
 
     if (req.method === "POST" && pathname === "/api/features") {
-      const title = String(body.title ?? "").trim();
+      const title = pickString(body, "title", "").trim();
       if (!title) throw new Error("title 必填");
       const feature = db.addFeature(projectName, {
         title,
-        description: String(body.description ?? ""),
-        parentId: (body.parentId as string) ?? null,
+        description: pickString(body, "description", ""),
+        parentId: pickNullableString(body, "parentId"),
       });
       json(res, { ok: true, feature });
       return true;
     }
 
     if (req.method === "POST" && pathname === "/api/features/update") {
-      const id = String(body.id ?? "");
-      if (!id) throw new Error("id 必填");
+      const id = requireId(body, "id");
       const patch: { title?: string; description?: string } = {};
-      if (body.title !== undefined) patch.title = String(body.title);
-      if (body.description !== undefined) {
-        patch.description = String(body.description);
-      }
+      patchString(patch, body, "title");
+      patchString(patch, body, "description");
       const feature = db.updateFeature(projectName, id, patch);
       json(res, { ok: true, feature });
       return true;
     }
 
     if (req.method === "POST" && pathname === "/api/features/delete") {
-      const id = String(body.id ?? "");
-      if (!id) throw new Error("id 必填");
+      const id = requireId(body, "id");
       const deletedIds = db.deleteFeature(projectName, id);
       json(res, { ok: true, deletedIds });
       return true;
     }
 
     if (req.method === "POST" && pathname === "/api/mindmap/reorder") {
-      const id = String(body.id ?? "");
-      const kind = String(body.kind ?? "");
-      const direction = String(body.direction ?? "");
-      if (!id) throw new Error("id 必填");
-      if (kind !== "feature" && kind !== "story") {
-        throw new Error("kind 必须为 feature 或 story");
-      }
-      if (direction !== "up" && direction !== "down") {
-        throw new Error("direction 必须为 up 或 down");
-      }
+      const id = requireId(body, "id");
+      const kind = pickEnum(body, "kind", ["feature", "story"] as const);
+      const direction = pickEnum(body, "direction", ["up", "down"] as const);
       if (kind === "feature") {
         const feature = db.reorderFeature(projectName, id, direction);
         json(res, { ok: true, feature });
@@ -163,39 +134,30 @@ export async function handleApiMutation(
     }
 
     if (req.method === "POST" && pathname === "/api/mindmap/move") {
-      const id = String(body.id ?? "");
-      const kind = String(body.kind ?? "");
-      if (!id) throw new Error("id 必填");
-      if (kind !== "feature" && kind !== "story") {
-        throw new Error("kind 必须为 feature 或 story");
-      }
-      const rawParent = body.parentId;
-      const parentId =
-        rawParent === null || rawParent === undefined || rawParent === ""
-          ? null
-          : String(rawParent);
+      const id = requireId(body, "id");
+      const kind = pickEnum(body, "kind", ["feature", "story"] as const);
+      const parentId = pickNullableString(body, "parentId");
       const result = db.moveMindMapItem(projectName, { id, kind, parentId });
       json(res, { ok: true, ...(kind === "feature" ? { feature: result } : { story: result }) });
       return true;
     }
 
     if (req.method === "POST" && pathname === "/api/stories") {
-      const title = String(body.title ?? "").trim();
+      const title = pickString(body, "title", "").trim();
       if (!title) throw new Error("title 必填");
       const workType = parseRequiredStoryWorkType(body.workType);
       const story = db.addStory(projectName, {
         title,
-        description: String(body.description ?? `作为用户，我需要：${title}`),
+        description: pickString(body, "description", `作为用户，我需要：${title}`),
         workType,
-        milestoneId: (body.milestoneId as string) ?? null,
-        parentId: (body.parentId as string) ?? null,
-        dependsOn: Array.isArray(body.dependsOn)
-          ? (body.dependsOn as string[])
-          : [],
-        acceptanceCriteria: Array.isArray(body.acceptanceCriteria)
-          ? (body.acceptanceCriteria as string[])
-          : ["实现功能", "npm test 通过"],
-        priority: Number(body.priority ?? 0),
+        milestoneId: pickNullableString(body, "milestoneId"),
+        parentId: pickNullableString(body, "parentId"),
+        dependsOn: pickStringArray(body, "dependsOn"),
+        acceptanceCriteria: pickStringArray(body, "acceptanceCriteria", [
+          "实现功能",
+          "npm test 通过",
+        ]),
+        priority: pickInteger(body, "priority", 0),
         notes: "",
       });
       json(res, { ok: true, story });
@@ -203,136 +165,117 @@ export async function handleApiMutation(
     }
 
     if (req.method === "POST" && pathname === "/api/stories/confirm") {
-      const storyId = String(body.storyId ?? "");
-      if (!storyId) throw new Error("storyId 必填");
+      const storyId = requireId(body, "storyId");
       const story = db.confirmStory(projectName, storyId);
       json(res, { ok: true, story });
       return true;
     }
 
     if (req.method === "POST" && pathname === "/api/stories/unconfirm") {
-      const storyId = String(body.storyId ?? "");
-      if (!storyId) throw new Error("storyId 必填");
+      const storyId = requireId(body, "storyId");
       const story = db.unconfirmStory(projectName, storyId);
       json(res, { ok: true, story });
       return true;
     }
 
     if (req.method === "POST" && pathname === "/api/stories/delete") {
-      const storyId = String(body.storyId ?? "");
-      if (!storyId) throw new Error("storyId 必填");
+      const storyId = requireId(body, "storyId");
       db.deleteStory(projectName, storyId);
       json(res, { ok: true });
       return true;
     }
 
     if (req.method === "POST" && pathname === "/api/stories/request-removal") {
-      const storyId = String(body.storyId ?? "");
-      if (!storyId) throw new Error("storyId 必填");
-      const reason =
-        body.reason !== undefined ? String(body.reason) : undefined;
-      const result = db.requestStoryRemoval(projectName, storyId, reason);
+      const storyId = requireId(body, "storyId");
+      const result = db.requestStoryRemoval(
+        projectName,
+        storyId,
+        pickOptionalString(body, "reason")
+      );
       json(res, { ok: true, ...result });
       return true;
     }
 
     if (req.method === "POST" && pathname === "/api/stories/cancel-removal") {
-      const storyId = String(body.storyId ?? "");
-      if (!storyId) throw new Error("storyId 必填");
+      const storyId = requireId(body, "storyId");
       const result = db.cancelStoryRemoval(projectName, storyId);
       json(res, { ok: true, ...result });
       return true;
     }
 
     if (req.method === "POST" && pathname === "/api/stories/archive") {
-      const storyId = String(body.storyId ?? "");
-      if (!storyId) throw new Error("storyId 必填");
-      const reason =
-        body.reason !== undefined ? String(body.reason) : undefined;
-      const result = db.archiveStory(projectName, storyId, reason);
+      const storyId = requireId(body, "storyId");
+      const result = db.archiveStory(
+        projectName,
+        storyId,
+        pickOptionalString(body, "reason")
+      );
       json(res, { ok: true, ...result });
       return true;
     }
 
     if (req.method === "POST" && pathname === "/api/stories/restore") {
-      const storyId = String(body.storyId ?? "");
-      if (!storyId) throw new Error("storyId 必填");
+      const storyId = requireId(body, "storyId");
       const result = db.restoreStory(projectName, storyId);
       json(res, { ok: true, ...result });
       return true;
     }
 
     if (req.method === "POST" && pathname === "/api/stories/purge") {
-      const storyId = String(body.storyId ?? "");
-      if (!storyId) throw new Error("storyId 必填");
+      const storyId = requireId(body, "storyId");
       db.purgeStory(projectName, storyId);
       json(res, { ok: true });
       return true;
     }
 
     if (req.method === "POST" && pathname === "/api/dependencies") {
-      const from = String(body.from ?? "");
-      const to = String(body.to ?? "");
-      if (!from || !to) throw new Error("from 与 to 必填");
+      const from = requireId(body, "from");
+      const to = requireId(body, "to");
       const story = db.addStoryDependency(projectName, from, to);
       json(res, { ok: true, story });
       return true;
     }
 
     if (req.method === "DELETE" && pathname === "/api/dependencies") {
-      const from = String(body.from ?? "");
-      const to = String(body.to ?? "");
-      if (!from || !to) throw new Error("from 与 to 必填");
+      const from = requireId(body, "from");
+      const to = requireId(body, "to");
       const story = db.removeStoryDependency(projectName, from, to);
       json(res, { ok: true, story });
       return true;
     }
 
     if (req.method === "POST" && pathname === "/api/stories/milestone") {
-      const storyId = String(body.storyId ?? "");
-      if (!storyId) throw new Error("storyId 必填");
-      const raw = body.milestoneId;
-      const milestoneId =
-        raw === null || raw === undefined || raw === ""
-          ? null
-          : String(raw);
-      const story = db.setStoryMilestone(projectName, storyId, milestoneId);
+      const storyId = requireId(body, "storyId");
+      const story = db.setStoryMilestone(
+        projectName,
+        storyId,
+        pickNullableString(body, "milestoneId")
+      );
       json(res, { ok: true, story });
       return true;
     }
 
     if (req.method === "POST" && pathname === "/api/stories/priority") {
-      const storyId = String(body.storyId ?? "");
-      if (!storyId) throw new Error("storyId 必填");
-      const priority = Number(body.priority);
-      if (!Number.isInteger(priority) || priority < 0) {
-        throw new Error("priority 必须为非负整数");
-      }
+      const storyId = requireId(body, "storyId");
+      const priority = pickInteger(body, "priority");
       const story = db.setStoryPriority(projectName, storyId, priority);
       json(res, { ok: true, story });
       return true;
     }
 
     if (req.method === "POST" && pathname === "/api/stories/preferred-tool") {
-      const storyId = String(body.storyId ?? "");
-      if (!storyId) throw new Error("storyId 必填");
-      const raw = body.preferredTool;
-      const preferredTool =
-        raw === null || raw === undefined || raw === ""
-          ? null
-          : String(raw);
+      const storyId = requireId(body, "storyId");
       const story = db.setStoryPreferredTool(
         projectName,
         storyId,
-        preferredTool as import("./types.js").PreferredTool | null
+        pickNullableString(body, "preferredTool") as import("./types.js").PreferredTool | null
       );
       json(res, { ok: true, story });
       return true;
     }
 
     if (req.method === "POST" && pathname === "/api/stories/update") {
-      const storyId = String(body.storyId ?? "");
-      if (!storyId) throw new Error("storyId 必填");
+      const storyId = requireId(body, "storyId");
       const patch: {
         title?: string;
         description?: string;
@@ -341,56 +284,34 @@ export async function handleApiMutation(
         changeNote?: string;
         status?: "draft" | "ready";
       } = {};
-      if (body.title !== undefined) patch.title = String(body.title);
-      if (body.description !== undefined) {
-        patch.description = String(body.description);
-      }
-      if (body.workType !== undefined) {
-        const workType = String(body.workType);
-        if (!isStoryWorkType(workType)) {
-          throw new Error(
-            "workType 必须为 implementation、documentation、planning、testing 或 refactor"
-          );
-        }
-        patch.workType = workType;
-      }
+      patchString(patch, body, "title");
+      patchString(patch, body, "description");
+      const workType = pickOptionalEnum(body, "workType", [
+        "implementation",
+        "documentation",
+        "planning",
+        "testing",
+        "refactor",
+      ] as const);
+      if (workType !== undefined) patch.workType = workType;
       if (body.acceptanceCriteria !== undefined) {
-        if (!Array.isArray(body.acceptanceCriteria)) {
-          throw new Error("acceptanceCriteria 必须为字符串数组");
-        }
-        patch.acceptanceCriteria = (body.acceptanceCriteria as unknown[])
-          .map((item) => String(item).trim())
-          .filter(Boolean);
+        patch.acceptanceCriteria = pickStringArray(body, "acceptanceCriteria");
       }
-      if (body.changeNote !== undefined) {
-        patch.changeNote = String(body.changeNote);
-      }
-      if (body.status !== undefined) {
-        const status = String(body.status);
-        if (status !== "draft" && status !== "ready") {
-          throw new Error("status 必须为 draft 或 ready");
-        }
-        patch.status = status;
-      }
+      patchString(patch, body, "changeNote");
+      const status = pickOptionalEnum(body, "status", ["draft", "ready"] as const);
+      if (status !== undefined) patch.status = status;
       const result = db.updateStory(projectName, storyId, patch);
       json(res, { ok: true, ...result });
       return true;
     }
 
     if (req.method === "POST" && pathname === "/api/stories/complete") {
-      const storyId = String(body.storyId ?? "");
-      if (!storyId) throw new Error("storyId 必填");
-      const summary = String(body.summary ?? "");
-      const learnings = Array.isArray(body.learnings)
-        ? (body.learnings as string[])
-        : undefined;
+      const storyId = requireId(body, "storyId");
       const result = db.completeStoryWithProgress(projectName, storyId, {
-        summary,
-        learnings,
+        summary: pickString(body, "summary", ""),
+        learnings: body.learnings !== undefined ? pickStringArray(body, "learnings") : undefined,
         workerId:
-          body.workerId !== undefined
-            ? String(body.workerId)
-            : process.env.LOOP_WORKER_ID?.trim(),
+          pickOptionalString(body, "workerId") ?? process.env.LOOP_WORKER_ID?.trim(),
       });
       finishRunLiveForStory(projectRoot, storyId);
       json(res, { ok: true, ...result });
@@ -398,7 +319,7 @@ export async function handleApiMutation(
     }
 
     if (req.method === "POST" && pathname === "/api/patterns") {
-      const content = String(body.content ?? "").trim();
+      const content = pickString(body, "content", "").trim();
       if (!content) throw new Error("content 必填");
       db.addPattern(projectName, content);
       json(res, { ok: true, patterns: db.getPatterns(projectName) });
@@ -406,11 +327,8 @@ export async function handleApiMutation(
     }
 
     if (req.method === "POST" && pathname === "/api/patterns/update") {
-      const index = Number(body.index);
-      const content = String(body.content ?? "").trim();
-      if (!Number.isInteger(index) || index < 0) {
-        throw new Error("index 必须为非负整数");
-      }
+      const index = pickInteger(body, "index");
+      const content = pickString(body, "content", "").trim();
       if (!content) throw new Error("content 必填");
       db.updatePattern(projectName, index, content);
       json(res, { ok: true, patterns: db.getPatterns(projectName) });
@@ -418,28 +336,23 @@ export async function handleApiMutation(
     }
 
     if (req.method === "POST" && pathname === "/api/patterns/delete") {
-      const index = Number(body.index);
-      if (!Number.isInteger(index) || index < 0) {
-        throw new Error("index 必须为非负整数");
-      }
+      const index = pickInteger(body, "index");
       db.deletePattern(projectName, index);
       json(res, { ok: true, patterns: db.getPatterns(projectName) });
       return true;
     }
 
     if (req.method === "POST" && pathname === "/api/project-spec") {
-      const content = String(body.content ?? "");
-      const spec = db.updateProjectSpec(projectName, content);
+      const spec = db.updateProjectSpec(projectName, pickString(body, "content", ""));
       json(res, { ok: true, projectSpec: spec });
       return true;
     }
 
     if (req.method === "POST" && pathname === "/api/project-spec/template") {
-      const templateId = String(body.templateId ?? "").trim();
+      const templateId = pickString(body, "templateId", "").trim();
       if (!templateId) throw new Error("templateId 必填");
-      const append = body.append === true;
       const spec = db.applyProjectSpecTemplate(projectName, templateId, {
-        append,
+        append: pickBoolean(body, "append", false),
       });
       json(res, { ok: true, projectSpec: spec });
       return true;
@@ -451,15 +364,9 @@ export async function handleApiMutation(
         description?: string;
         vision?: string;
       } = {};
-      if (body.branchName !== undefined) {
-        patch.branchName = String(body.branchName);
-      }
-      if (body.description !== undefined) {
-        patch.description = String(body.description);
-      }
-      if (body.vision !== undefined) {
-        patch.vision = String(body.vision);
-      }
+      patchString(patch, body, "branchName");
+      patchString(patch, body, "description");
+      patchString(patch, body, "vision");
       if (!Object.keys(patch).length) {
         throw new Error("至少提供 branchName、description 或 vision");
       }
@@ -474,18 +381,12 @@ export async function handleApiMutation(
 
     if (req.method === "POST" && pathname === "/api/loop-run/start") {
       const { startLoopRunBackground } = await import("./loop-run-launcher.js");
-      const untilStop =
-        body.untilStop === undefined ? true : Boolean(body.untilStop);
-      const maxIterations =
-        body.maxIterations !== undefined
-          ? Number(body.maxIterations)
-          : undefined;
       const result = await startLoopRunBackground(projectRoot, {
-        tool: body.tool !== undefined ? String(body.tool) : undefined,
-        untilStop,
-        maxIterations,
-        workers:
-          body.workers !== undefined ? Number(body.workers) : undefined,
+        tool: pickOptionalString(body, "tool"),
+        untilStop: pickBoolean(body, "untilStop", true),
+        maxIterations:
+          body.maxIterations !== undefined ? pickNumber(body, "maxIterations") : undefined,
+        workers: body.workers !== undefined ? pickNumber(body, "workers") : undefined,
       });
       json(res, { ...result });
       return true;
@@ -493,9 +394,10 @@ export async function handleApiMutation(
 
     if (req.method === "POST" && pathname === "/api/loop-run/stop") {
       const { requestLoopRunStop } = await import("./run-process.js");
-      const workerId =
-        body.workerId !== undefined ? String(body.workerId) : undefined;
-      const result = requestLoopRunStop(projectRoot, workerId);
+      const result = requestLoopRunStop(
+        projectRoot,
+        pickOptionalString(body, "workerId")
+      );
       json(res, { ...result });
       return true;
     }
