@@ -29,7 +29,8 @@ export const PROJECT_SPEC_TEMPLATES: ProjectSpecTemplate[] = [
 - 不提交密钥、凭据或本地环境文件
 
 ## 测试
-- 新功能与 bug 修复需有对应测试（若项目已有测试体系）
+- 测纯逻辑 / 数据层 / CLI / 关键算法；不写 React 组件 UI 测试（渲染、样式、控件交互）
+- 新逻辑或 bug 修复触及可测行为时补 Vitest 回归；仅改 UI 样式则不必硬写测试
 - 提交前运行项目规定的 test / lint / typecheck
 
 ## 文档
@@ -40,7 +41,7 @@ export const PROJECT_SPEC_TEMPLATES: ProjectSpecTemplate[] = [
   {
     id: "typescript-react",
     title: "TypeScript / React",
-    description: "前端组件、类型安全与 Vitest 测试约定",
+    description: "前端组件、类型安全与 Vitest 测试约定（测逻辑不测 UI）",
     content: `# TypeScript / React 项目规范
 
 ## 技术栈
@@ -57,8 +58,11 @@ export const PROJECT_SPEC_TEMPLATES: ProjectSpecTemplate[] = [
 - API 错误统一抛出可读 message，UI 用 ErrorAlert 展示
 
 ## 测试
-- 纯逻辑用 Vitest 单元测试
-- 关键布局/算法（如脑图）需有回归测试
+- **测什么（Vitest）**：纯函数、db/CLI、状态聚合（resolve*）、权限/校验、关键布局与算法（脑图 layout、筛选、依赖环等）
+- **落点**：\`cli/ui/src/features/<feature>/*.test.ts\`
+- **不测什么**：React 组件渲染、Testing Library、Ant Design/Splitter/样式与拖拽、Dashboard E2E UI；用手测即可
+- **何时写**：触及上述可测行为时补回归；仅改 JSX/样式且无可抽离逻辑时不必写测试
+- **AC**：\`pnpm test 通过\` 指逻辑/CLI 回归，勿要求组件 UI 测试
 `,
   },
   {

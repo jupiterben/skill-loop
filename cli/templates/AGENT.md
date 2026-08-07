@@ -31,6 +31,7 @@
 - **不要**提交损坏的代码
 - 改动保持聚焦、最小化
 - 遵循既有代码模式
+- **测试**：补 Vitest 覆盖纯逻辑 / db / CLI / 关键算法；**不要**写 React 组件 UI 测试（渲染、Ant Design、样式交互）；细则见 `loop-data/project-spec.json`
 
 ## 按 Feature 隔离文件（减少并行冲突）
 

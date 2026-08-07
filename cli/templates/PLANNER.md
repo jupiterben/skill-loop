@@ -40,7 +40,7 @@ pnpm loop patterns    # 已有代码约定（拆分 Story 时参考）
 
 - Feature 用 `add-feature`，Story 挂在 `--parent-id FT-xxx` 下
 - Story 描述格式：`作为<角色>，我需要<能力>，以便<价值>`
-- 验收标准（AC）要**可测试**（如「npm test 通过」「API 返回 200」）
+- 验收标准（AC）要**可测试**（如「pnpm test 通过」「API 返回 200」）；`pnpm test` 指逻辑/CLI 回归，**不要**要求 React 组件 UI 测试
 - **缺陷 / Bug**：用 `pnpm loop bug US-xxx "描述"` 写入 AC 反例；Story 已完成时自动新建修复 Story
 - 有依赖时用 `--depends-on US-xxx`（被依赖的 Story 应先完成）
 - **新建 Story 默认 draft**，不自动 confirm

@@ -13,8 +13,8 @@
     "pnpm build 与 pnpm test 通过；Dashboard 行为不变"
   ],
   "priority": 3,
-  "passes": false,
-  "everCompleted": false,
+  "passes": true,
+  "everCompleted": true,
   "status": "ready",
   "notes": "",
   "sortOrder": 1,
@@ -22,5 +22,6 @@
   "archivedAt": null,
   "claimedBy": null,
   "claimedAt": null,
-  "workType": "refactor"
+  "workType": "refactor",
+  "preferredTool": null
 }

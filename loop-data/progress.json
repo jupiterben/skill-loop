@@ -1448,7 +1448,39 @@
         "新建 Story 用 parseRequiredStoryWorkType 统一 CLI/API/db 校验；历史缺字段仍走 normalizeStoryWorkType"
       ],
       "id": 189
+    },
+    {
+      "storyId": "US-052",
+      "entryDate": "2026-08-07",
+      "summary": "Story US-052 已完成",
+      "learnings": [],
+      "id": 190
+    },
+    {
+      "storyId": "US-052",
+      "entryDate": "2026-08-07",
+      "summary": "统一外循环状态为 coordinator + runs/<worker>.json：删除 run.json 单 worker 路径与 runSequentialLoop，workers=1 也走 runParallelLoop；paths 合并为 getCoordinatorStateFile；waitForLoopRunStart 不再回退 run.json；pnpm build 通过，215/216 测试通过（codex mock 超时为既有问题）",
+      "learnings": [
+        "外循环状态统一用 run-coordinator.json + runs/<workerId>.json，单 worker 也是协调器管 1 个 worker"
+      ],
+      "id": 191
+    },
+    {
+      "storyId": "US-054",
+      "entryDate": "2026-08-07",
+      "summary": "Story US-054 已完成",
+      "learnings": [],
+      "id": 192
+    },
+    {
+      "storyId": "US-054",
+      "entryDate": "2026-08-07",
+      "summary": "新增 api-helpers.ts（pickString/pickNumber/pickInteger/pickEnum/pickBoolean + patchString/pickNullableString 等），api.ts 全部路由改用 helper，合并 milestones PATCH/update 重复逻辑；pnpm build 通过，215/216 测试通过",
+      "learnings": [
+        "API body 解析用 cli/src/api-helpers.ts；PATCH 可选字段用 patchString/pickOptionalString，nullable id 用 pickNullableString"
+      ],
+      "id": 193
     }
   ],
-  "nextId": 190
+  "nextId": 194
 }
