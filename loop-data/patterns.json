@@ -38,6 +38,7 @@
     "顶栏项目概览：resolveAppToolbarView（features/app-toolbar）从 db.getStatus 聚合字段解析完成/待做/草稿/阻塞/进度与 activeRun 运行态；AppToolbar 消费 view 展示项目名/分支/统计胶囊；测试 features/app-toolbar/app-toolbar.test.ts",
     "运行中 Story 高亮：resolveRunningStoryIds（lib/runningStories）合并 activeRun/activeRuns/loopRunner/runLive；App.tsx→MindMapPanel runningStoryIds；脑图 mm-node--running/执行中 badge、结构树 project-tree-view__running；测试 features/running-story-highlight/running-story-highlight.test.ts",
     "脑图 Story 生命周期：StoryLifecycleActions（NodePropsPanel）+ deletable can* 权限；request-removal/archive/restore/purge 经 api.ts 调 HTTP；脑图 pending_removal kind + mm-node--pending_removal；归档 TrashList + archived 属性面板；测试 features/story-lifecycle/story-lifecycle.test.ts",
-    "Dashboard 外循环启停：features/loop-run-control/LoopRunControl 调用 api.startLoopRun/stopLoopRun；buildStartLoopRunPayload 对齐 CLI --tool/--workers/--until-stop；启停后 App refresh 联动 AgentLivePanel/RunsPanel/WorkspaceStatusBar"
+    "Dashboard 外循环启停：features/loop-run-control/LoopRunControl 调用 api.startLoopRun/stopLoopRun；buildStartLoopRunPayload 对齐 CLI --tool/--workers/--until-stop；启停后 App refresh 联动 AgentLivePanel/RunsPanel/WorkspaceStatusBar",
+    "新建 Story 时 workType 必填：parseRequiredStoryWorkType 统一 CLI add-story、POST /api/stories、db.addStory 校验；Dashboard 新建弹窗 Select 默认 implementation；历史缺字段仍用 normalizeStoryWorkType 推断"
   ]
 }

@@ -14,15 +14,15 @@
     "pnpm build 与 pnpm test 通过"
   ],
   "priority": 2,
-  "passes": false,
-  "everCompleted": false,
+  "passes": true,
+  "everCompleted": true,
   "status": "ready",
   "notes": "",
   "sortOrder": 1,
   "removalRequestedAt": null,
   "archivedAt": null,
-  "claimedBy": "w0",
-  "claimedAt": "2026-08-06T17:55:07.912Z",
+  "claimedBy": null,
+  "claimedAt": null,
   "workType": "refactor",
   "preferredTool": null
 }

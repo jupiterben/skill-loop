@@ -1432,7 +1432,23 @@
         "loop help（cli.ts printHelp）是命令表的权威来源；文档命令表应以 printHelp 为准，删除别名时同步清理文档。"
       ],
       "id": 187
+    },
+    {
+      "storyId": "US-051",
+      "entryDate": "2026-08-07",
+      "summary": "Story US-051 已完成",
+      "learnings": [],
+      "id": 188
+    },
+    {
+      "storyId": "US-051",
+      "entryDate": "2026-08-07",
+      "summary": "workType 创建入口强制显式传入：parseRequiredStoryWorkType + CLI/API/db 校验；Dashboard 新建 Story 弹窗增加类型 Select；normalizeStoryWorkType 仍用于历史数据读取；pnpm build 通过，216 测试中 215 通过（codex mock 超时为既有环境问题）",
+      "learnings": [
+        "新建 Story 用 parseRequiredStoryWorkType 统一 CLI/API/db 校验；历史缺字段仍走 normalizeStoryWorkType"
+      ],
+      "id": 189
     }
   ],
-  "nextId": 188
+  "nextId": 190
 }
