@@ -17,8 +17,7 @@ describe("Story preferredTool", () => {
     const db = new LoopStateDb(root);
     db.upsertProject({ name: "demo", branchName: "main", description: "" });
     const feature = db.addFeature("demo", { title: "F1", description: "" });
-    const story = db.addStory("demo", {
-      parentId: feature.id,
+    const story = db.addStory("demo", {workType: "implementation", parentId: feature.id,
       title: "S1",
       description: "",
       acceptanceCriteria: ["AC"],

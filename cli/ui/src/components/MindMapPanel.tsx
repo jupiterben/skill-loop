@@ -18,6 +18,7 @@ import "@xyflow/react/dist/style.css";
 import {
   Button,
   Input,
+  Select,
   Space,
   Splitter,
   Typography,
@@ -85,6 +86,11 @@ import {
   reparentItemKind,
   resolveDropTargetId,
 } from "../lib/mindmapReparent";
+import {
+  DEFAULT_STORY_WORK_TYPE,
+  STORY_WORK_TYPE_OPTIONS,
+  type StoryWorkType,
+} from "../features/story-work-type/storyWorkType";
 
 const nodeTypes: NodeTypes = { mindmap: MindMapNode };
 const { Text } = Typography;
@@ -160,6 +166,8 @@ export function MindMapPanel({
     () => formatAcceptanceCriteria(DEFAULT_ACCEPTANCE_CRITERIA)
   );
   const [createMilestoneId, setCreateMilestoneId] = useState("");
+  const [createWorkType, setCreateWorkType] =
+    useState<StoryWorkType>(DEFAULT_STORY_WORK_TYPE);
   const [milestoneFilter, setMilestoneFilter] = useState<string | null>(null);
   const [collapsedIds, setCollapsedIds] = useState<Set<string>>(() => new Set());
   const [nodeHeights, setNodeHeights] = useState<Record<string, number>>({});
@@ -318,6 +326,7 @@ export function MindMapPanel({
           ? milestoneFilter
           : "";
       setCreateMilestoneId(defaultMilestoneId);
+      setCreateWorkType(DEFAULT_STORY_WORK_TYPE);
       setCreateModal({ type, parentId });
     },
     [milestoneFilter]
@@ -331,6 +340,7 @@ export function MindMapPanel({
       formatAcceptanceCriteria(DEFAULT_ACCEPTANCE_CRITERIA)
     );
     setCreateMilestoneId("");
+    setCreateWorkType(DEFAULT_STORY_WORK_TYPE);
   };
 
   const flowNodes = useMemo(() => {
@@ -667,6 +677,7 @@ export function MindMapPanel({
         const description = createDescription.trim();
         await api.addStory({
           title: t,
+          workType: createWorkType,
           parentId,
           milestoneId: createMilestoneId || null,
           ...(description ? { description } : {}),
@@ -956,6 +967,18 @@ export function MindMapPanel({
                   value={createAcceptanceCriteria}
                   onChange={(e) => setCreateAcceptanceCriteria(e.target.value)}
                   disabled={busy}
+                />
+              </div>
+            )}
+            {createModal?.type === "story" && (
+              <div className="modal-form__field">
+                <Text className="modal-form__label">类型</Text>
+                <Select
+                  value={createWorkType}
+                  options={STORY_WORK_TYPE_OPTIONS}
+                  onChange={setCreateWorkType}
+                  disabled={busy}
+                  style={{ width: "100%" }}
                 />
               </div>
             )}

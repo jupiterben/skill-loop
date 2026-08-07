@@ -165,15 +165,13 @@ describe("运行中 Story 高亮", () => {
     db.upsertProject({ name: "demo", branchName: "main", description: "" });
     db.addFeature("demo", { title: "F", description: "" });
     const feature = db.getFeatures("demo")[0]!;
-    db.addStory("demo", {
-      parentId: feature.id,
+    db.addStory("demo", {workType: "implementation", parentId: feature.id,
       title: "S1",
       description: "",
       acceptanceCriteria: ["AC"],
       status: "ready",
     });
-    db.addStory("demo", {
-      parentId: feature.id,
+    db.addStory("demo", {workType: "implementation", parentId: feature.id,
       title: "S2",
       description: "",
       acceptanceCriteria: ["AC"],

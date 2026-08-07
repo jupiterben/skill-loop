@@ -10,6 +10,7 @@ import {
 } from "./json-fs.js";
 import {
   normalizeStoryWorkType,
+  parseRequiredStoryWorkType,
   STORY_WORK_TYPE_LABELS,
   type StoryWorkType,
 } from "./story-work-type.js";
@@ -785,7 +786,7 @@ export class LoopStateDb {
       archivedAt?: string | null;
       removalRequestedAt?: string | null;
       status?: UserStory["status"];
-      workType?: StoryWorkType;
+      workType: StoryWorkType;
     }
   ): UserStory {
     this.assertProject(projectName);
@@ -823,7 +824,7 @@ export class LoopStateDb {
       dependsOn,
       title: story.title,
       description: story.description,
-      workType: normalizeStoryWorkType(story.workType, story.description),
+      workType: parseRequiredStoryWorkType(story.workType),
       acceptanceCriteria: story.acceptanceCriteria,
       priority,
       passes: story.passes ?? false,
@@ -1088,6 +1089,7 @@ export class LoopStateDb {
         dependsOn: [],
         title: fixTitle,
         description: `修复 ${storyId}「${story.title}」的回归问题：${plain}`,
+        workType: "implementation",
         acceptanceCriteria: [bugAc, "npm test 通过"],
         priority: Math.min(story.priority - 1, -1),
         notes: "",

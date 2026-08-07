@@ -6,7 +6,11 @@
  * LOOP_PROJECT_ROOT=... loop complete US-001
  */
 import { LoopStateDb } from "./db.js";
-import { isStoryWorkType } from "./story-work-type.js";
+import {
+  isStoryWorkType,
+  parseRequiredStoryWorkType,
+  REQUIRED_WORK_TYPE_ERROR,
+} from "./story-work-type.js";
 import { getProjectName } from "./get-project-name.js";
 import {
   flagNum,
@@ -179,8 +183,12 @@ const COMMANDS: Record<string, Handler> = {
     const name = projectName(db, parsed);
     const ready = parsed.flags.ready === true;
     const workTypeRaw = flagStr(parsed.flags, "work-type", "workType");
-    const workType =
-      workTypeRaw && isStoryWorkType(workTypeRaw) ? workTypeRaw : undefined;
+    let workType;
+    try {
+      workType = parseRequiredStoryWorkType(workTypeRaw);
+    } catch (err) {
+      fail(err instanceof Error ? err.message : REQUIRED_WORK_TYPE_ERROR);
+    }
     return db.addStory(name, {
       parentId: flagStr(parsed.flags, "parent-id") ?? null,
       milestoneId: flagStr(parsed.flags, "milestone-id") ?? null,
@@ -188,13 +196,13 @@ const COMMANDS: Record<string, Handler> = {
       title,
       description:
         flagStr(parsed.flags, "description", "desc") ?? `作为用户，我需要：${title}`,
+      workType,
       acceptanceCriteria: repeatValues(parsed.repeats, "ac", "acceptance-criteria").length
         ? repeatValues(parsed.repeats, "ac", "acceptance-criteria")
         : ["实现功能", "npm test 通过"],
       priority: flagNum(parsed.flags, "priority") ?? 0,
       notes: flagStr(parsed.flags, "notes") ?? "",
       status: ready ? "ready" : "draft",
-      ...(workType ? { workType } : {}),
     });
   },
 

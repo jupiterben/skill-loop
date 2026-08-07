@@ -140,15 +140,13 @@ describe("顶栏项目概览（AppToolbar）", () => {
     });
     db.addFeature("demo", { title: "F1", description: "" });
     const feature = db.getFeatures("demo")[0]!;
-    db.addStory("demo", {
-      parentId: feature.id,
+    db.addStory("demo", {workType: "implementation", parentId: feature.id,
       title: "S1",
       description: "",
       acceptanceCriteria: ["AC"],
       status: "ready",
     });
-    db.addStory("demo", {
-      parentId: feature.id,
+    db.addStory("demo", {workType: "implementation", parentId: feature.id,
       title: "S2",
       description: "",
       acceptanceCriteria: ["AC"],

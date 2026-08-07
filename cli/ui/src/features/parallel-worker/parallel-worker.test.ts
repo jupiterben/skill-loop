@@ -32,6 +32,7 @@ describe("并行 Worker 执行与认领", () => {
         parentId: feature.id,
         title: `Story ${i + 1}`,
         description: "",
+        workType: "implementation",
         acceptanceCriteria: ["AC"],
         status: "ready",
       })

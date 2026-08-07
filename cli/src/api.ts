@@ -2,7 +2,10 @@ import type { IncomingMessage, ServerResponse } from "node:http";
 import type { LoopStateDb } from "./db.js";
 import { getProjectName } from "./get-project-name.js";
 import { finishRunLiveForStory } from "./run-live.js";
-import { isStoryWorkType } from "./story-work-type.js";
+import {
+  isStoryWorkType,
+  parseRequiredStoryWorkType,
+} from "./story-work-type.js";
 
 function json(res: ServerResponse, data: unknown, status = 200): void {
   res.writeHead(status, {
@@ -179,9 +182,11 @@ export async function handleApiMutation(
     if (req.method === "POST" && pathname === "/api/stories") {
       const title = String(body.title ?? "").trim();
       if (!title) throw new Error("title 必填");
+      const workType = parseRequiredStoryWorkType(body.workType);
       const story = db.addStory(projectName, {
         title,
         description: String(body.description ?? `作为用户，我需要：${title}`),
+        workType,
         milestoneId: (body.milestoneId as string) ?? null,
         parentId: (body.parentId as string) ?? null,
         dependsOn: Array.isArray(body.dependsOn)

@@ -52,23 +52,20 @@ describe("Milestone 筛选与创建编辑", () => {
     });
     db.addFeature("demo", { title: "功能", description: "" });
     const feature = db.getFeatures("demo")[0]!;
-    const sNone = db.addStory("demo", {
-      parentId: feature.id,
+    const sNone = db.addStory("demo", {workType: "implementation", parentId: feature.id,
       title: "无 Milestone",
       description: "",
       acceptanceCriteria: ["ac"],
       status: "ready",
     });
-    const sA = db.addStory("demo", {
-      parentId: feature.id,
+    const sA = db.addStory("demo", {workType: "implementation", parentId: feature.id,
       title: "属于 A",
       description: "",
       acceptanceCriteria: ["ac"],
       status: "ready",
       milestoneId: msA.id,
     });
-    const sB = db.addStory("demo", {
-      parentId: feature.id,
+    const sB = db.addStory("demo", {workType: "implementation", parentId: feature.id,
       title: "属于 B",
       description: "",
       acceptanceCriteria: ["ac"],

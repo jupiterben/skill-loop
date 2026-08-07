@@ -66,6 +66,7 @@ export const api = {
   }) => post("/api/mindmap/move", input),
   addStory: (input: {
     title: string;
+    workType: import("../types").StoryWorkType;
     description?: string;
     acceptanceCriteria?: string[];
     milestoneId?: string | null;

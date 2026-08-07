@@ -27,6 +27,9 @@ const DESCRIPTION_TYPE_MAP: Record<string, StoryWorkType> = {
 
 export const DEFAULT_STORY_WORK_TYPE: StoryWorkType = "implementation";
 
+export const REQUIRED_WORK_TYPE_ERROR =
+  "--work-type 必填：implementation | documentation | planning | testing | refactor";
+
 export function inferWorkTypeFromDescription(
   description: string
 ): StoryWorkType | null {
@@ -48,4 +51,17 @@ export function normalizeStoryWorkType(
 
 export function isStoryWorkType(value: string): value is StoryWorkType {
   return (STORY_WORK_TYPES as readonly string[]).includes(value);
+}
+
+export function parseRequiredStoryWorkType(
+  raw: unknown
+): StoryWorkType {
+  if (raw === undefined || raw === null || raw === "") {
+    throw new Error(REQUIRED_WORK_TYPE_ERROR);
+  }
+  const value = String(raw);
+  if (!isStoryWorkType(value)) {
+    throw new Error(REQUIRED_WORK_TYPE_ERROR);
+  }
+  return value;
 }

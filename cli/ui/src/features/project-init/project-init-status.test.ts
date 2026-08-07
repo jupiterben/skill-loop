@@ -90,8 +90,7 @@ describe("项目初始化与状态查询", () => {
     db.addPattern("demo", "示例 pattern");
     db.addFeature("demo", { title: "F1", description: "" });
     const feature = db.getFeatures("demo")[0]!;
-    db.addStory("demo", {
-      parentId: feature.id,
+    db.addStory("demo", {workType: "implementation", parentId: feature.id,
       title: "S1",
       description: "",
       acceptanceCriteria: ["AC"],

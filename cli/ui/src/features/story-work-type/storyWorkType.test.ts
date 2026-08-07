@@ -3,6 +3,8 @@ import {
   DEFAULT_STORY_WORK_TYPE,
   inferWorkTypeFromDescription,
   normalizeStoryWorkType,
+  parseRequiredStoryWorkType,
+  REQUIRED_WORK_TYPE_ERROR,
 } from "./storyWorkType";
 
 describe("storyWorkType", () => {
@@ -28,5 +30,18 @@ describe("storyWorkType", () => {
     expect(normalizeStoryWorkType("refactor", "类型：代码实现")).toBe(
       "refactor"
     );
+  });
+
+  it("parseRequiredStoryWorkType 拒绝缺失或非法值", () => {
+    expect(() => parseRequiredStoryWorkType(undefined)).toThrow(
+      REQUIRED_WORK_TYPE_ERROR
+    );
+    expect(() => parseRequiredStoryWorkType("")).toThrow(
+      REQUIRED_WORK_TYPE_ERROR
+    );
+    expect(() => parseRequiredStoryWorkType("invalid")).toThrow(
+      REQUIRED_WORK_TYPE_ERROR
+    );
+    expect(parseRequiredStoryWorkType("implementation")).toBe("implementation");
   });
 });

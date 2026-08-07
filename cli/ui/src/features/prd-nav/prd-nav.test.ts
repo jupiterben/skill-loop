@@ -26,16 +26,14 @@ describe("PRD 查询与导航命令", () => {
     });
     db.addFeature("demo", { title: "功能 A", description: "描述 A" });
     const feature = db.getFeatures("demo")[0]!;
-    const s1 = db.addStory("demo", {
-      parentId: feature.id,
+    const s1 = db.addStory("demo", {workType: "implementation", parentId: feature.id,
       title: "Story 1",
       description: "实现",
       acceptanceCriteria: ["AC1"],
       status: "ready",
       priority: 0,
     });
-    db.addStory("demo", {
-      parentId: feature.id,
+    db.addStory("demo", {workType: "implementation", parentId: feature.id,
       title: "Story 2",
       description: "文档",
       acceptanceCriteria: ["AC2"],

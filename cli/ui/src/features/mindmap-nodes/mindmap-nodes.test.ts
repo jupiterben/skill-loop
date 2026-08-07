@@ -59,8 +59,7 @@ describe("脑图节点增删（loop-data 持久化）", () => {
   it("addStory 写入 loop-data/stories 并挂在父 Feature 下", () => {
     const { db, root } = createDb();
     const ft = db.addFeature("demo", { title: "FT", description: "" });
-    const story = db.addStory("demo", {
-      title: "新 Story",
+    const story = db.addStory("demo", {workType: "implementation", title: "新 Story",
       description: "说明",
       parentId: ft.id,
       acceptanceCriteria: ["AC1"],
@@ -119,8 +118,7 @@ describe("脑图节点增删（loop-data 持久化）", () => {
   it("deleteStory 移除文件且节点从 tree 消失", () => {
     const { db, root } = createDb();
     const ft = db.addFeature("demo", { title: "FT", description: "" });
-    const keep = db.addStory("demo", {
-      title: "保留",
+    const keep = db.addStory("demo", {workType: "implementation", title: "保留",
       description: "",
       parentId: ft.id,
       acceptanceCriteria: [],
@@ -130,8 +128,7 @@ describe("脑图节点增删（loop-data 持久化）", () => {
       dependsOn: [],
       milestoneId: null,
     });
-    const drop = db.addStory("demo", {
-      title: "删除",
+    const drop = db.addStory("demo", {workType: "implementation", title: "删除",
       description: "",
       parentId: ft.id,
       acceptanceCriteria: [],

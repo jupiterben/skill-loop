@@ -26,8 +26,7 @@ describe("缺陷报告与修复 Story", () => {
     db.upsertProject({ name: "demo", branchName: "main", description: "" });
     db.addFeature("demo", { title: "F1", description: "" });
     const feature = db.getFeatures("demo")[0]!;
-    const story = db.addStory("demo", {
-      parentId: feature.id,
+    const story = db.addStory("demo", {workType: "implementation", parentId: feature.id,
       title: "源 Story",
       description: "",
       acceptanceCriteria: ["AC"],

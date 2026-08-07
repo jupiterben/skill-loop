@@ -61,8 +61,7 @@ describe("脑图拖拽改父级与重排", () => {
       description: "",
       parentId: ftA.id,
     });
-    const story = db.addStory("demo", {
-      title: "S1",
+    const story = db.addStory("demo", {workType: "implementation", title: "S1",
       description: "",
       parentId: ftA.id,
       acceptanceCriteria: ["ac"],
@@ -101,16 +100,14 @@ describe("脑图拖拽改父级与重排", () => {
     const reordered = db.reorderFeature("demo", f2.id, "up");
     expect(reordered.sortOrder).toBe(f1.sortOrder);
 
-    const s1 = db.addStory("demo", {
-      title: "S1",
+    const s1 = db.addStory("demo", {workType: "implementation", title: "S1",
       description: "",
       parentId: ft.id,
       acceptanceCriteria: ["ac"],
       sortOrder: 0,
       priority: 0,
     });
-    const s2 = db.addStory("demo", {
-      title: "S2",
+    const s2 = db.addStory("demo", {workType: "implementation", title: "S2",
       description: "",
       parentId: ft.id,
       acceptanceCriteria: ["ac"],
@@ -166,15 +163,13 @@ describe("脑图拖拽改父级与重排", () => {
       canMoveDown: false,
     });
 
-    const s1 = db.addStory("demo", {
-      title: "S1",
+    const s1 = db.addStory("demo", {workType: "implementation", title: "S1",
       description: "",
       parentId: ft.id,
       acceptanceCriteria: ["ac"],
       sortOrder: 0,
     });
-    const s2 = db.addStory("demo", {
-      title: "S2",
+    const s2 = db.addStory("demo", {workType: "implementation", title: "S2",
       description: "",
       parentId: ft.id,
       acceptanceCriteria: ["ac"],

@@ -32,22 +32,19 @@ describe("Story 依赖连线", () => {
     const db = new LoopStateDb(root);
     db.upsertProject({ name: "demo", branchName: "main", description: "" });
     const ft = db.addFeature("demo", { title: "F1", description: "" });
-    const a = db.addStory("demo", {
-      parentId: ft.id,
+    const a = db.addStory("demo", {workType: "implementation", parentId: ft.id,
       title: "A",
       description: "",
       acceptanceCriteria: ["ac"],
       status: "ready",
     });
-    const b = db.addStory("demo", {
-      parentId: ft.id,
+    const b = db.addStory("demo", {workType: "implementation", parentId: ft.id,
       title: "B",
       description: "",
       acceptanceCriteria: ["ac"],
       status: "ready",
     });
-    const c = db.addStory("demo", {
-      parentId: ft.id,
+    const c = db.addStory("demo", {workType: "implementation", parentId: ft.id,
       title: "C",
       description: "",
       acceptanceCriteria: ["ac"],

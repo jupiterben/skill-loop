@@ -90,8 +90,7 @@ describe("deleteFeature empty leaf", () => {
   it("存在子 Story 时拒绝删除", () => {
     const { db } = createDb();
     const ft = db.addFeature("demo", { title: "有 Story", description: "" });
-    db.addStory("demo", {
-      title: "US",
+    db.addStory("demo", {workType: "implementation", title: "US",
       description: "",
       parentId: ft.id,
       acceptanceCriteria: ["AC"],
