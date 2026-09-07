@@ -31,7 +31,7 @@ if (-not $env:LOOP_PROJECT_ROOT) {
 }
 
 $CliDir = Join-Path $PSScriptRoot "cli"
-$LoopCli = Join-Path $CliDir "dist/cli.js"
+$LoopCli = Join-Path $CliDir "dist/cli/cli.js"
 
 function Invoke-LoopCli {
     if (-not (Test-Path $LoopCli)) {

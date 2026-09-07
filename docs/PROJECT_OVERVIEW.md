@@ -29,29 +29,17 @@ skill-loop/
 │   └── milestones/        # 里程碑节点（可选）
 ├── cli/                   # 核心实现（Node.js + TypeScript + pnpm）
 │   ├── src/
-│   │   ├── cli.ts         # 命令入口、参数解析、help 文本
-│   │   ├── cli-args.ts    # 参数定义
-│   │   ├── db.ts          # 【1581 行】LoopStateDb：所有 loop-data 读写
-│   │   ├── loop-run.ts    # 【962 行】外循环主逻辑（worker 调度 + 工具调用）
-│   │   ├── loop-run-launcher.ts / run-process.ts / run-live.ts
-│   │   │                  # 外循环状态文件、运行时 live 输出缓冲
-│   │   ├── claude-invoke.ts     # Claude / CodeBuddy 进程包装
-│   │   ├── opencode-invoke.ts   # OpenCode NDJSON 解析包装
-│   │   ├── worktree-pool.ts     # 并行 worker 的 git worktree 隔离
-│   │   ├── tree.ts / feature-leaf.ts  # Story 树/选下一个/删叶子校验
-│   │   ├── bug-ac.ts            # "不应出现：…" 反例 AC 工具
-│   │   ├── story-work-type.ts   # Story 类型枚举（实现/文档/规划/测试/重构）
-│   │   ├── types.ts / paths.ts  # 共享类型 & 路径常量
-│   │   ├── api.ts / server.ts / http-handlers.ts / runtime-entry.ts
-│   │   │                        # 看板 HTTP 后端（HTTP API 读 loop-data）
-│   │   ├── dashboard-process.ts # 看板子进程管理
-│   │   ├── config.ts / json-fs.ts / loop-plan.ts / project-spec-templates.ts
-│   │   └── get-project-name.ts  # 单文件工具
+│   │   ├── cli/           # cli.ts / cli-args / runtime-entry
+│   │   ├── db/            # LoopStateDb、get-project-name
+│   │   ├── loop/          # 外循环、run 状态、worktree、*-invoke、plan
+│   │   ├── api/           # HTTP API、server、dashboard 进程
+│   │   ├── domain/        # types、tree、story-work-type、feature-leaf、bug-ac
+│   │   └── infra/         # paths、config、json-fs、project-spec-templates
 │   ├── templates/
 │   │   ├── AGENT.md       # 给 AI Agent 的"每轮怎么干活"指令
 │   │   └── PLANNER.md     # 给规划 Agent 的"怎么拆需求"指令
-│   ├── ui/                # React + Vite + Ant Design 看板前端
-│   └── package.json / tsconfig.json / vite.config.ts / vitest.config.ts
+│   ├── dashboard/         # React + Vite + Ant Design 看板前端
+│   └── package.json / tsconfig.json / vitest.config.ts
 ├── docs/                  # 补充文档（本文件所在地）
 ├── scripts/               # release.mjs / release.sh（打精简包）
 ├── .loop-status/          # 【git ignored】外循环运行时状态
@@ -259,10 +247,10 @@ pnpm 11 引入 `allowBuilds` 配置，**必须放在 `pnpm-workspace.yaml` 里**
 
 ## 8. 给后续维护者的建议
 
-1. **加新 AI 工具**：在 `cli/src/` 加一个 `xxx-invoke.ts`（实现 `invokeXxxProcess(prompt, { cwd, env, handlers, model? })`），在 `loop-run.ts` 的 `VALID_TOOLS` / `resolveTool` / `invokeToolWithPrompt` / 错误信息四处加钩子。参考 `opencode-invoke.ts` 写法（NDJSON 解析模板）。
-2. **加新 Story 类型**：在 `cli/src/story-work-type.ts` 的 enum + label map 同步；AGENT.md 模板里加对应规则。
-3. **加新 CLI 命令**：在 `cli/src/cli.ts` 加 case，在 `SKILL.md` 命令速查表补一行。
-4. **改 PRD 状态结构**：先动 `cli/src/types.ts` → `db.ts` → 看板 API → 看板 UI，从下往上。**别忘了** 检查 `.loop-status/` 的字段有没有同步依赖。
+1. **加新 AI 工具**：在 `cli/src/loop/` 加一个 `xxx-invoke.ts`，在 `loop-run.ts` 的 `VALID_TOOLS` / `resolveTool` / `invokeToolWithPrompt` 加钩子。参考 `opencode-invoke.ts`。
+2. **加新 Story 类型**：在 `cli/src/domain/story-work-type.ts` 的 enum + label map 同步；AGENT.md 模板里加对应规则。
+3. **加新 CLI 命令**：在 `cli/src/cli/cli.ts` 加 case，在 `SKILL.md` 命令速查表补一行。
+4. **改 PRD 状态结构**：先动 `cli/src/domain/types.ts` → `db/db.ts` → 看板 API → 看板 UI，从下往上。**别忘了** 检查 `.loop-status/` 的字段有没有同步依赖。
 5. **跑通后再改**：任何对外行为（CLI flag、Story 状态、AC 语义）变更前先跑一次 `loop run --tool codebuddy --max-iterations 1` 冒烟。
 
 ---

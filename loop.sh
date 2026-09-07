@@ -8,7 +8,7 @@ set -e
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 CLI_DIR="$(cd "$SCRIPT_DIR/cli" && pwd)"
-LOOP_CLI="$CLI_DIR/dist/cli.js"
+LOOP_CLI="$CLI_DIR/dist/cli/cli.js"
 
 require_built_cli() {
   if [[ ! -f "$LOOP_CLI" ]]; then

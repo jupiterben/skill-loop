@@ -3,9 +3,9 @@
   "version": "0.2.0",
   "description": "CLI + dashboard for Loop Engineering project runtime state (JSON file store)",
   "type": "module",
-  "main": "./dist/cli.js",
+  "main": "./dist/cli/cli.js",
   "bin": {
-    "loop": "./dist/cli.js"
+    "loop": "./dist/cli/cli.js"
   },
   "files": [
     "dist",
@@ -13,17 +13,17 @@
     "templates"
   ],
   "scripts": {
-    "build": "tsc && pnpm build:ui",
-    "build:ui": "vite build --config ui/vite.config.ts",
-    "dev": "vite --config ui/vite.config.ts",
+    "build": "tsc && pnpm build:dashboard",
+    "build:dashboard": "vite build --config dashboard/vite.config.ts",
+    "dev": "vite --config dashboard/vite.config.ts",
     "prepack": "pnpm build",
     "test:cli": "vitest run --config vitest.config.ts",
-    "test:all": "vitest run --config ui/vitest.config.ts && vitest run --config vitest.config.ts",
+    "test:all": "vitest run --config dashboard/vitest.config.ts && vitest run --config vitest.config.ts",
     "test": "pnpm test:all",
-    "dashboard": "node dist/cli.js dashboard",
-    "dashboard:fg": "node dist/cli.js dashboard --foreground",
-    "loop": "node dist/cli.js",
-    "loop:dev": "tsx src/cli.ts"
+    "dashboard": "node dist/cli/cli.js dashboard",
+    "dashboard:fg": "node dist/cli/cli.js dashboard --foreground",
+    "loop": "node dist/cli/cli.js",
+    "loop:dev": "tsx src/cli/cli.ts"
   },
   "devDependencies": {
     "@types/node": "26.1.0",

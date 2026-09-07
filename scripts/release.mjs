@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * 构建并输出精简发布目录 release/（仅运行所需文件，不含 src/ui 源码）。
+ * 构建并输出精简发布目录 release/（仅运行所需文件，不含 src/dashboard 源码）。
  * 用法: node scripts/release.mjs [--zip]
  */
 import { cpSync, existsSync, mkdirSync, rmSync } from "node:fs";
@@ -79,7 +79,7 @@ function createZip() {
 console.log("正在构建 CLI + 看板…");
 runBuild();
 
-requireBuilt(join(cliDir, "dist", "cli.js"), "CLI");
+requireBuilt(join(cliDir, "dist", "cli", "cli.js"), "CLI");
 requireBuilt(join(cliDir, "public", "index.html"), "看板");
 
 console.log("正在打包 release/ …");

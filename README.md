@@ -20,7 +20,7 @@ cd cli && pnpm install && pnpm build
 
 ## 发布精简包
 
-不含 `src/`、`ui/` 源码，仅运行所需文件：
+不含 `src/`、`dashboard/` 源码，仅运行所需文件：
 
 ```bash
 ./scripts/release.sh          # macOS / Linux

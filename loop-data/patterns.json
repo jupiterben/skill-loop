@@ -41,7 +41,7 @@
     "Dashboard 外循环启停：features/loop-run-control/LoopRunControl 调用 api.startLoopRun/stopLoopRun；buildStartLoopRunPayload 对齐 CLI --tool/--workers/--until-stop；启停后 App refresh 联动 AgentLivePanel/RunsPanel/WorkspaceStatusBar",
     "新建 Story 时 workType 必填：parseRequiredStoryWorkType 统一 CLI add-story、POST /api/stories、db.addStory 校验；Dashboard 新建弹窗 Select 默认 implementation；历史缺字段仍用 normalizeStoryWorkType 推断",
     "外循环运行时状态：run-coordinator.json 协调器 + runs/<workerId>.json per-worker；workers=1 也走协调器模式；getCoordinatorStateFile / getLoopRunStatus 仅读协调器",
-    "API body 字段解析用 cli/src/api-helpers.ts（pickString/pickNumber/pickInteger/pickEnum/pickBoolean）；PATCH 可选字段用 patchString/pickOptionalString，nullable id 用 pickNullableString",
+    "API body 字段解析用 cli/src/api/api-helpers.ts（pickString/pickNumber/pickInteger/pickEnum/pickBoolean）；PATCH 可选字段用 patchString/pickOptionalString，nullable id 用 pickNullableString",
     "测试生成：Vitest 只测纯逻辑/db/CLI/关键算法（features/<feature>/*.test.ts）；不写 React 组件 UI 测试；细则见 project-spec「测试」"
   ]
 }

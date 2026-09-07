@@ -21,7 +21,7 @@ $env:LOOP_PROJECT_ROOT = (Get-Location).Path
 .\loop.ps1 status   # 或 ./loop.sh status
 ```
 
-CLI 使用编译后的 `cli/dist/cli.js`（`node` 直接运行，无需 tsx）。
+CLI 使用编译后的 `cli/dist/cli/cli.js`（`node` 直接运行，无需 tsx）。
 
 ## 自动迭代（外循环）
 
