@@ -1,25 +1,29 @@
 {
   "id": "US-008",
   "milestoneId": null,
-  "parentId": "FT-012",
-  "dependsOn": [],
-  "title": "脑图左侧结构树",
-  "description": "类型：代码实现。作为用户，我需要在脑图画布左侧并排查看项目、Feature、Story 结构树，与画布共享选中态；右侧为节点属性面板，树面板与属性面板均可收起。",
-  "acceptanceCriteria": [
-    "脑图工作区左侧为 ProjectTreeView，右侧为 ReactFlow 画布，嵌套 Splitter 可拖拽调宽",
-    "结构树展示项目/Feature/Story 层级，与脑图 filteredTree 数据一致",
-    "树节点与脑图节点选中态双向同步",
-    "结构树面板与属性面板均支持 Splitter 折叠收起",
-    "pnpm test 通过"
+  "parentId": "FT-002",
+  "dependsOn": [
+    "US-007"
   ],
-  "priority": 0,
-  "passes": true,
-  "everCompleted": true,
+  "title": "Agent 可用性检测与超时诊断",
+  "description": "类型：代码实现。作为 Loop 使用者，我需要启动前检查 CLI 路径和必需环境变量，执行超时后得到明确错误，以便无需反复启动真实任务来定位配置问题。检测只调用适配器允许的版本探针，不自动安装、不登录、不消耗模型请求。",
+  "workType": "implementation",
+  "acceptanceCriteria": [
+    "提供 agents check <profile-id> 等价命令，返回结构化的路径解析、CLI 版本、必需环境变量是否存在和可执行性结果；文件存在不等于已登录，无法验证认证时明确标为未验证。",
+    "检测使用适配器定义的只读版本参数，限制超时和输出长度；命令不存在、拒绝访问、探针非零退出或超时均给出可读错误和非零退出码，不能误报可用。",
+    "run/plan 按配置 timeoutMs 限制一次 Agent 调用；超时结束自己启动的进程树、停止输出并给出超时原因，run 失败记账和认领释放复用已有收尾路径，不影响其他 worker。",
+    "错误、命令预览、版本探针输出和 live 日志不得泄露 envRefs 注入的敏感值；用含敏感值输出的模拟 CLI 验证脱敏。",
+    "本地模拟程序覆盖成功、非零退出、卡住、缺环境变量和子进程清理；不调用真实模型；相关测试及 pnpm test 通过。"
+  ],
+  "priority": 1,
+  "passes": false,
+  "everCompleted": false,
   "status": "ready",
   "notes": "",
-  "sortOrder": 0,
+  "sortOrder": 2,
   "removalRequestedAt": null,
   "archivedAt": null,
   "claimedBy": null,
-  "claimedAt": null
+  "claimedAt": null,
+  "preferredTool": null
 }

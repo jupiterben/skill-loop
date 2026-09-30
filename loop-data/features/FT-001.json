@@ -1,7 +1,7 @@
 {
   "id": "FT-001",
   "parentId": null,
-  "title": "Loop Dashboard",
-  "description": "Dashboard 壳层、需求脑图、项目输入与进度洞察的整体界面",
-  "sortOrder": 1
+  "title": "核心执行可靠性回归保障",
+  "description": "作为 Loop 维护者，需要可靠验证 Story 从确认、调度、认领到执行收尾的完整流程，避免重复执行、失败误报成功和合并丢失。复用已有测试，补齐异常及真实进程场景；本轮不做大文件拆分、API 改名、UI 改版或新工具接入。",
+  "sortOrder": 0
 }

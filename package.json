@@ -1,0 +1,43 @@
+{
+  "name": "loop",
+  "version": "0.2.0",
+  "description": "CLI + dashboard for Loop Engineering project runtime state (JSON file store)",
+  "type": "module",
+  "main": "./dist/cli/cli.js",
+  "bin": {
+    "loop": "./dist/cli/cli.js"
+  },
+  "files": [
+    "dist",
+    "public",
+    "templates"
+  ],
+  "scripts": {
+    "build": "tsc && pnpm build:dashboard",
+    "build:dashboard": "vite build --config src/dashboard/vite.config.ts",
+    "dev": "vite --config src/dashboard/vite.config.ts",
+    "prepack": "pnpm build",
+    "test:cli": "vitest run --config vitest.config.ts",
+    "test:all": "vitest run --config src/dashboard/vitest.config.ts && vitest run --config vitest.config.ts",
+    "test": "pnpm test:all",
+    "dashboard": "node dist/cli/cli.js dashboard",
+    "dashboard:fg": "node dist/cli/cli.js dashboard --foreground",
+    "loop": "node dist/cli/cli.js",
+    "loop:dev": "tsx src/cli/cli.ts"
+  },
+  "devDependencies": {
+    "@ant-design/icons": "6.3.2",
+    "@types/node": "26.1.0",
+    "@types/react": "19.1.12",
+    "@types/react-dom": "19.1.9",
+    "@vitejs/plugin-react": "6.0.3",
+    "@xyflow/react": "12.11.1",
+    "antd": "6.5.0",
+    "react": "19.1.1",
+    "react-dom": "19.1.1",
+    "tsx": "4.20.5",
+    "typescript": "^7.0.2",
+    "vite": "8.1.3",
+    "vitest": "^5.0.2"
+  }
+}

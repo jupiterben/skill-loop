@@ -27,19 +27,20 @@ skill-loop/
 │   ├── features/          # FT-*.json（Feature 节点，可嵌套）
 │   ├── stories/           # US-*.json（叶子 Story，含 AC/依赖/状态）
 │   └── milestones/        # 里程碑节点（可选）
-├── cli/                   # 核心实现（Node.js + TypeScript + pnpm）
-│   ├── src/
-│   │   ├── cli/           # cli.ts / cli-args / runtime-entry
-│   │   ├── db/            # LoopStateDb、get-project-name
-│   │   ├── loop/          # 外循环、run 状态、worktree、*-invoke、plan
-│   │   ├── api/           # HTTP API、server、dashboard 进程
-│   │   ├── domain/        # types、tree、story-work-type、feature-leaf、bug-ac
-│   │   └── infra/         # paths、config、json-fs、project-spec-templates
-│   ├── templates/
-│   │   ├── AGENT.md       # 给 AI Agent 的"每轮怎么干活"指令
-│   │   └── PLANNER.md     # 给规划 Agent 的"怎么拆需求"指令
-│   ├── dashboard/         # React + Vite + Ant Design 看板前端
-│   └── package.json / tsconfig.json / vitest.config.ts
+├── src/                   # 核心实现（Node.js + TypeScript + pnpm）
+│   ├── cli/               # cli.ts / cli-args / runtime-entry
+│   ├── db/                # LoopStateDb、get-project-name
+│   ├── loop/              # 外循环、run 状态、worktree、*-invoke、plan
+│   ├── api/               # HTTP API、server、dashboard 进程
+│   ├── domain/            # types、tree、story-work-type、feature-leaf、bug-ac
+│   ├── infra/             # paths、config、json-fs、project-spec-templates
+│   └── dashboard/         # React + Vite + Ant Design 看板前端
+├── templates/
+│   ├── AGENT.md       # 给 AI Agent 的"每轮怎么干活"指令
+│   └── PLANNER.md     # 给规划 Agent 的"怎么拆需求"指令
+├── package.json / tsconfig.json / vitest.config.ts
+├── pnpm-lock.yaml / pnpm-workspace.yaml  # 锁定依赖及 allowBuilds 配置
+├── dist/ / public/        # 【git ignored】CLI / 看板构建产物
 ├── docs/                  # 补充文档（本文件所在地）
 ├── scripts/               # release.mjs / release.sh（打精简包）
 ├── .loop-status/          # 【git ignored】外循环运行时状态
@@ -85,7 +86,7 @@ draft  --confirm-story-->  ready  --loop run 选中-->  claimed
 
 ### 3.3 AI 怎么被指挥
 
-`cli/templates/AGENT.md` 是一份给 AI 的"剧本"，关键指令：
+`templates/AGENT.md` 是一份给 AI 的"剧本"，关键指令：
 
 1. 先 `pnpm loop status` / `pnpm loop patterns`（看项目状态 + 已有约定）
 2. 实现当前 Story（含 AC 反例 `不应出现：…` / `❌ …`）
@@ -247,10 +248,10 @@ pnpm 11 引入 `allowBuilds` 配置，**必须放在 `pnpm-workspace.yaml` 里**
 
 ## 8. 给后续维护者的建议
 
-1. **加新 AI 工具**：在 `cli/src/loop/` 加一个 `xxx-invoke.ts`，在 `loop-run.ts` 的 `VALID_TOOLS` / `resolveTool` / `invokeToolWithPrompt` 加钩子。参考 `opencode-invoke.ts`。
-2. **加新 Story 类型**：在 `cli/src/domain/story-work-type.ts` 的 enum + label map 同步；AGENT.md 模板里加对应规则。
-3. **加新 CLI 命令**：在 `cli/src/cli/cli.ts` 加 case，在 `SKILL.md` 命令速查表补一行。
-4. **改 PRD 状态结构**：先动 `cli/src/domain/types.ts` → `db/db.ts` → 看板 API → 看板 UI，从下往上。**别忘了** 检查 `.loop-status/` 的字段有没有同步依赖。
+1. **加新 AI 工具**：在 `src/loop/` 加一个 `xxx-invoke.ts`，在 `loop-run.ts` 的 `VALID_TOOLS` / `resolveTool` / `invokeToolWithPrompt` 加钩子。参考 `opencode-invoke.ts`。
+2. **加新 Story 类型**：在 `src/domain/story-work-type.ts` 的 enum + label map 同步；AGENT.md 模板里加对应规则。
+3. **加新 CLI 命令**：在 `src/cli/cli.ts` 加 case，在 `SKILL.md` 命令速查表补一行。
+4. **改 PRD 状态结构**：先动 `src/domain/types.ts` → `db/db.ts` → 看板 API → 看板 UI，从下往上。**别忘了** 检查 `.loop-status/` 的字段有没有同步依赖。
 5. **跑通后再改**：任何对外行为（CLI flag、Story 状态、AC 语义）变更前先跑一次 `loop run --tool codebuddy --max-iterations 1` 冒烟。
 
 ---

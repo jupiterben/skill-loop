@@ -1,0 +1,21 @@
+{
+  "schemaVersion": 1,
+  "nextId": 3,
+  "defaultProfileId": "AG-001",
+  "profiles": [
+    {
+      "id": "AG-001",
+      "name": "Codex",
+      "tool": "codex",
+      "model": "gpt-6-astra",
+      "enabled": true
+    },
+    {
+      "id": "AG-002",
+      "name": "claude",
+      "tool": "claude",
+      "model": null,
+      "enabled": true
+    }
+  ]
+}

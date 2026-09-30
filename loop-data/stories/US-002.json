@@ -1,26 +1,24 @@
 {
   "id": "US-002",
   "milestoneId": null,
-  "parentId": "FT-007",
+  "parentId": "FT-001",
   "dependsOn": [],
-  "title": "Codebase Patterns 增删改查",
-  "description": "类型：代码实现。作为用户，我需要在 Dashboard 与 CLI 中管理 Codebase Patterns（查看、新增、编辑、删除），以便持续维护项目编码约定。",
+  "title": "依赖图与下一 Story 选择回归",
+  "description": "类型：测试补充。作为 Loop 使用者，我需要依赖未满足时不执行 Story，并按稳定顺序选择可执行项，以便单 worker 与并行调度遵循同一份需求顺序。扩展现有依赖和调度用例，不重做已有基础功能。",
+  "workType": "testing",
   "acceptanceCriteria": [
-    "可查看全部 Codebase Patterns 列表",
-    "支持新增 pattern",
-    "支持编辑已有 pattern 内容",
-    "支持删除 pattern",
-    "Dashboard Patterns 面板提供增删改查操作",
-    "CLI/API 与 UI 行为一致，pnpm dev 下可正常使用"
+    "表驱动覆盖 draft、已完成、已归档、已认领以及未满足依赖的 Story 不进入 next/next-stories 候选。",
+    "覆盖链式、菱形依赖及缺失依赖引用；只有所有前置 Story passes=true 才能进入候选。",
+    "覆盖自依赖和间接循环被拒绝，失败写入不改变原依赖数据。",
+    "验证 priority、sortOrder、id 的稳定排序及 limit 截断；getNextStory 与 getNextStories(...,1) 一致。",
+    "用真实 domain/db 调用验证，相关测试及 pnpm test 通过；本 Story 不修改执行器或 worktree 流程。"
   ],
   "priority": 1,
-  "passes": true,
-  "everCompleted": true,
-  "status": "ready",
+  "passes": false,
+  "everCompleted": false,
+  "status": "draft",
   "notes": "",
   "sortOrder": 1,
   "removalRequestedAt": null,
-  "archivedAt": null,
-  "claimedBy": null,
-  "claimedAt": null
+  "archivedAt": null
 }

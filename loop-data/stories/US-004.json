@@ -1,25 +1,26 @@
 {
   "id": "US-004",
   "milestoneId": null,
-  "parentId": "FT-002",
-  "dependsOn": [],
-  "title": "项目规范编辑",
-  "description": "类型：代码实现。作为用户，我需要在左侧边栏查看、编辑项目规范（project-spec），并可选用内置模板，以便统一 Agent 协作约定。",
-  "acceptanceCriteria": [
-    "Dashboard 左侧 ProjectSpecPanel 可查看与编辑规范正文",
-    "支持从内置模板（至少 4 套）应用或追加到当前规范",
-    "保存后写入 loop-data/project-spec.json，pnpm dev 下可正常使用",
-    "提供 CLI 命令：spec、update-spec、spec-templates、apply-spec-template",
-    "pnpm test 通过"
+  "parentId": "FT-001",
+  "dependsOn": [
+    "US-003"
   ],
-  "priority": 0,
-  "passes": true,
-  "everCompleted": true,
-  "status": "ready",
+  "title": "执行失败与停止后的状态收尾回归",
+  "description": "类型：测试补充。作为 Loop 使用者，我需要 Agent 启动失败、非零退出或用户停止时获得真实运行结果，并能再次运行，以便失败不会被误标完成或永久占用 Story。使用本地模拟 Agent 覆盖真实调度路径。",
+  "workType": "testing",
+  "acceptanceCriteria": [
+    "通过可控的本地模拟 Agent 覆盖启动失败、非零退出、成功 complete 三类结果，不访问真实模型服务或依赖登录凭证。",
+    "失败时 run 记录为 failed 并保留错误信息，未完成 Story 的 passes 不得变 true，claimedBy/claimedAt 清空。",
+    "验证有限轮数退出和 until-stop 等待期间收到 stop 的收尾；结束后协调器/worker 不显示运行中，live 输出进入终态。",
+    "失败或停止后重新启动可以再次选择仍未完成的 Story，不遗留阻塞认领或僵尸子进程。",
+    "扩展现有 run/process/live 测试，只引入必要的测试入口，不做大规模模块拆分；相关测试及 pnpm test 通过。"
+  ],
+  "priority": 1,
+  "passes": false,
+  "everCompleted": false,
+  "status": "draft",
   "notes": "",
-  "sortOrder": 0,
+  "sortOrder": 3,
   "removalRequestedAt": null,
-  "archivedAt": null,
-  "claimedBy": null,
-  "claimedAt": null
+  "archivedAt": null
 }

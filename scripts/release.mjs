@@ -4,20 +4,21 @@
  * 用法: node scripts/release.mjs [--zip]
  */
 import { cpSync, existsSync, mkdirSync, rmSync } from "node:fs";
-import { dirname, join } from "node:path";
+import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { spawnSync } from "node:child_process";
 
-const root = join(dirname(fileURLToPath(import.meta.url)), "..");
+const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const outDir = join(root, "release");
-const cliDir = join(root, "cli");
 const withZip = process.argv.includes("--zip");
 
 function runBuild() {
   const cmd = process.platform === "win32" ? "pnpm.cmd" : "pnpm";
   const result = spawnSync(cmd, ["build"], {
-    cwd: cliDir,
+    cwd: root,
     stdio: "inherit",
+    shell: process.platform === "win32",
+    windowsHide: true,
   });
   if (result.status !== 0) {
     process.exit(result.status ?? 1);
@@ -35,15 +36,14 @@ function copyReleaseTree() {
   if (existsSync(outDir)) rmSync(outDir, { recursive: true, force: true });
   mkdirSync(outDir, { recursive: true });
 
-  const rootFiles = ["SKILL.md", "README.md", "loop.sh", "loop.ps1"];
+  const rootFiles = ["SKILL.md", "README.md", "loop.sh", "loop.ps1", "package.json"];
   for (const file of rootFiles) {
     cpSync(join(root, file), join(outDir, file));
   }
 
-  mkdirSync(join(outDir, "cli"), { recursive: true });
-  const cliPaths = ["dist", "public", "templates"];
-  for (const name of cliPaths) {
-    cpSync(join(cliDir, name), join(outDir, "cli", name), { recursive: true });
+  const runtimePaths = ["dist", "public", "templates"];
+  for (const name of runtimePaths) {
+    cpSync(join(root, name), join(outDir, name), { recursive: true });
   }
 }
 
@@ -79,13 +79,13 @@ function createZip() {
 console.log("正在构建 CLI + 看板…");
 runBuild();
 
-requireBuilt(join(cliDir, "dist", "cli", "cli.js"), "CLI");
-requireBuilt(join(cliDir, "public", "index.html"), "看板");
+requireBuilt(join(root, "dist", "cli", "cli.js"), "CLI");
+requireBuilt(join(root, "public", "index.html"), "看板");
 
 console.log("正在打包 release/ …");
 copyReleaseTree();
 
-const fileCount = ["SKILL.md", "README.md", "loop.sh", "loop.ps1", "cli/dist", "cli/public", "cli/templates"];
+const fileCount = ["SKILL.md", "README.md", "loop.sh", "loop.ps1", "package.json", "dist", "public", "templates"];
 console.log(`\n发布目录: ${outDir}`);
 console.log("包含:");
 for (const item of fileCount) console.log(`  - ${item}`);

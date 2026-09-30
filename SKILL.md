@@ -12,7 +12,7 @@ description: >-
 
 ## 环境
 
-**项目根** = 当前 Cursor 工作区根目录。**状态目录** = 项目内 `loop-data/`。**CLI 目录** = skill 根目录下的 `cli/`。
+**项目根** = 当前 Cursor 工作区根目录。**状态目录** = 项目内 `loop-data/`。**CLI 包目录** = skill 根目录。
 
 在工作区根目录执行：
 
@@ -21,7 +21,7 @@ $env:LOOP_PROJECT_ROOT = (Get-Location).Path
 .\loop.ps1 status   # 或 ./loop.sh status
 ```
 
-CLI 使用编译后的 `cli/dist/cli/cli.js`（`node` 直接运行，无需 tsx）。
+CLI 使用编译后的 `dist/cli/cli.js`（`node` 直接运行，无需 tsx）。
 
 ## 自动迭代（外循环）
 
@@ -31,12 +31,34 @@ CLI 使用编译后的 `cli/dist/cli/cli.js`（`node` 直接运行，无需 tsx�
 pnpm loop run                    # 默认 agent/claude，最多 10 轮
 pnpm loop run --tool agent 20    # 指定工具与轮数
 pnpm loop run --tool claude --max-iterations 5
+pnpm loop run --tool codex --max-iterations 1
 pnpm loop watch --tool agent              # 持续循环（监听 Story，不退出的）
 pnpm loop run --until-stop --tool agent   # 同上，另开终端 loop run stop 结束
 pnpm loop run --workers 3 --until-stop --tool agent   # 3 个并行 worker（git worktree 隔离）
 ```
 
 提示词：`loop-data/AGENT.md`（可覆盖）或 CLI 内置 `templates/AGENT.md`。
+
+Codex 需已安装并登录，模型和认证沿用本机 CLI 配置；当前调用带
+`--dangerously-bypass-approvals-and-sandbox`，仅在可信项目与受控执行环境中运行。
+
+## 项目 Agent 配置
+
+```powershell
+pnpm loop agents add --name "Codex 开发" --tool codex --model "your-model-id"
+pnpm loop agents list
+pnpm loop agents update AG-001 --model "other-model"
+pnpm loop agents default AG-001
+pnpm loop set-story-agent US-006 AG-001
+pnpm loop run --agent-profile AG-001 --max-iterations 1
+pnpm loop plan --agent-profile AG-001 --requirement "细化验收标准"
+```
+
+状态文件：当前项目 `loop-data/agent-config.json`；只通过 CLI/API 修改，不改全局 CLI 配置。
+支持每种 CLI 保存多套命名配置，当前字段为 CLI、模型、启用状态。
+显式启动选择优先于 Story 选择，之后为项目默认、自动探测。
+`--agent-profile` 与 `--tool` 互斥；模型留空采用工具默认值，不在项目里保存凭证。
+运行记录保存实际配置和模型；运行中编辑配置不改变当前运行的配置快照。
 
 ## 需求规划
 

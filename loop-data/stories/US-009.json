@@ -1,25 +1,27 @@
 {
   "id": "US-009",
   "milestoneId": null,
-  "parentId": "FT-003",
-  "dependsOn": [],
-  "title": "主工作区脑图区简化",
-  "description": "类型：代码实现。作为用户，我需要中心工作区的脑图区域自动填满可用空间，无需用户输入标题或折叠控件，且无冗余操作提示，以便获得更大的编辑视野。",
-  "acceptanceCriteria": [
-    "脑图区直接渲染于 app-workspace__main，无 CollapsiblePanel 包裹",
-    "不显示「用户输入」分区标题",
-    "脑图区 flex 自动拉伸填满 Splitter 上方 Panel 剩余高度",
-    "移除 mm-toolbar 长帮助文案与空态冗余 description，保留功能按钮",
-    "pnpm test 通过"
+  "parentId": "FT-002",
+  "dependsOn": [
+    "US-008"
   ],
-  "priority": 0,
-  "passes": true,
-  "everCompleted": true,
-  "status": "ready",
+  "title": "Dashboard Agent 配置与启动选择",
+  "description": "类型：代码实现。作为 Dashboard 用户，我需要管理 Agent 配置、检测可用性并在启动时选择配置，以便不手改 JSON 也能切换 CLI、模型和执行参数。复用现有 Ant Design 控件与 API 错误处理，不重新设计主工作区。",
+  "workType": "implementation",
+  "acceptanceCriteria": [
+    "新增 Agent 配置管理入口，支持查看、新增、编辑、删除、启停和设置默认；包含 adapter 选择、路径、模型、参数列表、超时、环境变量引用及共享/本机作用域，保存后刷新仍可读取。",
+    "Dashboard 经服务端 API 复用配置校验与存储，工具列表来源于共享注册表；配置错误不覆盖已保存内容，加载失败、保存中、未保存修改和检测结果均有明确状态。",
+    "配置检测按钮只调用 agents check 同一服务逻辑，展示检测结果及认证未验证状态；不提供明文密钥字段，API 响应不返回环境变量值。",
+    "启动设置中选择已启用 profile，展示脱敏后的有效工具、模型与超时；未显式选择时采用项目默认，显式坏配置阻止启动并显示原因，已有运行不因编辑配置而切换。",
+    "补 API、配置表单映射和启动 payload 的纯逻辑测试，不新增 React 组件渲染测试；手动验证增改查删、检测、刷新持久化和启动选择；pnpm test、pnpm build 通过。",
+    "更新 README、SKILL.md 和 CLI help 的配置、优先级、本机覆盖、环境变量与诊断示例，不包含真实凭证；明确保存配置不代表已经安装、登录或启动 Agent。"
+  ],
+  "priority": 1,
+  "passes": false,
+  "everCompleted": false,
+  "status": "draft",
   "notes": "",
-  "sortOrder": 0,
+  "sortOrder": 3,
   "removalRequestedAt": null,
-  "archivedAt": null,
-  "claimedBy": null,
-  "claimedAt": null
+  "archivedAt": null
 }

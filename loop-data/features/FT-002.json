@@ -1,7 +1,7 @@
 {
   "id": "FT-002",
-  "parentId": "FT-005",
-  "title": "项目规范",
-  "description": "project-spec.json 的查看、编辑与模板应用",
-  "sortOrder": 0
+  "parentId": null,
+  "title": "Agent CLI 配置管理",
+  "description": "作为 Loop 使用者，我需要在项目中配置 Agent CLI 的可执行路径、模型、启动参数、超时和环境变量引用，并从 CLI 或 Dashboard 检测和选择，以便 run/watch/plan 使用一致且可追踪的工具配置。首期配置已有工具适配器，不新增任意插件协议、不自动安装或登录工具、不存储明文密钥；权限绕过必须显式选择。",
+  "sortOrder": 1
 }

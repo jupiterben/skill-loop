@@ -1,31 +1,26 @@
 {
   "id": "US-005",
   "milestoneId": null,
-  "parentId": "FT-013",
-  "dependsOn": [],
-  "title": "Story 属性面板",
-  "description": "类型：代码实现。作为用户，我需要在脑图中选中 Story 后，在右侧属性面板分区查看并编辑 Story 字段；编辑区合并标题、描述、workType、AC 与操作按钮，依赖与里程碑、进度日志为独立可折叠分区，布局偏好需持久化。Feature 不需要类型相关信息。",
-  "acceptanceCriteria": [
-    "选中 Story 节点时右侧显示 Story 属性面板（可 Splitter 收起）",
-    "编辑分区：可修改标题、描述、Story workType、验收标准、状态（draft/ready）、优先级；操作按钮（确认/完成/归档等）置于编辑区内",
-    "前端需显示当前 Story workType，并支持用户直接编辑与保存",
-    "Feature 属性面板不显示也不编辑类型相关信息",
-    "依赖与里程碑分区：可管理 Story 依赖关系与 Milestone 标签",
-    "进度日志分区：展示该 Story 的历史进度条目",
-    "各分区可独立折叠，折叠状态 localStorage 持久化",
-    "useSyncedStoryFields：Dashboard 定时刷新不覆盖未保存编辑",
-    "保存后与 loop-data 同步；pnpm dev 下可正常使用",
-    "pnpm test 通过"
+  "parentId": "FT-001",
+  "dependsOn": [
+    "US-004"
   ],
-  "priority": 0,
-  "passes": true,
-  "everCompleted": true,
-  "status": "ready",
+  "title": "Worktree 合并成功与冲突恢复回归",
+  "description": "类型：测试补充。作为并行执行使用者，我需要 worktree 成功合并时保留交付，冲突时明确失败且可恢复工作，以便隔离执行不会损坏主分支或丢失修复提交。当前已有创建/清理测试，本 Story 补真实合并路径与执行结果联动。",
+  "workType": "testing",
+  "acceptanceCriteria": [
+    "在独立临时 Git 仓库创建 worker 提交并成功合并，断言目标分支文件及提交可达，其他 worker 不受影响。",
+    "构造双方修改同一行的合并冲突，返回可读错误且 abort 后目标分支 HEAD/文件保持合并前状态。",
+    "冲突失败时不得报告该轮成功；若 Agent 已提前 complete，不能保留与未合并结果矛盾的完成状态，并保留可追踪的失败记录。",
+    "冲突后的 worker 提交仍能通过保留分支或明确恢复引用找到，不得因自动清理丢失；不得清理其他 worker 的目录。",
+    "测试结束回收自己创建的临时资源，命令设置超时且不调用真实 Agent；相关测试、pnpm test 及 pnpm build 通过。"
+  ],
+  "priority": 2,
+  "passes": false,
+  "everCompleted": false,
+  "status": "draft",
   "notes": "",
-  "sortOrder": 0,
+  "sortOrder": 4,
   "removalRequestedAt": null,
-  "archivedAt": null,
-  "claimedBy": null,
-  "claimedAt": null,
-  "workType": "implementation"
+  "archivedAt": null
 }

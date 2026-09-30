@@ -1,25 +1,27 @@
 {
   "id": "US-003",
   "milestoneId": null,
-  "parentId": "FT-003",
-  "dependsOn": [],
-  "title": "脑图连线与渲染",
-  "description": "类型：代码实现。作为用户，我需要在中心工作区看到项目、Feature、Story 脑图，节点间树形连线稳定可见，以便把握需求结构。",
-  "acceptanceCriteria": [
-    "ReactFlow 渲染项目根、Feature、Story 节点及树形连线",
-    "树形边绑定 sourceHandle=tree，拖拽节点后连线不丢失",
-    "画布容器尺寸变化时 ReactFlow 保持挂载，不因 flex 高度为 0 而卸载",
-    "mindmapLayout 连线回归测试通过；pnpm test 通过",
-    "不应出现：刷新或折叠面板后连线消失"
+  "parentId": "FT-001",
+  "dependsOn": [
+    "US-001",
+    "US-002"
   ],
-  "priority": 0,
-  "passes": true,
-  "everCompleted": true,
-  "status": "ready",
+  "title": "多进程 Story 认领与锁释放回归",
+  "description": "类型：测试补充。作为并行执行使用者，我需要两个独立进程竞争同一 Story 时只有一个成功，以便同一需求不会重复执行。当前已有顺序调用的 claim 测试，本 Story 补真实进程竞争和异常释放。",
+  "workType": "testing",
+  "acceptanceCriteria": [
+    "两个独立 Node 子进程经同步屏障同时 claim 同一 ready Story，恰好一个成功；持久化 claimedBy 与成功 worker 一致。",
+    "非持有者 release/complete 必须失败且不修改 Story；持有者释放后另一 worker 可重新认领。",
+    "覆盖 withStateLock 回调抛错后锁释放，以及持锁竞争的超时或重试结果；所有子进程有退出和超时清理。",
+    "竞争结束后 Story JSON 可解析，无字段丢失；测试只写临时项目，不能修改真实 loop-data。",
+    "相关测试连续执行多次无随机失败，pnpm test 通过；复用现有锁机制，不引入新数据库。"
+  ],
+  "priority": 1,
+  "passes": false,
+  "everCompleted": false,
+  "status": "draft",
   "notes": "",
   "sortOrder": 2,
   "removalRequestedAt": null,
-  "archivedAt": null,
-  "claimedBy": null,
-  "claimedAt": null
+  "archivedAt": null
 }

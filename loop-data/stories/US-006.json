@@ -1,25 +1,27 @@
 {
   "id": "US-006",
   "milestoneId": null,
-  "parentId": "FT-011",
+  "parentId": "FT-002",
   "dependsOn": [],
-  "title": "工作区垂直分栏",
-  "description": "类型：代码实现。作为用户，我需要中心工作区上方为脑图编辑、下方为 Agent 运行输出与 Runs 记录，底部居中显示执行状态，以便同时查看规划与执行结果。",
+  "title": "项目级 Agent CLI 配置与命令管理",
+  "description": "类型：代码实现。作为项目维护者，我需要通过 Loop CLI 维护多个带稳定 ID 的 Agent 配置并指定默认项，以便团队共享非敏感设置，而本机路径和凭证不污染版本库。配置代表一个已有工具适配器的一组参数，不改变 Story 的 draft/ready 生命周期。",
+  "workType": "implementation",
   "acceptanceCriteria": [
-    "中心工作区使用垂直 Splitter：上方脑图（app-workspace__main）、下方 Agent 输出区",
-    "Splitter 比例可拖拽调整并 localStorage 持久化",
-    "底部 WorkspaceStatusBar 居中展示 loop 执行/就绪状态",
-    "左侧边栏承载项目规范与 Patterns，右侧边栏承载进度日志",
-    "pnpm test 通过"
+    "定义带 schemaVersion 的项目配置：稳定 profile ID、名称、adapter、enabled、executable、model、args 字符串数组、timeoutMs、envRefs 与默认 profile；共享非敏感配置位于 loop-data/agent-config.json，本机覆盖位于不入库的 .loop-status/agent-config.local.json。",
+    "提供 agents list/show/set/remove/default 等等价 CLI 能力及 JSON 输出；更新按 profile ID，删除默认项或被引用项须明确拒绝或显式处理引用，不允许静默产生悬空默认值。",
+    "新增独立 --agent-profile 选择配置而保留 --tool 的旧语义，两者同时传入应清晰报错；配置选择顺序为显式 --agent-profile、显式 --tool、Story preferredTool、项目默认 profile、自动探测（plan 跳过 Story 偏好），显式选择不可用时不得静默换工具。",
+    "本机覆盖高于共享配置，未设置字段采用适配器默认；无配置文件的旧项目继续可用；空命令、未知适配器、无效超时、非数组参数、重复 ID 和悬空默认引用在写入前拒绝且不破坏原配置。",
+    "凭证只保存环境变量名称映射、不保存密钥值；保留 LOOP_PROJECT_ROOT、LOOP_WORKER_ID、LOOP_CLAIMED_STORY_ID 等调度环境变量，用户配置不得覆盖。纯解析和 CRUD 测试及 pnpm test 通过。"
   ],
-  "priority": 0,
-  "passes": true,
-  "everCompleted": true,
+  "priority": 1,
+  "passes": false,
+  "everCompleted": false,
   "status": "ready",
   "notes": "",
   "sortOrder": 0,
   "removalRequestedAt": null,
   "archivedAt": null,
-  "claimedBy": null,
-  "claimedAt": null
+  "claimedBy": "w0",
+  "claimedAt": "2026-09-30T07:36:54.633Z",
+  "preferredTool": "claude"
 }

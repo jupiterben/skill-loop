@@ -1,15 +1,16 @@
 # Loop 快捷脚本（Windows）
 # 日常命令: .\loop.ps1 status | next | complete US-001 | dashboard | dashboard dev | help ...
 # 持续循环: .\loop.ps1 watch [-Tool agent] [-Workers 3]（监听 Story，不退出的）
-# 有限迭代: .\loop.ps1 [-Tool agent|claude|amp] [-MaxIterations 10] [-UntilStop]（须显式传参）
+# 有限迭代: .\loop.ps1 [-Tool agent|claude|codex] [-MaxIterations 10] [-UntilStop]（须显式传参）
 
 param(
     [Parameter(Position=0)]
     [string]$Command = "",
     [Parameter(ValueFromRemainingArguments = $true)]
     [string[]]$Rest = @(),
-    [ValidateSet("agent", "cursor", "claude", "amp")]
+    [ValidateSet("agent", "cursor", "claude", "codebuddy", "opencode", "minimax", "codex")]
     [string]$Tool = "",
+    [string]$AgentProfile = "",
     [int]$MaxIterations = 10,
     [int]$Workers = 1,
     [switch]$UntilStop
@@ -30,12 +31,11 @@ if (-not $env:LOOP_PROJECT_ROOT) {
     $env:LOOP_PROJECT_ROOT = Get-LoopProjectRoot -ScriptRoot $PSScriptRoot
 }
 
-$CliDir = Join-Path $PSScriptRoot "cli"
-$LoopCli = Join-Path $CliDir "dist/cli/cli.js"
+$LoopCli = Join-Path $PSScriptRoot "dist/cli/cli.js"
 
 function Invoke-LoopCli {
     if (-not (Test-Path $LoopCli)) {
-        Write-Error "未找到 $LoopCli，请先在 cli 目录执行: pnpm install && pnpm build"
+        Write-Error "未找到 $LoopCli，请先在 skill 根目录执行: pnpm install && pnpm build"
     }
     & node $LoopCli @args
     exit $LASTEXITCODE
@@ -43,10 +43,12 @@ function Invoke-LoopCli {
 
 if ($Command) {
     $cliArgs = @($Command) + $Rest
+    if ($Tool) { $cliArgs += @("--tool", $Tool) }
+    if ($AgentProfile) { $cliArgs += @("--agent-profile", $AgentProfile) }
     Invoke-LoopCli @cliArgs
 }
 
-$explicitRun = $UntilStop -or $Tool -or
+$explicitRun = $UntilStop -or $Tool -or $AgentProfile -or
     $PSBoundParameters.ContainsKey('MaxIterations') -or
     $PSBoundParameters.ContainsKey('Workers')
 if (-not $explicitRun) {
@@ -59,5 +61,6 @@ if ($UntilStop) {
     $runArgs = @("run", "--max-iterations", "$MaxIterations")
 }
 if ($Tool) { $runArgs += @("--tool", $Tool) }
+if ($AgentProfile) { $runArgs += @("--agent-profile", $AgentProfile) }
 if ($Workers -gt 1) { $runArgs += @("--workers", "$Workers") }
 Invoke-LoopCli @runArgs

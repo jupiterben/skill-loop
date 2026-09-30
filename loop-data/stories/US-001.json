@@ -1,27 +1,24 @@
 {
   "id": "US-001",
   "milestoneId": null,
-  "parentId": "FT-011",
+  "parentId": "FT-001",
   "dependsOn": [],
-  "title": "Dashboard 桌面化布局",
-  "description": "类型：代码实现。作为用户，我需要类桌面程序的 Dashboard（顶栏工具条 + antd Splitter 可拖拽分栏 + 可折叠侧栏），以便专注当前工作区。优先使用 antd 组件，Panel 内容自动填满剩余空间并支持内部滚动。",
+  "title": "Story 生命周期与完成记账回归",
+  "description": "类型：测试补充。作为项目维护者，我需要验证 Story 确认、完成、修改及缺陷派生后的状态和进度一致性，以便自动执行不会跳过待验收需求或改写已完成历史。复用 story-execution、story-lifecycle、bug-report 已有覆盖，新增缺失组合场景。",
+  "workType": "testing",
   "acceptanceCriteria": [
-    "整体为三栏 Splitter：左侧边栏、中心工作区、右侧边栏，宽度可拖拽并 localStorage 持久化",
-    "工作区内部为垂直 Splitter：上方脑图、下方 Agent 输出，比例可调整",
-    "界面呈现类桌面程序风格（工具栏/面板/工作区），而非典型 Web 页面布局",
-    "侧栏与属性面板支持折叠；各 Panel 内容区 flex 填满并可滚动",
-    "尽可能使用 antd 组件（Splitter、Collapse、Button 等），避免自造布局组件",
-    "加载与空状态体验友好；pnpm dev 下可正常预览",
-    "不应出现：脑图空状态下 +Feature/+Story 按钮无响应"
+    "在临时项目覆盖 draft -> ready -> complete；complete 后 passes=true、认领释放，进度关联正确 Story，重新创建 Db 实例仍可读取一致结果。",
+    "覆盖修改已完成 Story 回到 draft 且保留 everCompleted，未确认前不可调度。",
+    "覆盖已完成 Story 报 bug 派生新修复 Story且不修改源 Story；未完成 Story 追加反例 AC。",
+    "重复 complete 的行为必须明确且有回归，不得无解释地产生重复完成进度；归档/恢复不丢失已有进度。",
+    "新增行为测试放 src/db；不得用源码字符串匹配替代状态断言，相关测试及 pnpm test 通过。"
   ],
   "priority": 1,
-  "passes": true,
-  "everCompleted": true,
-  "status": "ready",
+  "passes": false,
+  "everCompleted": false,
+  "status": "draft",
   "notes": "",
-  "sortOrder": 1,
+  "sortOrder": 0,
   "removalRequestedAt": null,
-  "archivedAt": null,
-  "claimedBy": null,
-  "claimedAt": null
+  "archivedAt": null
 }

@@ -1,26 +1,28 @@
 {
   "id": "US-007",
   "milestoneId": null,
-  "parentId": "FT-013",
-  "dependsOn": [],
-  "title": "Feature 属性面板",
-  "description": "类型：代码实现。作为用户，我需要在脑图中选中 Feature 后，在右侧属性面板查看并编辑 Feature 标题与描述，并浏览其下 Story 列表（点击可跳转选中），以便管理功能模块。",
+  "parentId": "FT-002",
+  "dependsOn": [
+    "US-004",
+    "US-006"
+  ],
+  "title": "run/watch/plan 统一应用 Agent 配置",
+  "description": "类型：代码实现。作为 Loop 使用者，我需要 run/watch/plan 和 Dashboard 后台启动使用同一套工具配置解析与调用逻辑，以便选定的 CLI、模型和参数确实生效。现有 loop-plan 对非 claude 工具仍启动 agent，本 Story 要覆盖并消除这类选择与执行不一致。",
+  "workType": "implementation",
   "acceptanceCriteria": [
-    "选中 Feature 节点时右侧显示 Feature 属性面板",
-    "编辑分区：可修改 Feature 标题与描述并保存至 loop-data",
-    "Story 列表分区：展示该 Feature 下子 Story，点击条目同步脑图选中态",
-    "各分区可独立折叠，折叠状态 localStorage 持久化",
-    "不应出现：Feature 属性面板中的「+ Story」添加按钮",
-    "pnpm test 通过"
+    "run/watch/plan、Story 工具偏好解析及后台 launcher 共用适配器注册与配置解析；工具可选列表不再各自维护冲突常量，已移除的 amp 不得出现在有效选择中。",
+    "通过本地模拟 CLI 断言最终 executable、argv、model 映射、环境变量和提示词输入；选择任何已有适配器时实际启动对应工具，plan 不得将其他选择静默转成 agent。",
+    "配置按一次 run/plan 生成不可变快照，配置编辑不影响已运行任务；保留 worker cwd 的 worktree 隔离和主项目 LOOP_PROJECT_ROOT，下一次运行才读取新设置。",
+    "结构化传递参数与提示词，不拼接任意 shell 字符串；覆盖 Windows 含空格路径及特殊字符参数，流式输出格式和 stdin 协议参数由适配器控制，不允许附加参数破坏协议。",
+    "权限绕过参数不作为隐藏默认项，必须显式配置并在启动预览可见；运行记录仅保存脱敏 profile ID、工具及模型等审计信息，不记录密钥或敏感环境值。",
+    "补 run/plan/launcher 的模拟调用回归，已有配置缺失路径与 US-004 失败收尾回归保持通过；pnpm test 通过。"
   ],
   "priority": 1,
-  "passes": true,
-  "everCompleted": true,
-  "status": "ready",
+  "passes": false,
+  "everCompleted": false,
+  "status": "draft",
   "notes": "",
   "sortOrder": 1,
   "removalRequestedAt": null,
-  "archivedAt": null,
-  "claimedBy": null,
-  "claimedAt": null
+  "archivedAt": null
 }

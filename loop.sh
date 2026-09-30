@@ -7,12 +7,11 @@
 set -e
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-CLI_DIR="$(cd "$SCRIPT_DIR/cli" && pwd)"
-LOOP_CLI="$CLI_DIR/dist/cli/cli.js"
+LOOP_CLI="$SCRIPT_DIR/dist/cli/cli.js"
 
 require_built_cli() {
   if [[ ! -f "$LOOP_CLI" ]]; then
-    echo "未找到 $LOOP_CLI，请先在 cli 目录执行: pnpm install && pnpm build" >&2
+    echo "未找到 $LOOP_CLI，请先在 skill 根目录执行: pnpm install && pnpm build" >&2
     exit 1
   fi
 }

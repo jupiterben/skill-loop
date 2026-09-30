@@ -2,6 +2,6 @@ node_modules
 /release
 /release.zip
 /release.tar.gz
-/cli/dist
-/cli/public
+/dist
+/public
 .loop-status/

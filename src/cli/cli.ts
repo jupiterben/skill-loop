@@ -1,0 +1,950 @@
+#!/usr/bin/env node
+/**
+ * loop CLI — 对齐 MCP 常用命令，供 Agent 通过 Shell 调用（无需 MCP）。
+ *
+ * LOOP_PROJECT_ROOT=... loop status
+ * LOOP_PROJECT_ROOT=... loop complete US-001
+ */
+import { LoopStateDb } from "../db/db.js";
+import {
+  isStoryWorkType,
+  parseRequiredStoryWorkType,
+  REQUIRED_WORK_TYPE_ERROR,
+} from "../domain/story-work-type.js";
+import { getProjectName } from "../db/get-project-name.js";
+import { effectiveExecutable, effectiveTimeoutMs } from "../domain/agent-config.js";
+import {
+  flagNum,
+  flagStr,
+  parseCliArgs,
+  repeatValues,
+  type ParsedCli,
+} from "./cli-args.js";
+import { getProjectRoot } from "../infra/paths.js";
+import { getPackageRoot } from "../infra/config.js";
+import { runLoop } from "../loop/loop-run.js";
+import {
+  getLoopRunStatus,
+  requestLoopRunStop,
+} from "../loop/run-process.js";
+import {
+  finishRunLiveForStory,
+  getAllRunLiveForDashboard,
+  readRunLive,
+} from "../loop/run-live.js";
+
+function output(data: unknown): void {
+  console.log(JSON.stringify(data, null, 2));
+}
+
+function fail(message: string): never {
+  console.error(message);
+  process.exit(1);
+}
+
+function projectName(db: LoopStateDb, parsed: ParsedCli): string {
+  return getProjectName(db, flagStr(parsed.flags, "project"));
+}
+
+type Handler = (db: LoopStateDb, projectRoot: string, parsed: ParsedCli) => unknown;
+
+const COMMANDS: Record<string, Handler> = {
+  agents(db, _root, parsed) {
+    const name = projectName(db, parsed);
+    const [sub = "list", id] = parsed.positional;
+    const config = db.getAgentConfig(name);
+    if (sub === "list") {
+      const local = db.getLocalAgentConfig(name);
+      return { ...config, localOverrides: local.overrides };
+    }
+    if (sub === "show") {
+      if (!id) fail("Usage: agents show <AG-xxx>");
+      const profile = config.profiles.find((p) => p.id === id);
+      if (!profile) fail(`Agent configuration not found: ${id}`);
+      const local = db.getLocalAgentConfig(name).overrides[id] ?? null;
+      const effective = db.getEffectiveAgentConfig(name).profiles.find((p) => p.id === id);
+      return {
+        profile,
+        local,
+        effective: effective
+          ? { ...effective, executable: effectiveExecutable(effective), timeoutMs: effectiveTimeoutMs(effective) }
+          : null,
+      };
+    }
+    if (sub === "default") {
+      if (!id) fail("Usage: agents default <AG-xxx|none>");
+      return db.setDefaultAgentProfile(name, id === "none" ? null : id);
+    }
+    if (sub === "remove") {
+      if (!id) fail("Usage: agents remove <AG-xxx>");
+      return db.deleteAgentProfile(name, id);
+    }
+    if (sub === "local") {
+      if (!id) fail("Usage: agents local <AG-xxx> [--executable ...] [--model ...] [--args ...] [--timeout-ms ...] [--env-ref NAME ...] [--clear]");
+      if (parsed.flags.clear === true) return db.clearLocalAgentOverride(name, id);
+      const patch: Record<string, unknown> = {};
+      const executable = flagStr(parsed.flags, "executable");
+      if (parsed.flags["clear-executable"] === true) patch.executable = null;
+      else if (executable !== undefined) patch.executable = executable;
+      const model = flagStr(parsed.flags, "model");
+      if (parsed.flags["clear-model"] === true) patch.model = null;
+      else if (model !== undefined) patch.model = model;
+      if (parsed.flags["clear-args"] === true) patch.args = [];
+      else if (repeatValues(parsed.repeats, "args").length) patch.args = repeatValues(parsed.repeats, "args");
+      if (parsed.flags["clear-timeout"] === true) patch.timeoutMs = null;
+      else if (parsed.flags["timeout-ms"] !== undefined && parsed.flags["timeout-ms"] !== true) {
+        const n = Number(parsed.flags["timeout-ms"]);
+        if (!Number.isFinite(n)) fail("timeout-ms 须为数字");
+        patch.timeoutMs = n;
+      }
+      if (parsed.flags["clear-env-refs"] === true) patch.envRefs = [];
+      else if (repeatValues(parsed.repeats, "env-ref", "env-refs").length) {
+        patch.envRefs = repeatValues(parsed.repeats, "env-ref", "env-refs");
+      }
+      return db.setLocalAgentOverride(name, id, patch);
+    }
+    if (sub === "add" || sub === "set" || sub === "update") {
+      const existing =
+        sub === "add" ? undefined : config.profiles.find((p) => p.id === id);
+      if (sub !== "add" && !existing) fail(`Agent configuration not found: ${id ?? ""}`);
+      const adapter = flagStr(parsed.flags, "adapter", "tool") ?? existing?.adapter;
+      if (sub === "add" && !adapter) fail("缺少 --adapter（或旧参数 --tool）");
+      const model = parsed.flags["clear-model"] === true ? null :
+        (flagStr(parsed.flags, "model") ?? existing?.model);
+      const executable = parsed.flags["clear-executable"] === true ? null :
+        (flagStr(parsed.flags, "executable") ?? existing?.executable);
+      const args = parsed.flags["clear-args"] === true ? [] :
+        (repeatValues(parsed.repeats, "args").length ? repeatValues(parsed.repeats, "args") : existing?.args ?? []);
+      const envRefs = parsed.flags["clear-env-refs"] === true ? [] :
+        (repeatValues(parsed.repeats, "env-ref", "env-refs").length
+          ? repeatValues(parsed.repeats, "env-ref", "env-refs")
+          : existing?.envRefs ?? []);
+      let timeoutMs: number | null | undefined = existing?.timeoutMs ?? null;
+      if (parsed.flags["clear-timeout"] === true) timeoutMs = null;
+      else if (parsed.flags["timeout-ms"] !== undefined && parsed.flags["timeout-ms"] !== true) {
+        const n = Number(parsed.flags["timeout-ms"]);
+        if (!Number.isFinite(n)) fail("timeout-ms 须为数字");
+        timeoutMs = n;
+      }
+      const profile = db.saveAgentProfile(name, {
+        name: flagStr(parsed.flags, "name") ?? existing?.name,
+        adapter,
+        executable,
+        model,
+        args,
+        timeoutMs,
+        envRefs,
+        enabled: parsed.flags.disabled === true ? false :
+          parsed.flags.enabled === true ? true : existing?.enabled ?? true,
+      }, existing?.id);
+      return profile;
+    }
+    fail("Usage: agents list|show|add|set|update|remove|default|local");
+  },
+
+  "set-story-agent"(db, _root, parsed) {
+    const [storyId, id] = parsed.positional;
+    if (!storyId || !id) fail("Usage: set-story-agent <US-xxx> <AG-xxx|none>");
+    return db.setStoryAgentProfile(projectName(db, parsed), storyId, id === "none" ? null : id);
+  },
+
+  status(db, _root, parsed) {
+    return db.getStatus(projectName(db, parsed));
+  },
+
+  prd(db, _root, parsed) {
+    const name = projectName(db, parsed);
+    return {
+      ...db.getProjectMeta(name),
+      milestones: db.getMilestones(name),
+      features: db.getFeatures(name),
+      userStories: db.getStories(name),
+      tree: db.getTree(name),
+    };
+  },
+
+  tree(db, _root, parsed) {
+    return { tree: db.getTree(projectName(db, parsed)) };
+  },
+
+  next(db, _root, parsed) {
+    const name = projectName(db, parsed);
+    const next = db.getNextStory(name);
+    if (next) return next;
+    const hasDraft = db.getActiveStories(name).some(
+      (s) => !s.passes && s.status === "draft"
+    );
+    if (hasDraft) {
+      return { message: "有草稿 Story 待确认（confirm-story）", story: null };
+    }
+    return { message: "所有 Story 已完成", story: null };
+  },
+
+  patterns(db, _root, parsed) {
+    return db.getPatterns(projectName(db, parsed));
+  },
+
+  init(db, _root, parsed) {
+    const project = flagStr(parsed.flags, "project");
+    if (!project) fail("缺少 --project");
+    const branchName = flagStr(parsed.flags, "branch", "branch-name") ?? "main";
+    const description = flagStr(parsed.flags, "description", "desc") ?? "";
+    const vision = flagStr(parsed.flags, "vision");
+    db.upsertProject({
+      name: project,
+      branchName,
+      description,
+      ...(vision !== undefined ? { vision } : {}),
+    });
+    return { ok: true, project, branchName, description, ...(vision ? { vision } : {}) };
+  },
+
+  "update-project"(db, _root, parsed) {
+    const patch: {
+      branchName?: string;
+      description?: string;
+      vision?: string;
+    } = {};
+    const branchName = flagStr(parsed.flags, "branch", "branch-name");
+    const description = flagStr(parsed.flags, "description", "desc");
+    const vision = flagStr(parsed.flags, "vision");
+    if (branchName !== undefined) patch.branchName = branchName;
+    if (description !== undefined) patch.description = description;
+    if (vision !== undefined) patch.vision = vision;
+    if (!Object.keys(patch).length) {
+      fail("至少提供 --description、--branch 或 --vision");
+    }
+    const name = projectName(db, parsed);
+    const updated = db.updateProjectMeta(name, patch);
+    return { ok: true, ...updated };
+  },
+
+  complete(db, root, parsed) {
+    const storyId = parsed.positional[0] ?? flagStr(parsed.flags, "story-id", "id");
+    if (!storyId) fail("用法: loop complete US-001");
+    const workerId =
+      flagStr(parsed.flags, "worker-id", "worker") ??
+      process.env.LOOP_WORKER_ID?.trim();
+    const summary =
+      flagStr(parsed.flags, "summary") ?? `Story ${storyId} 已完成`;
+    const result = db.completeStoryWithProgress(
+      projectName(db, parsed),
+      storyId,
+      {
+        summary,
+        learnings: repeatValues(parsed.repeats, "learning", "learnings"),
+        workerId,
+      }
+    );
+    finishRunLiveForStory(root, storyId);
+    return result;
+  },
+
+  "claim-story"(db, _root, parsed) {
+    const storyId = parsed.positional[0] ?? flagStr(parsed.flags, "story-id", "id");
+    const workerId =
+      flagStr(parsed.flags, "worker-id", "worker") ??
+      process.env.LOOP_WORKER_ID?.trim();
+    if (!storyId || !workerId) {
+      fail("用法: loop claim-story US-001 --worker-id w0");
+    }
+    return db.claimStory(projectName(db, parsed), storyId, workerId);
+  },
+
+  "release-claim"(db, _root, parsed) {
+    const storyId = parsed.positional[0] ?? flagStr(parsed.flags, "story-id", "id");
+    if (!storyId) fail("用法: loop release-claim US-001 [--worker-id w0]");
+    const workerId =
+      flagStr(parsed.flags, "worker-id", "worker") ??
+      process.env.LOOP_WORKER_ID?.trim();
+    return db.releaseClaim(projectName(db, parsed), storyId, workerId);
+  },
+
+  "next-stories"(db, _root, parsed) {
+    const limit = flagNum(parsed.flags, "limit") ?? 3;
+    return db.getNextStories(projectName(db, parsed), limit);
+  },
+
+  "confirm-story"(db, _root, parsed) {
+    const storyId = parsed.positional[0] ?? flagStr(parsed.flags, "story-id", "id");
+    if (!storyId) fail("用法: loop confirm-story US-001");
+    return db.confirmStory(projectName(db, parsed), storyId);
+  },
+
+  "unconfirm-story"(db, _root, parsed) {
+    const storyId = parsed.positional[0] ?? flagStr(parsed.flags, "story-id", "id");
+    if (!storyId) fail("用法: loop unconfirm-story US-001");
+    return db.unconfirmStory(projectName(db, parsed), storyId);
+  },
+
+  "add-story"(db, _root, parsed) {
+    const title = flagStr(parsed.flags, "title");
+    if (!title) fail("缺少 --title");
+    const name = projectName(db, parsed);
+    const ready = parsed.flags.ready === true;
+    const workTypeRaw = flagStr(parsed.flags, "work-type", "workType");
+    let workType;
+    try {
+      workType = parseRequiredStoryWorkType(workTypeRaw);
+    } catch (err) {
+      fail(err instanceof Error ? err.message : REQUIRED_WORK_TYPE_ERROR);
+    }
+    return db.addStory(name, {
+      parentId: flagStr(parsed.flags, "parent-id") ?? null,
+      milestoneId: flagStr(parsed.flags, "milestone-id") ?? null,
+      dependsOn: repeatValues(parsed.repeats, "depends-on"),
+      title,
+      description:
+        flagStr(parsed.flags, "description", "desc") ?? `作为用户，我需要：${title}`,
+      workType,
+      acceptanceCriteria: repeatValues(parsed.repeats, "ac", "acceptance-criteria").length
+        ? repeatValues(parsed.repeats, "ac", "acceptance-criteria")
+        : ["实现功能", "npm test 通过"],
+      priority: flagNum(parsed.flags, "priority") ?? 0,
+      notes: flagStr(parsed.flags, "notes") ?? "",
+      status: ready ? "ready" : "draft",
+    });
+  },
+
+  "add-feature"(db, _root, parsed) {
+    const title = flagStr(parsed.flags, "title");
+    if (!title) fail("缺少 --title");
+    return db.addFeature(projectName(db, parsed), {
+      parentId: flagStr(parsed.flags, "parent-id") ?? null,
+      title,
+      description: flagStr(parsed.flags, "description", "desc") ?? "",
+    });
+  },
+
+  bug(db, _root, parsed) {
+    const storyId =
+      parsed.positional[0] ?? flagStr(parsed.flags, "story-id", "id");
+    const description =
+      parsed.positional.slice(1).join(" ").trim() ||
+      flagStr(parsed.flags, "description", "desc", "message") ||
+      "";
+    if (!storyId) {
+      fail(
+        '用法: loop bug <US-xxx> "缺陷描述" [--ready] [--title "修复标题"] [--change-note "..."]'
+      );
+    }
+    if (!description) fail("缺少缺陷描述");
+    return db.reportBug(projectName(db, parsed), storyId, description, {
+      ready: parsed.flags.ready === true,
+      changeNote: flagStr(parsed.flags, "change-note", "note"),
+      fixTitle: flagStr(parsed.flags, "title"),
+    });
+  },
+
+  "update-feature"(db, _root, parsed) {
+    const featureId =
+      parsed.positional[0] ?? flagStr(parsed.flags, "feature-id", "id");
+    if (!featureId) fail("用法: loop update-feature FT-001 [--title \"...\"]");
+    const patch: { title?: string; description?: string } = {};
+    const title = flagStr(parsed.flags, "title");
+    const description = flagStr(parsed.flags, "description", "desc");
+    if (title !== undefined) patch.title = title;
+    if (description !== undefined) patch.description = description;
+    if (!Object.keys(patch).length) fail("至少提供 --title 或 --description");
+    return db.updateFeature(projectName(db, parsed), featureId, patch);
+  },
+
+  "update-story"(db, _root, parsed) {
+    const storyId =
+      parsed.positional[0] ?? flagStr(parsed.flags, "story-id", "id");
+    if (!storyId) fail("用法: loop update-story US-001 [--title \"...\"] --status draft|ready");
+    const status = flagStr(parsed.flags, "status");
+    if (!status || (status !== "draft" && status !== "ready")) {
+      fail("缺少或无效 --status（draft | ready）");
+    }
+    const patch: {
+      title?: string;
+      description?: string;
+      workType?: import("../domain/types.js").StoryWorkType;
+      acceptanceCriteria?: string[];
+      changeNote?: string;
+      status: "draft" | "ready";
+    } = { status };
+    const title = flagStr(parsed.flags, "title");
+    const description = flagStr(parsed.flags, "description", "desc");
+    const changeNote = flagStr(parsed.flags, "change-note", "note");
+    const workTypeRaw = flagStr(parsed.flags, "work-type", "workType");
+    const ac = repeatValues(parsed.repeats, "ac", "acceptance-criteria");
+    if (title !== undefined) patch.title = title;
+    if (description !== undefined) patch.description = description;
+    if (changeNote !== undefined) patch.changeNote = changeNote;
+    if (workTypeRaw !== undefined) {
+      if (!isStoryWorkType(workTypeRaw)) {
+        fail(
+          "work-type 必须为 implementation、documentation、planning、testing 或 refactor"
+        );
+      }
+      patch.workType = workTypeRaw;
+    }
+    if (ac.length) patch.acceptanceCriteria = ac;
+    if (
+      patch.title === undefined &&
+      patch.description === undefined &&
+      patch.workType === undefined &&
+      !patch.acceptanceCriteria?.length
+    ) {
+      fail("至少提供 --title、--description、--work-type 或 --ac");
+    }
+    return db.updateStory(projectName(db, parsed), storyId, patch);
+  },
+
+  "move-story"(db, _root, parsed) {
+    const storyId =
+      parsed.positional[0] ?? flagStr(parsed.flags, "story-id", "id");
+    if (!storyId) fail("用法: loop move-story US-001 --parent-id FT-004");
+    const parentId = flagStr(parsed.flags, "parent-id");
+    if (!parentId) fail("缺少 --parent-id");
+    return db.moveStory(projectName(db, parsed), storyId, parentId);
+  },
+
+  "delete-story"(db, _root, parsed) {
+    const storyId =
+      parsed.positional[0] ?? flagStr(parsed.flags, "story-id", "id");
+    if (!storyId) fail("用法: loop delete-story US-001");
+    db.deleteStory(projectName(db, parsed), storyId);
+    return { ok: true, deleted: storyId };
+  },
+
+  "delete-feature"(db, _root, parsed) {
+    const featureId =
+      parsed.positional[0] ?? flagStr(parsed.flags, "feature-id", "id");
+    if (!featureId) fail("用法: loop delete-feature FT-001");
+    const deletedIds = db.deleteFeature(projectName(db, parsed), featureId);
+    return { ok: true, deletedIds };
+  },
+
+  "add-milestone"(db, _root, parsed) {
+    const title = flagStr(parsed.flags, "title");
+    if (!title) fail("缺少 --title");
+    return db.addMilestone(projectName(db, parsed), {
+      title,
+      description: flagStr(parsed.flags, "description", "desc") ?? "",
+      targetDate: flagStr(parsed.flags, "target-date", "targetDate"),
+      version: flagStr(parsed.flags, "version"),
+    });
+  },
+
+  "update-milestone"(db, _root, parsed) {
+    const milestoneId =
+      parsed.positional[0] ?? flagStr(parsed.flags, "milestone-id", "id");
+    if (!milestoneId) {
+      fail(
+        "用法: loop update-milestone MS-001 [--title \"...\"] [--target-date YYYY-MM-DD] [--version v0.1]"
+      );
+    }
+    const patch: {
+      title?: string;
+      description?: string;
+      targetDate?: string;
+      version?: string;
+    } = {};
+    const title = flagStr(parsed.flags, "title");
+    const description = flagStr(parsed.flags, "description", "desc");
+    const targetDate = flagStr(parsed.flags, "target-date", "targetDate");
+    const version = flagStr(parsed.flags, "version");
+    if (title !== undefined) patch.title = title;
+    if (description !== undefined) patch.description = description;
+    if (targetDate !== undefined) patch.targetDate = targetDate;
+    if (version !== undefined) patch.version = version;
+    if (!Object.keys(patch).length) {
+      fail("至少提供 --title、--description、--target-date 或 --version");
+    }
+    return db.updateMilestone(projectName(db, parsed), milestoneId, patch);
+  },
+
+  progress(db, _root, parsed) {
+    const summary = flagStr(parsed.flags, "summary");
+    if (!summary) fail("缺少 --summary");
+    return db.appendProgress(projectName(db, parsed), {
+      storyId: flagStr(parsed.flags, "story-id") ?? null,
+      entryDate:
+        flagStr(parsed.flags, "date", "entry-date") ??
+        new Date().toISOString().slice(0, 10),
+      summary,
+      learnings: repeatValues(parsed.repeats, "learning", "learnings"),
+    });
+  },
+
+  "add-pattern"(db, _root, parsed) {
+    const content =
+      flagStr(parsed.flags, "content") ?? parsed.positional.join(" ");
+    if (!content) fail("用法: loop add-pattern \"模式描述\"");
+    const name = projectName(db, parsed);
+    db.addPattern(name, content);
+    return { ok: true, patterns: db.getPatterns(name) };
+  },
+
+  "update-pattern"(db, _root, parsed) {
+    const index = flagNum(parsed.flags, "index");
+    if (index === undefined || index < 0 || !Number.isInteger(index)) {
+      fail("用法: loop update-pattern --index 0 \"新模式描述\"");
+    }
+    const content =
+      flagStr(parsed.flags, "content") ?? parsed.positional.join(" ");
+    if (!content) fail("用法: loop update-pattern --index 0 \"新模式描述\"");
+    const name = projectName(db, parsed);
+    db.updatePattern(name, index, content);
+    return { ok: true, patterns: db.getPatterns(name) };
+  },
+
+  "delete-pattern"(db, _root, parsed) {
+    const index =
+      flagNum(parsed.flags, "index") ??
+      (parsed.positional[0] !== undefined
+        ? Number(parsed.positional[0])
+        : undefined);
+    if (index === undefined || index < 0 || !Number.isInteger(index)) {
+      fail("用法: loop delete-pattern --index 0");
+    }
+    const name = projectName(db, parsed);
+    db.deletePattern(name, index);
+    return { ok: true, patterns: db.getPatterns(name) };
+  },
+
+  spec(db, _root, parsed) {
+    const name = projectName(db, parsed);
+    return db.getProjectSpec(name);
+  },
+
+  "update-spec"(db, _root, parsed) {
+    const content =
+      flagStr(parsed.flags, "content") ?? parsed.positional.join("\n");
+    if (!content && content !== "") {
+      fail('用法: loop update-spec "规范内容" 或 --content "..."');
+    }
+    const name = projectName(db, parsed);
+    const spec = db.updateProjectSpec(name, content);
+    return { ok: true, projectSpec: spec };
+  },
+
+  "spec-templates"(db) {
+    return db.getProjectSpecTemplates();
+  },
+
+  "apply-spec-template"(db, _root, parsed) {
+    const templateId =
+      parsed.positional[0] ?? flagStr(parsed.flags, "template-id", "id");
+    if (!templateId) {
+      fail("用法: loop apply-spec-template <template-id> [--append]");
+    }
+    const name = projectName(db, parsed);
+    const spec = db.applyProjectSpecTemplate(name, templateId, {
+      append: parsed.flags.append === true,
+    });
+    return { ok: true, projectSpec: spec };
+  },
+
+  "start-run"(db, _root, parsed) {
+    const iteration = flagNum(parsed.flags, "iteration");
+    if (!iteration || iteration < 1) fail("缺少 --iteration（正整数）");
+    return db.startRun(
+      projectName(db, parsed),
+      iteration,
+      flagStr(parsed.flags, "tool") ?? null
+    );
+  },
+
+  "end-run"(db, _root, parsed) {
+    const runId = flagNum(parsed.flags, "run-id");
+    const status = flagStr(parsed.flags, "status");
+    if (!runId || runId < 1) fail("缺少 --run-id");
+    if (!status || !["completed", "failed", "max_iterations"].includes(status)) {
+      fail("缺少或无效 --status（completed | failed | max_iterations）");
+    }
+    return db.endRun(
+      runId,
+      status as "completed" | "failed" | "max_iterations",
+      flagStr(parsed.flags, "message")
+    );
+  },
+
+  "request-removal"(db, _root, parsed) {
+    const storyId = parsed.positional[0] ?? flagStr(parsed.flags, "story-id");
+    if (!storyId) fail("用法: loop request-removal US-001");
+    return db.requestStoryRemoval(
+      projectName(db, parsed),
+      storyId,
+      flagStr(parsed.flags, "reason")
+    );
+  },
+
+  archive(db, _root, parsed) {
+    const storyId = parsed.positional[0] ?? flagStr(parsed.flags, "story-id");
+    if (!storyId) fail("用法: loop archive US-001");
+    return db.archiveStory(
+      projectName(db, parsed),
+      storyId,
+      flagStr(parsed.flags, "reason")
+    );
+  },
+
+  restore(db, _root, parsed) {
+    const storyId = parsed.positional[0] ?? flagStr(parsed.flags, "story-id");
+    if (!storyId) fail("用法: loop restore US-001");
+    return db.restoreStory(projectName(db, parsed), storyId);
+  },
+};
+
+const ALIASES: Record<string, string> = {
+  ls: "status",
+  "confirm": "confirm-story",
+  "unconfirm": "unconfirm-story",
+};
+
+const WATCH_COMMANDS = new Set(["watch"]);
+
+function printHelp(): void {
+  console.log(`loop — Loop 工程迭代状态 CLI（通过 Shell 调用，无需 MCP）
+
+环境变量:
+  LOOP_PROJECT_ROOT   项目根目录（状态在 loop-data/）
+
+用法:
+  loop <command> [options]
+
+查询:
+  agents list                         项目 Agent 配置（共享 + 本机覆盖）
+  agents show <AG-xxx>                 查看单个配置（共享 / 本机覆盖 / 生效值）
+  status [--project NAME]              总览进度
+  next                                 下一待做 Story
+  patterns                             Codebase Patterns
+  spec                                 项目规范内容
+  spec-templates                       项目规范模板列表
+  prd | tree                           完整 PRD / 脑图树
+
+写入:
+  agents add --name "..." --adapter codex [--model "..."] [--executable "..."] [--args "..."] [--timeout-ms N] [--env-ref NAME]
+  agents set|update <AG-xxx> [--name "..."] [--adapter ...] [--model "..."] [--clear-model] [--enabled|--disabled]
+  agents remove <AG-xxx>               删除未被引用的 Agent 配置
+  agents default <AG-xxx|none>         设置 / 清除项目默认配置
+  agents local <AG-xxx> [--executable ...] [--model ...] [--args ...] [--timeout-ms ...] [--env-ref ...] [--clear]
+                      设置本机覆盖（写入不入库的 .loop-status/agent-config.local.json）
+  set-story-agent <US-xxx> <AG-xxx|none> 设置 Story 的 Agent 配置
+  complete <US-xxx>                    标记 Story 完成
+  confirm-story <US-xxx>               确认草稿 Story 为可执行
+  unconfirm-story <US-xxx>             未开发的 Story 退回草稿
+  progress --summary "..." [--story-id US-xxx] [--learning "..."]
+  add-pattern "可复用模式"
+  update-pattern --index 0 "更新后的模式"
+  delete-pattern --index 0
+  update-spec "规范内容" | --content "..."
+  apply-spec-template <id> [--append]   应用规范模板（general / typescript-react 等）
+  add-story --title "..." [--ready] [--parent-id FT-001] [--depends-on US-001] [--ac "..."]
+  bug <US-xxx> "缺陷描述" [--ready] [--title "修复标题"] [--change-note "..."]
+  add-feature --title "..." [--parent-id FT-001]
+  update-story <US-xxx> [--title "..."] [--description "..."] [--ac "..."] --status draft|ready [--change-note "..."]
+  update-feature <FT-xxx> [--title "..."] [--description "..."]
+  move-story <US-xxx> --parent-id FT-004
+  delete-story <US-xxx>
+  delete-feature <FT-xxx>              删除空叶子 Feature（无子 FT、无子 US）
+  add-milestone --title "..." [--target-date YYYY-MM-DD] [--version v0.1]
+  update-milestone <MS-xxx> [--title "..."] [--description "..."] [--target-date YYYY-MM-DD] [--version v0.1]
+  update-project [--description "..."] [--branch "..."] [--vision "..."]
+
+外循环:
+  run|watch --agent-profile <AG-xxx>    按项目 Agent 配置执行（不可同时指定 --tool）
+  watch [--tool agent|claude|codebuddy|opencode|minimax|codex] [--workers N]
+                      持续外循环，监听 Story 不退出的（等同 run --until-stop；全部完成后仍等待新 Story）
+  run [--tool agent|claude|codebuddy|opencode|minimax|codex] [--max-iterations 10] [--workers N] [N]
+                      外循环（默认最多 10 轮，workers 默认 1）
+  run --until-stop [--tool agent] [--workers 3]
+                      持续外循环，直到 loop run stop
+  run stop [--worker w0]              请求停止外循环（或单个 worker）
+  run status                          查看外循环运行状态
+  run output [--worker w0] [--text]   读取当前 Agent live 输出
+  next-stories [--limit 3]            查看可并行执行的 Story 列表
+  claim-story <US-xxx> --worker-id w0 认领 Story（并行模式）
+  release-claim <US-xxx> [--worker-id w0]
+
+规划:
+  plan --agent-profile <AG-xxx> [--requirement "..."]
+  plan [--tool agent] [--story-id US-xxx] [--requirement "..."]
+                      需求拆分 Agent（单次，使用 templates/PLANNER.md）
+
+迭代记账:
+  start-run --iteration 1 [--tool cursor]
+  end-run --run-id 1 --status completed [--message "..."]
+
+其他:
+  init --project NAME [--branch main] [--description "..."]
+  request-removal <US-xxx> [--reason "..."]
+  archive <US-xxx> | restore <US-xxx>
+  dashboard [start] [--port 3460] [--no-open]   后台启动看板
+  dashboard dev                                   开发模式（热更新 UI，http://localhost:5173）
+  dashboard stop | stop-dashboard                 关闭看板
+  dashboard status                                查看看板状态
+
+示例（PowerShell）:
+  $env:LOOP_PROJECT_ROOT = (Get-Location).Path
+  pnpm loop status
+  pnpm loop next
+  pnpm loop complete US-003
+  pnpm loop bug US-001 "拖拽后节点弹回原位"
+  pnpm loop progress --story-id US-003 --summary "实现登录页"
+  pnpm loop run --tool agent 10
+  pnpm loop watch --tool agent
+  pnpm loop run --until-stop --tool agent
+  pnpm loop run --workers 3 --until-stop --tool agent
+  pnpm loop run stop
+`);
+}
+
+async function handleRunCommand(
+  db: LoopStateDb,
+  projectRoot: string,
+  parsed: ParsedCli
+): Promise<void> {
+  const sub = parsed.positional[0]?.toLowerCase();
+
+  if (sub === "stop") {
+    const workerId = flagStr(parsed.flags, "worker");
+    output(requestLoopRunStop(projectRoot, workerId));
+    return;
+  }
+
+  if (sub === "status") {
+    output(getLoopRunStatus(projectRoot));
+    return;
+  }
+
+  if (sub === "output") {
+    const workerId = flagStr(parsed.flags, "worker-id", "worker");
+    const textOnly = parsed.flags.text === true;
+
+    if (workerId) {
+      const live = readRunLive(projectRoot, workerId);
+      if (!live) fail(`无 live 输出（worker: ${workerId}）`);
+      if (textOnly) {
+        process.stdout.write(live.output);
+        return;
+      }
+      output(live);
+      return;
+    }
+
+    const workers = getAllRunLiveForDashboard(projectRoot);
+    if (!workers.length) {
+      if (textOnly) return;
+      output({ message: "外循环未运行或尚无 live 输出", workers: [] });
+      return;
+    }
+
+    if (textOnly) {
+      if (workers.length === 1) {
+        process.stdout.write(workers[0]!.output);
+        return;
+      }
+      for (const w of workers) {
+        const label = w.workerId ?? w.storyId ?? String(w.iteration);
+        process.stdout.write(`\n=== ${label} ===\n${w.output}`);
+      }
+      return;
+    }
+
+    output({ workers });
+    return;
+  }
+
+  const untilStop = parsed.flags["until-stop"] === true;
+
+  if (sub && !untilStop && !/^\d+$/.test(sub)) {
+    fail(`未知 run 子命令: ${sub}（支持 stop | status | output）`);
+  }
+
+  const maxFromFlag =
+    flagNum(parsed.flags, "max-iterations") ?? flagNum(parsed.flags, "max");
+  const maxFromPos =
+    sub && /^\d+$/.test(sub) ? Number(sub) : undefined;
+
+  if (!untilStop) {
+    const maxIterations = maxFromFlag ?? maxFromPos ?? 10;
+    if (!Number.isFinite(maxIterations) || maxIterations < 1) {
+      fail("max-iterations 须为正整数");
+    }
+
+    const result = await runLoop(db, projectRoot, {
+      tool: flagStr(parsed.flags, "tool"),
+      agentProfileId: flagStr(parsed.flags, "agent-profile"),
+      maxIterations,
+      projectName: flagStr(parsed.flags, "project"),
+      workers: flagNum(parsed.flags, "workers"),
+    });
+
+    output(result);
+    if (!result.completed) process.exit(1);
+    return;
+  }
+
+  if (maxFromFlag != null || maxFromPos != null) {
+    fail("--until-stop 不能与 max-iterations 或轮数参数同时使用");
+  }
+
+  const result = await runLoop(db, projectRoot, {
+    tool: flagStr(parsed.flags, "tool"),
+    agentProfileId: flagStr(parsed.flags, "agent-profile"),
+    untilStop: true,
+    projectName: flagStr(parsed.flags, "project"),
+    workers: flagNum(parsed.flags, "workers"),
+  });
+
+  output(result);
+  if (!result.completed) process.exit(1);
+}
+
+async function handleDashboardCommand(
+  projectRoot: string,
+  sub: string,
+  parsed: ParsedCli
+): Promise<void> {
+  const port =
+    flagNum(parsed.flags, "port") ??
+    Number(process.env.LOOP_DASHBOARD_PORT ?? 3460);
+  const open = parsed.flags.open !== false && parsed.flags["no-open"] !== true;
+
+  if (sub === "stop" || sub === "close") {
+    const { stopDashboard } = await import("../api/dashboard-process.js");
+    output(await stopDashboard(projectRoot));
+    return;
+  }
+
+  if (sub === "status") {
+    const { getDashboardStatus } = await import("../api/dashboard-process.js");
+    output(getDashboardStatus(projectRoot));
+    return;
+  }
+
+  if (sub === "dev") {
+    const { spawn } = await import("node:child_process");
+    const pkgRoot = getPackageRoot();
+    const cmd = process.platform === "win32" ? "pnpm.cmd" : "pnpm";
+    console.error(
+      `Dashboard 开发模式 — ${projectRoot} — http://localhost:5173（Ctrl+C 关闭）`
+    );
+    const child = spawn(cmd, ["dev"], {
+      cwd: pkgRoot,
+      stdio: "inherit",
+      shell: process.platform === "win32",
+      env: { ...process.env, LOOP_PROJECT_ROOT: projectRoot },
+    });
+    await new Promise<void>((resolve, reject) => {
+      child.on("error", reject);
+      child.on("close", (code) => {
+        if (code === 0 || code == null) resolve();
+        else process.exit(code);
+      });
+    });
+    return;
+  }
+
+  if (parsed.flags.foreground === true) {
+    const { startDashboardServer } = await import("../api/server.js");
+    const result = await startDashboardServer({
+      port,
+      openBrowser: open,
+      projectRoot,
+    });
+    if (!result.started) {
+      output({ url: result.url, started: false, message: "Dashboard 已在运行" });
+      return;
+    }
+    console.error(`Dashboard: ${result.url}（前台运行，Ctrl+C 关闭）`);
+    return;
+  }
+
+  const { startDashboardBackground } = await import("../api/dashboard-process.js");
+  output(await startDashboardBackground(projectRoot, { port, open }));
+}
+
+const DASHBOARD_START = new Set(["dashboard", "start-dashboard"]);
+const DASHBOARD_STOP = new Set([
+  "stop-dashboard",
+  "dashboard-stop",
+  "close-dashboard",
+]);
+
+async function main(): Promise<void> {
+  const parsed = parseCliArgs(process.argv.slice(2));
+  if (!parsed.command || parsed.flags.help === true || parsed.command === "help") {
+    printHelp();
+    process.exit(parsed.command ? 0 : 1);
+  }
+
+  let command = ALIASES[parsed.command] ?? parsed.command;
+
+  if (WATCH_COMMANDS.has(command)) {
+    parsed.flags["until-stop"] = true;
+    command = "run";
+  }
+
+  if (command === "run") {
+    const projectRoot = getProjectRoot();
+    const db = new LoopStateDb(projectRoot);
+    try {
+      await handleRunCommand(db, projectRoot, parsed);
+    } catch (err) {
+      fail(err instanceof Error ? err.message : String(err));
+    } finally {
+      db.close();
+    }
+    return;
+  }
+
+  if (command === "plan") {
+    const projectRoot = getProjectRoot();
+    const db = new LoopStateDb(projectRoot);
+    try {
+      const { runPlan } = await import("../loop/loop-plan.js");
+      output(
+        await runPlan(db, projectRoot, {
+          tool: flagStr(parsed.flags, "tool"),
+          agentProfileId: flagStr(parsed.flags, "agent-profile"),
+          storyId:
+            flagStr(parsed.flags, "story-id", "id") ?? parsed.positional[0],
+          requirement: flagStr(parsed.flags, "requirement", "req"),
+          projectName: flagStr(parsed.flags, "project"),
+        })
+      );
+    } catch (err) {
+      fail(err instanceof Error ? err.message : String(err));
+    } finally {
+      db.close();
+    }
+    return;
+  }
+
+  if (DASHBOARD_START.has(command) || DASHBOARD_STOP.has(command)) {
+    try {
+      const projectRoot = getProjectRoot();
+      const sub = DASHBOARD_STOP.has(command)
+        ? "stop"
+        : (parsed.positional[0] ?? "start");
+      await handleDashboardCommand(projectRoot, sub, parsed);
+    } catch (err) {
+      fail(err instanceof Error ? err.message : String(err));
+    }
+    return;
+  }
+
+  const handler = COMMANDS[command];
+  if (!handler) fail(`未知命令: ${parsed.command}（loop help 查看帮助）`);
+
+  const projectRoot = getProjectRoot();
+  const db = new LoopStateDb(projectRoot);
+
+  try {
+    output(handler(db, projectRoot, parsed));
+  } catch (err) {
+    fail(err instanceof Error ? err.message : String(err));
+  } finally {
+    db.close();
+  }
+}
+
+main().catch((err) => {
+  fail(err instanceof Error ? err.message : String(err));
+});

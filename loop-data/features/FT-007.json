@@ -1,7 +1,0 @@
-{
-  "id": "FT-007",
-  "parentId": "FT-005",
-  "title": "Codebase Patterns",
-  "description": "左侧边栏 Patterns 面板的展示与增删改查",
-  "sortOrder": 1
-}
