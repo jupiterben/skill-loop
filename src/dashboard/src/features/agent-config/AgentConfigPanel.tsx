@@ -25,7 +25,7 @@ export function AgentConfigPanel({ config, onRefresh, installedTools = [] }: {
     warning?: string;
   } | null>(null);
   const [modelsLoading, setModelsLoading] = useState(false);
-  const editingTool = draft?.tool;
+  const editingTool = draft?.adapter;
   const defaultProfile = config.profiles.find((p) => p.id === config.defaultProfileId);
 
   useEffect(() => {
@@ -62,7 +62,10 @@ export function AgentConfigPanel({ config, onRefresh, installedTools = [] }: {
     setFormError(null);
     const tool = installedTools.includes("codex") ? "codex" : installedTools[0];
     if (profile) setDraft({ ...profile });
-    else if (tool) setDraft({ name: "", tool, model: null, enabled: true });
+    else if (tool) setDraft({
+      name: "", adapter: tool, executable: null, model: null,
+      args: [], timeoutMs: null, envRefs: [], enabled: true,
+    });
   };
 
   const save = async () => {
@@ -71,7 +74,7 @@ export function AgentConfigPanel({ config, onRefresh, installedTools = [] }: {
     setFormError(null);
     try {
       if (!draft.name.trim()) throw new Error("请填写配置名称");
-      if (!isAgentToolInstalled(draft.tool, installedTools)) throw new Error("该 CLI 未在本机找到");
+      if (!isAgentToolInstalled(draft.adapter, installedTools)) throw new Error("该 CLI 未在本机找到");
       await api.saveAgentProfile({ ...draft, name: draft.name.trim(), model: normalizeAgentModel(draft.model) });
       setDraft(null);
       await onRefresh();
@@ -99,13 +102,13 @@ export function AgentConfigPanel({ config, onRefresh, installedTools = [] }: {
           value={{
             value: config.defaultProfileId ?? "",
             label: defaultProfile
-              ? agentProfileLabel(defaultProfile) + (isAgentToolInstalled(defaultProfile.tool, installedTools) ? "" : " · 未安装")
+              ? agentProfileLabel(defaultProfile) + (isAgentToolInstalled(defaultProfile.adapter, installedTools) ? "" : " · 未安装")
               : "自动选择",
           }}
           disabled={busy}
           options={[
             { value: "", label: "自动选择" },
-            ...config.profiles.filter((p) => p.enabled && isAgentToolInstalled(p.tool, installedTools)).map((p) => ({ value: p.id, label: agentProfileLabel(p) })),
+            ...config.profiles.filter((p) => p.enabled && isAgentToolInstalled(p.adapter, installedTools)).map((p) => ({ value: p.id, label: agentProfileLabel(p) })),
           ]}
           onChange={({ value }) => void mutate(() => api.setDefaultAgentProfile(value || null))}
         />
@@ -121,7 +124,7 @@ export function AgentConfigPanel({ config, onRefresh, installedTools = [] }: {
                   {config.defaultProfileId === profile.id && <Tag color="green">默认</Tag>}
                   <code>{profile.id}</code>
                 </td>
-                <td>{profile.tool}{!isAgentToolInstalled(profile.tool, installedTools) && <Tag color="warning">未安装</Tag>}</td>
+                <td>{profile.adapter}{!isAgentToolInstalled(profile.adapter, installedTools) && <Tag color="warning">未安装</Tag>}</td>
                 <td>{profile.model ?? "CLI 默认模型"}</td>
                 <td><Switch
                   size="small"
@@ -151,10 +154,10 @@ export function AgentConfigPanel({ config, onRefresh, installedTools = [] }: {
           <Input id="agent-profile-name" autoFocus maxLength={100} value={draft.name} disabled={busy}
             onChange={(event) => setDraft({ ...draft, name: event.target.value })} />
           <label htmlFor="agent-profile-tool">Agent CLI</label>
-          <Select id="agent-profile-tool" aria-label="Agent CLI" value={draft.tool} disabled={busy}
+          <Select id="agent-profile-tool" aria-label="Agent CLI" value={draft.adapter} disabled={busy}
             options={installedTools.map((tool) => ({ value: tool, label: tool }))}
-            onChange={(tool) => setDraft({ ...draft, tool, model: null })} />
-          {!isAgentToolInstalled(draft.tool, installedTools) &&
+            onChange={(tool) => setDraft({ ...draft, adapter: tool, model: null })} />
+          {!isAgentToolInstalled(draft.adapter, installedTools) &&
             <Alert type="warning" showIcon title="当前配置的 CLI 未在本机找到" />}
           <label htmlFor="agent-profile-model">模型</label>
           <Select
@@ -169,7 +172,7 @@ export function AgentConfigPanel({ config, onRefresh, installedTools = [] }: {
             searchValue={modelSearch}
             onSearch={setModelSearch}
             options={buildModelOptions(
-              modelCatalog?.tool === draft.tool ? modelCatalog.models : [],
+              modelCatalog?.tool === draft.adapter ? modelCatalog.models : [],
               draft.model,
               modelSearch
             )}
@@ -178,7 +181,7 @@ export function AgentConfigPanel({ config, onRefresh, installedTools = [] }: {
               setModelSearch("");
             }}
           />
-          {modelCatalog?.tool === draft.tool && modelCatalog.warning &&
+          {modelCatalog?.tool === draft.adapter && modelCatalog.warning &&
             <Alert type="warning" showIcon title={modelCatalog.warning} />}
           <div className="agent-config__enabled">
             <label htmlFor="agent-profile-enabled">启用</label>

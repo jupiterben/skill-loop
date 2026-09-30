@@ -90,7 +90,7 @@ export function normalizeAgentModel(value: unknown): string | null {
 }
 
 export function normalizeExecutable(value: unknown): string | null {
-  if (value === undefined || value === null || value === "") return null;
+  if (value === undefined || value === null) return null;
   if (typeof value !== "string") throw new Error("executable must be a string");
   const executable = value.trim();
   if (!executable) throw new Error("executable must not be empty");

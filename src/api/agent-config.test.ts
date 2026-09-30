@@ -35,7 +35,7 @@ describe("Agent configuration HTTP API", () => {
   }
   it("creates, updates, selects, clears and deletes a project profile", async () => {
     const created = await request("/api/agents", {
-      name: "Project reviewer", tool: "codex", model: "review-model", enabled: true,
+      name: "Project reviewer", adapter: "codex", model: "review-model", enabled: true,
     });
     expect(created.status).toBe(200);
     const profile = created.body.profile;
@@ -52,8 +52,23 @@ describe("Agent configuration HTTP API", () => {
     await request("/api/agents/default", { id: null });
     expect((await request("/api/agents", { id: profile.id }, "DELETE")).status).toBe(200);
   });
+  it("persists the extended schema and rejects invalid adapter fields", async () => {
+    const created = await request("/api/agents", {
+      name: "Local", adapter: "opencode", executable: "opencode.cmd",
+      args: ["--sandbox", "on"], timeoutMs: 90_000, envRefs: ["OPENAI_API_KEY"], enabled: true,
+    });
+    expect(created.status).toBe(200);
+    expect(created.body.profile).toMatchObject({
+      adapter: "opencode", executable: "opencode.cmd", args: ["--sandbox", "on"],
+      timeoutMs: 90_000, envRefs: ["OPENAI_API_KEY"],
+    });
+    expect((await request("/api/agents", { name: "Bad", adapter: "codex", timeoutMs: 0 })).status).toBe(400);
+    expect((await request("/api/agents", { name: "Bad", adapter: "codex", args: "x" })).status).toBe(400);
+    expect((await request("/api/agents", { name: "Bad", adapter: "codex", envRefs: ["LOOP_PROJECT_ROOT"] })).status).toBe(400);
+  });
+
   it("persists Story profile selection while keeping the Story draft", async () => {
-    const profile = db.saveAgentProfile("demo", { name: "Agent", tool: "codex" });
+    const profile = db.saveAgentProfile("demo", { name: "Agent", adapter: "codex" });
     const story = db.addStory("demo", {
       title: "Example", description: "", workType: "testing", acceptanceCriteria: ["AC"], status: "draft",
     });
@@ -67,7 +82,7 @@ describe("Agent configuration HTTP API", () => {
   });
   it("rejects malicious model values and conflicting launch parameters before execution", async () => {
     expect((await request("/api/agents", {
-      name: "Invalid", tool: "codex", model: "x & echo injected",
+      name: "Invalid", adapter: "codex", model: "x & echo injected",
     })).status).toBe(400);
     const result = await request("/api/loop-run/start", {
       agentProfileId: "AG-001", tool: "codex",
@@ -77,8 +92,8 @@ describe("Agent configuration HTTP API", () => {
   });
 
   it("lists only the selected CLI's saved models and rejects unknown tools", async () => {
-    db.saveAgentProfile("demo", { name: "Writer", tool: "claude", model: "saved-model" });
-    db.saveAgentProfile("demo", { name: "Reviewer", tool: "codex", model: "other-model" });
+    db.saveAgentProfile("demo", { name: "Writer", adapter: "claude", model: "saved-model" });
+    db.saveAgentProfile("demo", { name: "Reviewer", adapter: "codex", model: "other-model" });
     const response = await fetch(base + "/api/agent-models?tool=claude");
     expect(response.status).toBe(200);
     expect((await response.json()).models).toEqual([{ id: "saved-model", name: "saved-model" }]);

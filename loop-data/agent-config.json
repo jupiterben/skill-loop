@@ -6,15 +6,23 @@
     {
       "id": "AG-001",
       "name": "Codex",
-      "tool": "codex",
+      "adapter": "codex",
+      "executable": null,
       "model": "gpt-6-astra",
+      "args": [],
+      "timeoutMs": null,
+      "envRefs": [],
       "enabled": true
     },
     {
       "id": "AG-002",
       "name": "claude",
-      "tool": "claude",
+      "adapter": "claude",
+      "executable": null,
       "model": null,
+      "args": [],
+      "timeoutMs": null,
+      "envRefs": [],
       "enabled": true
     }
   ]

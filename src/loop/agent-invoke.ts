@@ -4,6 +4,7 @@ import { normalizeAgentModel } from "../domain/agent-config.js";
 import { invokeClaudeProcess, invokeCodebuddyProcess } from "./claude-invoke.js";
 import { invokeCodexProcess } from "./codex-invoke.js";
 import { invokeOpencodeProcess } from "./opencode-invoke.js";
+import { armProcessTimeout } from "./invoke-timeout.js";
 
 export function invokeAgentProcess(
   tool: RunTool,
@@ -13,6 +14,9 @@ export function invokeAgentProcess(
     env?: NodeJS.ProcessEnv;
     model?: string | null;
     onDisplay: (text: string) => void;
+    executable?: string | null;
+    args?: string[];
+    timeoutMs?: number | null;
   }
 ): Promise<string> {
   const model = normalizeAgentModel(options.model) ?? undefined;
@@ -21,6 +25,9 @@ export function invokeAgentProcess(
     env: options.env,
     model,
     handlers: { onDisplay: options.onDisplay },
+    executable: options.executable,
+    args: options.args,
+    timeoutMs: options.timeoutMs,
   };
   if (tool === "codex") return invokeCodexProcess(prompt, common);
   if (tool === "claude") return invokeClaudeProcess(prompt, common);
@@ -32,8 +39,14 @@ export function invokeAgentProcess(
     });
   }
   return new Promise((resolve, reject) => {
-    const args = ["-p", "--force", ...(model ? ["--model", model] : []), prompt];
-    const child = spawn("agent", args, {
+    const args = [
+      "-p",
+      "--force",
+      ...(model ? ["--model", model] : []),
+      ...(options.args ?? []),
+      prompt,
+    ];
+    const child = spawn(options.executable?.trim() || "agent", args, {
       cwd: options.cwd,
       env: options.env,
       shell: process.platform === "win32",
@@ -53,5 +66,8 @@ export function invokeAgentProcess(
       if (code !== 0) reject(new Error(`agent exit code ${code ?? "unknown"}`));
       else resolve(output);
     });
+    armProcessTimeout(child, options.timeoutMs, () =>
+      reject(new Error(`agent 超时（${options.timeoutMs}ms）`))
+    );
   });
 }

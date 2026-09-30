@@ -27,7 +27,13 @@ import {
 } from "./run-live.js";
 import { invokeAgentProcess } from "./agent-invoke.js";
 import { RUN_TOOLS, type RunTool } from "../domain/run-tool.js";
-import { selectAgent, type AgentChoice, type AgentConfig } from "../domain/agent-config.js";
+import {
+  selectAgent,
+  isReservedEnvName,
+  type AgentChoice,
+  type AgentConfig,
+  type AgentProfile,
+} from "../domain/agent-config.js";
 import {
   cleanupAllWorktrees,
   createWorktree,
@@ -231,13 +237,16 @@ export async function invokeToolWithPrompt(
   projectRoot: string,
   env: NodeJS.ProcessEnv,
   workerId?: string,
-  model?: string | null
+  profile?: AgentProfile | null
 ): Promise<string> {
   patchRunLivePhase(projectRoot, "invoking", workerId);
   return invokeAgentProcess(tool, prompt, {
     cwd,
     env,
-    model,
+    model: profile?.model,
+    executable: profile?.executable,
+    args: profile?.args,
+    timeoutMs: profile?.timeoutMs,
     onDisplay: (text) => {
       appendRunLiveOutput(projectRoot, text, workerId);
       if (text.trim()) process.stdout.write(text);
@@ -287,6 +296,23 @@ function buildWorkerEnv(
     LOOP_WORKER_ID: workerId,
     LOOP_CLAIMED_STORY_ID: storyId,
   };
+}
+
+/**
+ * 按 profile.envRefs 透传环境变量（值来自本机环境，仅转发名称映射，绝不写入密钥值）。
+ * 调度环境变量（LOOP_*）始终保留，用户配置不得覆盖。
+ */
+function applyEnvRefs(
+  base: NodeJS.ProcessEnv,
+  envRefs?: string[] | null
+): NodeJS.ProcessEnv {
+  if (!envRefs?.length) return base;
+  const env: NodeJS.ProcessEnv = { ...base };
+  for (const name of envRefs) {
+    if (isReservedEnvName(name)) continue;
+    if (base[name] !== undefined) env[name] = base[name];
+  }
+  return env;
 }
 
 function buildAgentPrompt(
@@ -409,7 +435,12 @@ async function runWorkerIteration(
       ...agentMeta,
     });
 
-    const env = buildWorkerEnv(process.env, workerId, story.id, projectRoot);
+    const env = buildWorkerEnv(
+      applyEnvRefs(process.env, selectedAgent.profile?.envRefs),
+      workerId,
+      story.id,
+      projectRoot
+    );
     const prompt = buildAgentPrompt(promptPath, { workerId, story });
     const output = await invokeToolWithPrompt(
       effectiveTool,
@@ -418,7 +449,7 @@ async function runWorkerIteration(
       projectRoot,
       env,
       workerId,
-      selectedAgent.profile?.model
+      selectedAgent.profile ?? null
     );
     patchRunLivePhase(projectRoot, "between", workerId);
 
@@ -671,7 +702,7 @@ export async function runLoop(
   const sleepMs = options.sleepMs ?? 2000;
   const workers = Math.max(1, Math.min(8, options.workers ?? 1));
   const projectName = getProjectName(db, options.projectName);
-  const agentConfig = db.getAgentConfig(projectName);
+  const agentConfig = db.getEffectiveAgentConfig(projectName);
   const agentChoice = { agentProfileId: options.agentProfileId, tool: options.tool };
   const initialAgent = selectAgent(agentConfig, agentChoice, db.getNextStory(projectName) ?? undefined);
   const tool = resolveTool(initialAgent.tool);

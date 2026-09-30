@@ -108,7 +108,7 @@ export function mergeAgentModels(
   const byId = new Map(models.map((model) => [model.id, model]));
   const canonical = (name: RunTool) => name === "cursor" ? "agent" : name;
   for (const profile of profiles) {
-    if (canonical(profile.tool) !== canonical(tool) || !profile.model) continue;
+    if (canonical(profile.adapter) !== canonical(tool) || !profile.model) continue;
     if (!byId.has(profile.model)) byId.set(profile.model, { id: profile.model, name: profile.model });
   }
   return [...byId.values()];

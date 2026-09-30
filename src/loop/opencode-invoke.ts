@@ -91,6 +91,9 @@ function collectOpencodeStream(
       }
       resolve(streamedText);
     });
+    armProcessTimeout(child, timeoutMs, () =>
+      reject(new Error(`opencode 超时（${timeoutMs}ms）`))
+    );
   });
 }
 
@@ -102,12 +105,15 @@ export function invokeOpencodeProcess(
     env?: NodeJS.ProcessEnv;
     handlers: StreamHandlers;
     model?: string;
+    executable?: string | null;
+    args?: string[];
+    timeoutMs?: number | null;
   }
 ): Promise<string> {
   const model = normalizeAgentModel(options.model) ?? "free/deepseek-v4-flash";
-  // 末尾的 `-` 告诉 opencode 从 stdin 读 prompt
-  const args = ["run", "--format", "json", "--model", model, "-"];
-  const child = spawn("opencode", args, {
+  // 末尾的 `-` 告诉 opencode 从 stdin 读 prompt；用户 args 加在 `-` 之前
+  const args = ["run", "--format", "json", "--model", model, ...(options.args ?? []), "-"];
+  const child = spawn(options.executable?.trim() || "opencode", args, {
     cwd: options.cwd,
     env: options.env,
     shell: process.platform === "win32",
@@ -116,5 +122,5 @@ export function invokeOpencodeProcess(
   });
   child.stdin?.write(prompt);
   child.stdin?.end();
-  return collectOpencodeStream(child, options.handlers);
+  return collectOpencodeStream(child, options.handlers, options.timeoutMs);
 }

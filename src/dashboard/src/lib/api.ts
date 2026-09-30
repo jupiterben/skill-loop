@@ -44,8 +44,12 @@ export const api = {
   saveAgentProfile: (input: {
     id?: string;
     name: string;
-    tool: string;
+    adapter: string;
+    executable?: string | null;
     model: string | null;
+    args?: string[];
+    timeoutMs?: number | null;
+    envRefs?: string[];
     enabled: boolean;
   }) => post("/api/agents", input),
   deleteAgentProfile: (id: string) => del("/api/agents", { id }),

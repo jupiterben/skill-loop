@@ -1,7 +1,7 @@
 import { resolveDistEntry, spawnDetachedNodeProcess } from "../cli/runtime-entry.js";
 import { getLoopRunStatus } from "./run-process.js";
 import { selectAgent } from "../domain/agent-config.js";
-import { readAgentConfig } from "../infra/agent-config-store.js";
+import { readEffectiveAgentConfig } from "../infra/agent-config-store.js";
 
 export type StartLoopRunOptions = {
   tool?: string;
@@ -50,7 +50,7 @@ export async function startLoopRunBackground(
     options.tool?.trim() || (options.agentProfileId ? undefined : process.env.LOOP_RUN_TOOL?.trim()) || undefined;
 
   const { resolveRunTool } = await import("./loop-run.js");
-  const selected = selectAgent(readAgentConfig(projectRoot), {
+  const selected = selectAgent(readEffectiveAgentConfig(projectRoot), {
     agentProfileId: options.agentProfileId,
     tool: toolHint,
   });

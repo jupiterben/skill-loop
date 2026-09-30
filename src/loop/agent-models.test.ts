@@ -45,10 +45,14 @@ describe("CLI model catalogs", () => {
   });
 
   it("merges only the selected CLI's saved models", () => {
+    const profile = (id: string, name: string, adapter: string, model: string | null) => ({
+      id, name, adapter: adapter as "codex", executable: null, model, args: [],
+      timeoutMs: null, envRefs: [], enabled: true,
+    });
     expect(mergeAgentModels("codex", [{ id: "test-model", name: "Test" }], [
-      { id: "AG-001", name: "One", tool: "codex", model: "test-model", enabled: true },
-      { id: "AG-002", name: "Two", tool: "codex", model: "custom", enabled: true },
-      { id: "AG-003", name: "Three", tool: "claude", model: "other-cli", enabled: true },
+      profile("AG-001", "One", "codex", "test-model"),
+      profile("AG-002", "Two", "codex", "custom"),
+      profile("AG-003", "Three", "claude", "other-cli"),
     ])).toEqual([{ id: "test-model", name: "Test" }, { id: "custom", name: "custom" }]);
   });
 
@@ -73,7 +77,7 @@ describe("CLI model catalogs", () => {
   it("keeps saved models on failure and does not expose raw CLI errors", async () => {
     mockServer(() => ({ id: 1, error: { message: "secret-token" } }));
     const result = await getAgentModels("/failed-project", "codex", [
-      { id: "AG-001", name: "Saved", tool: "codex", model: "saved-model", enabled: true },
+      { id: "AG-001", name: "Saved", adapter: "codex", executable: null, model: "saved-model", args: [], timeoutMs: null, envRefs: [], enabled: true },
     ]);
     expect(result.models).toEqual([{ id: "saved-model", name: "saved-model" }]);
     expect(result.warning).toBeTruthy();

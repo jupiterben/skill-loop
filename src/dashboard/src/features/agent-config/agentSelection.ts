@@ -6,7 +6,7 @@ export function agentSelectionOptions(config: AgentConfig, installedTools: reado
     (!legacyOnly || ["agent", "claude", "codex"].includes(tool)));
   return [
     { value: "", label: "按 Story / 项目默认" },
-    ...config.profiles.filter((p) => isAgentToolInstalled(p.tool, installedTools)).map((p) => ({
+    ...config.profiles.filter((p) => isAgentToolInstalled(p.adapter, installedTools)).map((p) => ({
       value: `profile:${p.id}`,
       label: agentProfileLabel(p) + (p.enabled ? "" : " · 已停用"),
       disabled: !p.enabled,
@@ -23,7 +23,7 @@ export function agentSelectionLabel(
   if (value.startsWith("profile:")) {
     const profile = config.profiles.find((p) => p.id === value.slice(8));
     if (profile) return agentProfileLabel(profile) +
-      (isAgentToolInstalled(profile.tool, installedTools) ? "" : " · 未安装");
+      (isAgentToolInstalled(profile.adapter, installedTools) ? "" : " · 未安装");
   }
   if (value.startsWith("tool:")) {
     const tool = value.slice(5) as RunTool;

@@ -7,7 +7,10 @@ import { normalizeDashboard } from "../../lib/normalize";
 const config: AgentConfig = {
   ...emptyAgentConfig(),
   nextId: 2,
-  profiles: [{ id: "AG-001", name: "Codex reviewer", tool: "codex", model: "test-model", enabled: true }],
+  profiles: [{
+    id: "AG-001", name: "Codex reviewer", adapter: "codex", executable: null,
+    model: "test-model", args: [], timeoutMs: null, envRefs: [], enabled: true,
+  }],
 };
 
 describe("Agent selection in the Dashboard", () => {

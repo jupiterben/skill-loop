@@ -62,7 +62,7 @@ export async function runPlan(
   options: PlanOptions = {}
 ): Promise<PlanResult> {
   const projectName = getProjectName(db, options.projectName);
-  const selectedAgent = selectAgent(db.getAgentConfig(projectName), options);
+  const selectedAgent = selectAgent(db.getEffectiveAgentConfig(projectName), options);
   const tool = resolveRunTool(selectedAgent.tool);
   const promptPath = resolvePlannerPromptPath(projectRoot);
 
@@ -90,6 +90,9 @@ export async function runPlan(
   const output = await invokeAgentProcess(tool, prompt, {
     cwd: projectRoot,
     model: selectedAgent.profile?.model,
+    executable: selectedAgent.profile?.executable,
+    args: selectedAgent.profile?.args,
+    timeoutMs: selectedAgent.profile?.timeoutMs,
     onDisplay: (text) => {
       if (text.trim()) process.stdout.write(text);
     },
