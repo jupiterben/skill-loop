@@ -20,7 +20,14 @@
       "summary": "已实现本轮项目 Agent 基础配置：每项目独立命名配置（CLI、模型、启用、默认），Dashboard 管理与启动选择，Story 绑定，run/watch/plan 共用配置并记录模型快照。已保存 AG-001 Codex/gpt-6-astra；项目默认保持自动选择。276 项测试与构建通过，隔离项目真实模型调用通过。原 US-006～US-009 的自定义命令路径、本机覆盖、环境变量和超时诊断等扩展仍未完成，未将这些 Story 标记完成。",
       "learnings": [],
       "id": 3
+    },
+    {
+      "storyId": "US-006",
+      "entryDate": "2026-09-30",
+      "summary": "Story US-006 已完成",
+      "learnings": [],
+      "id": 4
     }
   ],
-  "nextId": 4
+  "nextId": 5
 }

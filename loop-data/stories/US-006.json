@@ -14,14 +14,14 @@
     "凭证只保存环境变量名称映射、不保存密钥值；保留 LOOP_PROJECT_ROOT、LOOP_WORKER_ID、LOOP_CLAIMED_STORY_ID 等调度环境变量，用户配置不得覆盖。纯解析和 CRUD 测试及 pnpm test 通过。"
   ],
   "priority": 1,
-  "passes": false,
-  "everCompleted": false,
+  "passes": true,
+  "everCompleted": true,
   "status": "ready",
   "notes": "",
   "sortOrder": 0,
   "removalRequestedAt": null,
   "archivedAt": null,
-  "claimedBy": "w0",
-  "claimedAt": "2026-09-30T07:36:54.633Z",
+  "claimedBy": null,
+  "claimedAt": null,
   "preferredTool": "claude"
 }
