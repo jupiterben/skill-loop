@@ -95,17 +95,15 @@ describe("外循环迭代历史（runs.json）", () => {
     expect(dashboardRuns).toEqual(fromDb);
   });
 
-  it("RunsPanel 在侧栏展示迭代历史列表", () => {
-    const appSrc = readFileSync(join(here, "../../App.tsx"), "utf8");
-    expect(appSrc).toContain('import { RunsPanel } from "./components/RunsPanel"');
-    expect(appSrc).toContain("<RunsPanel runs={runs} />");
+  it("ActivityPanel 展示迭代历史列表", () => {
+    const appSrc = readFileSync(join(here, "../../App.svelte"), "utf8");
+    expect(appSrc).toContain('import ActivityPanel from "./components/ActivityPanel.svelte"');
+    expect(appSrc).toContain("<ActivityPanel {data} onLocate={locate} />");
 
     const panelSrc = readFileSync(
-      join(here, "../../components/RunsPanel.tsx"),
+      join(here, "../../components/ActivityPanel.svelte"),
       "utf8"
     );
-    expect(panelSrc).toContain("外循环迭代");
-    expect(panelSrc).toContain("runs-compact");
-    expect(panelSrc).toContain("暂无迭代记录");
+    expect(panelSrc).toContain("<RunHistory {data} {onLocate} />");
   });
 });
