@@ -94,21 +94,21 @@ describe("Story preferredTool", () => {
   it("NodePropsPanel 提供 Agent 偏好选择", () => {
     const here = dirname(fileURLToPath(import.meta.url));
     const src = readFileSync(
-      join(here, "../../components/NodePropsPanel.tsx"),
+      join(here, "../../components/NodePropsPanel.svelte"),
       "utf8"
     );
-    expect(src).toContain("onSetStoryPreferredTool");
-    expect(src).toContain("preferredTool");
+    expect(src).toContain("assignAgent");
+    expect(src).toContain("agentSelectionValue");
     expect(src).toMatch(/Agent/);
   });
 
-  it("MindMapPanel 接线 setStoryPreferredTool", () => {
+  it("NodePropsPanel 接线 setStoryPreferredTool", () => {
     const here = dirname(fileURLToPath(import.meta.url));
     const src = readFileSync(
-      join(here, "../../components/MindMapPanel.tsx"),
+      join(here, "../../components/NodePropsPanel.svelte"),
       "utf8"
     );
-    expect(src).toContain("onSetStoryPreferredTool");
+    expect(src).toContain("assignAgent");
     expect(src).toContain("api.setStoryPreferredTool");
   });
 });

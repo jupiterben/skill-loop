@@ -173,13 +173,13 @@ describe("Story 生命周期（移除、归档、恢复）", () => {
     expect(storyNode?.data.kind).toBe("pending_removal");
   });
 
-  it("属性面板 StoryStatusTag 对等待删除 Story 显示等待删除标签", () => {
+  it("属性面板对等待删除 Story 显示等待删除标签", () => {
     const propsSrc = readFileSync(
-      join(here, "../../components/NodePropsPanel.tsx"),
+      join(here, "../../components/NodePropsPanel.svelte"),
       "utf8"
     );
-    expect(propsSrc).toContain('if (story.removalRequestedAt)');
-    expect(propsSrc).toContain('<Tag color="error">等待删除</Tag>');
+    expect(propsSrc).toContain('story?.removalRequestedAt');
+    expect(propsSrc).toContain('Story · 等待删除');
   });
 
   it("api.ts 暴露生命周期 HTTP 端点", () => {
@@ -191,9 +191,9 @@ describe("Story 生命周期（移除、归档、恢复）", () => {
     expect(apiSrc).toContain('post("/api/stories/purge"');
   });
 
-  it("MindMapPanel 将生命周期操作接到 api", () => {
+  it("NodePropsPanel 将生命周期操作接到 api", () => {
     const panelSrc = readFileSync(
-      join(here, "../../components/MindMapPanel.tsx"),
+      join(here, "../../components/NodePropsPanel.svelte"),
       "utf8"
     );
     expect(panelSrc).toContain("api.requestStoryRemoval");
@@ -201,22 +201,22 @@ describe("Story 生命周期（移除、归档、恢复）", () => {
     expect(panelSrc).toContain("api.archiveStory");
     expect(panelSrc).toContain("api.restoreStory");
     expect(panelSrc).toContain("api.purgeStory");
-    expect(panelSrc).toContain('kind: "archived"');
+    expect(panelSrc).toContain('item.archivedAt ? "archived"');
   });
 
   it("NodePropsPanel 提供生命周期操作入口与归档面板", () => {
     const propsSrc = readFileSync(
-      join(here, "../../components/NodePropsPanel.tsx"),
+      join(here, "../../components/NodePropsPanel.svelte"),
       "utf8"
     );
-    expect(propsSrc).toContain("StoryLifecycleActions");
-    expect(propsSrc).toContain("删除Story");
+    expect(propsSrc).toContain("canRequestRemoval");
+    expect(propsSrc).toContain("标记等待删除");
     expect(propsSrc).toContain("取消删除");
-    expect(propsSrc).toContain("确认归档");
+    expect(propsSrc).toContain("归档");
     expect(propsSrc).toContain("永久删除");
-    expect(propsSrc).toContain("TrashList");
-    expect(propsSrc).toContain("props-panel__kind--pending-removal");
-    expect(propsSrc).toContain("props-panel__kind--archived");
+    expect(propsSrc).toContain("data.archivedStories");
+    expect(propsSrc).toContain("canCancelRemoval");
+    expect(propsSrc).toContain("canRestoreStory");
     expect(propsSrc).toContain("等待删除");
   });
 
@@ -228,14 +228,14 @@ describe("Story 生命周期（移除、归档、恢复）", () => {
     expect(layoutSrc).toContain('return "pending_removal"');
 
     const nodeSrc = readFileSync(
-      join(here, "../../components/MindMapNode.tsx"),
+      join(here, "../../components/MindMapNode.svelte"),
       "utf8"
     );
-    expect(nodeSrc).toContain("pending_removal");
+    expect(nodeSrc).toContain("mm-node--${data.kind}");
 
-    const cssSrc = readFileSync(join(here, "../../index.css"), "utf8");
+    const cssSrc = readFileSync(join(here, "../../workspace.css"), "utf8");
     expect(cssSrc).toContain(".mm-node--pending_removal");
-    expect(cssSrc).toContain(".props-lifecycle");
-    expect(cssSrc).toContain(".props-trash");
+    expect(cssSrc).toContain(".props-panel");
+    expect(cssSrc).toContain(".list-button");
   });
 });

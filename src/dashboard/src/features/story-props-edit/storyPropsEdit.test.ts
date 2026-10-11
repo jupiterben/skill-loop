@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { computeStoryEditDirty } from "../../hooks/useSyncedStoryFields";
+import { computeStoryEditDirty } from "./storyEdit";
 import type { UserStory } from "../../types";
 
 function makeStory(overrides: Partial<UserStory> = {}): UserStory {

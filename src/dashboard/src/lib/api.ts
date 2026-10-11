@@ -32,6 +32,16 @@ const del = async (path: string, body: Record<string, unknown>) => {
 };
 
 export const api = {
+  getRequirementPlan: async (signal?: AbortSignal): Promise<import("../../../domain/requirement-plan").RequirementPlanJob | null> => {
+    const response = await fetch("/api/requirements/plan", { signal });
+    const json = await readJson(response);
+    if (!response.ok) throw new Error(String(json.error ?? `HTTP ${response.status}`));
+    return json.job as import("../../../domain/requirement-plan").RequirementPlanJob | null;
+  },
+  planRequirement: async (input: { id: string; requirement: string; agentProfileId?: string; tool?: string }) => {
+    const json = await post("/api/requirements/plan", input);
+    return json.job as import("../../../domain/requirement-plan").RequirementPlanJob;
+  },
   getAgentModels: async (tool: string, signal?: AbortSignal): Promise<{
     models: { id: string; name: string }[];
     warning?: string;

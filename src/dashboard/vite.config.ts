@@ -1,10 +1,10 @@
 import { defineConfig } from "vite";
-import react from "@vitejs/plugin-react";
+import { svelte } from "@sveltejs/vite-plugin-svelte";
 import { resolve } from "node:path";
 import { dashboardApiPlugin } from "./plugins/dashboard-api";
 
 export default defineConfig({
-  plugins: [react(), dashboardApiPlugin()],
+  plugins: [svelte(), dashboardApiPlugin()],
   root: resolve(__dirname),
   build: {
     outDir: resolve(__dirname, "../../public"),

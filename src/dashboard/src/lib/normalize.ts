@@ -141,6 +141,8 @@ function normalizeStory(raw: Record<string, unknown>, index: number): UserStory 
     sortOrder: Number(raw.sortOrder ?? index),
     removalRequestedAt: (raw.removalRequestedAt as string | null) ?? null,
     archivedAt: (raw.archivedAt as string | null) ?? null,
+    claimedBy: typeof raw.claimedBy === "string" ? raw.claimedBy : null,
+    claimedAt: typeof raw.claimedAt === "string" ? raw.claimedAt : null,
     preferredTool: (raw.preferredTool as UserStory["preferredTool"]) ?? null,
     agentProfileId: typeof raw.agentProfileId === "string" ? raw.agentProfileId : null,
   };

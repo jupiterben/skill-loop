@@ -1,26 +1,27 @@
 {
   "id": "US-005",
   "milestoneId": null,
-  "parentId": "FT-001",
-  "dependsOn": [
-    "US-004"
-  ],
-  "title": "Worktree 合并成功与冲突恢复回归",
-  "description": "类型：测试补充。作为并行执行使用者，我需要 worktree 成功合并时保留交付，冲突时明确失败且可恢复工作，以便隔离执行不会损坏主分支或丢失修复提交。当前已有创建/清理测试，本 Story 补真实合并路径与执行结果联动。",
-  "workType": "testing",
+  "parentId": "FT-003",
+  "dependsOn": [],
+  "title": "Dashboard 执行历史支持筛选、详情与任务定位",
+  "description": "代码实现\n扩展现有执行记录表，使用户能按任务、Worker 和结果查找运行并阅读完整失败原因。复用当前 Dashboard API 返回的运行与进度数据，只查询已加载记录并明确范围；不新增执行入口、重试任务、日志采集器或全量历史存储服务，实时输出面板保持现有能力。",
+  "workType": "implementation",
   "acceptanceCriteria": [
-    "在独立临时 Git 仓库创建 worker 提交并成功合并，断言目标分支文件及提交可达，其他 worker 不受影响。",
-    "构造双方修改同一行的合并冲突，返回可读错误且 abort 后目标分支 HEAD/文件保持合并前状态。",
-    "冲突失败时不得报告该轮成功；若 Agent 已提前 complete，不能保留与未合并结果矛盾的完成状态，并保留可追踪的失败记录。",
-    "冲突后的 worker 提交仍能通过保留分支或明确恢复引用找到，不得因自动清理丢失；不得清理其他 worker 的目录。",
-    "测试结束回收自己创建的临时资源，命令设置超时且不调用真实 Agent；相关测试、pnpm test 及 pnpm build 通过。"
+    "运行历史支持 Story ID/标题关键词、Worker 和运行状态组合筛选，展示匹配数量与已加载记录范围；清空条件恢复所有已加载记录，无匹配时显示空状态。",
+    "按开始时间倒序稳定排列，时间相同时以运行 ID 稳定排序；每页 20 条，筛选变化重置到首页，轮询后页码越界时回到有效页。",
+    "选中运行记录可查看完整 message、Story/Worker、Agent/模型、开始与结束时间及耗时；执行中耗时随刷新变化，缺失或非法时间不显示 NaN 或负数。",
+    "详情提供现存 Story 的需求地图定位入口及关联进度记录；归档 Story 可打开只读归档详情，已删除 Story 仅显示原 ID 与不可定位原因，不触发任何执行或状态修改。",
+    "刷新时保留筛选及仍存在的选中记录；为筛选、排序、分页、耗时计算和关联日志逻辑补充 Vitest 回归，pnpm test 通过；长错误消息、空记录及任务定位使用本地模拟数据手测，不调用真实 Agent。"
   ],
-  "priority": 2,
-  "passes": false,
-  "everCompleted": false,
-  "status": "draft",
+  "priority": 0,
+  "passes": true,
+  "everCompleted": true,
+  "status": "ready",
   "notes": "",
   "sortOrder": 4,
   "removalRequestedAt": null,
-  "archivedAt": null
+  "archivedAt": null,
+  "claimedBy": null,
+  "claimedAt": null,
+  "preferredTool": null
 }

@@ -141,22 +141,22 @@ describe("Milestone 筛选与创建编辑", () => {
   });
 
   it("MindMapPanel 提供 Milestone 筛选栏与创建/编辑弹窗", () => {
-    const src = readFileSync(join(uiRoot, "components/MindMapPanel.tsx"), "utf8");
-    expect(src).toContain("mm-milestone-bar");
+    const src = readFileSync(join(uiRoot, "components/MindMapPanel.svelte"), "utf8");
+    expect(src).toContain("milestone-bar");
     expect(src).toContain("全部");
-    expect(src).toContain(MILESTONE_NONE_LABEL);
-    expect(src).toContain("+ MileStone");
-    expect(src).toContain("openMilestoneModal");
-    expect(src).toContain('onDoubleClick');
+    expect(src).toContain("MILESTONE_NONE");
+    expect(src).toContain("新建 Milestone");
+    expect(src).toContain("submitMilestone");
+    expect(src).toContain('ondblclick');
     expect(src).toContain("filterTreeByMilestone");
-    expect(src).toContain("tree={filteredTree}");
+    expect(src).toContain("{tree}");
   });
 
   it("NodePropsPanel 支持 Story Milestone 分配", () => {
-    const src = readFileSync(join(uiRoot, "components/NodePropsPanel.tsx"), "utf8");
-    expect(src).toContain("onAssignMilestone");
-    expect(src).toContain("props-milestone-chips");
-    expect(src).toContain("milestoneFullLabel");
+    const src = readFileSync(join(uiRoot, "components/NodePropsPanel.svelte"), "utf8");
+    expect(src).toContain("api.setStoryMilestone");
+    expect(src).toContain("story.milestoneId");
+    expect(src).toContain("data.milestones");
   });
 
   it("API 暴露 addMilestone / updateMilestone / setStoryMilestone", () => {

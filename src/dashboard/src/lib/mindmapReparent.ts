@@ -1,4 +1,4 @@
-import type { Node } from "@xyflow/react";
+import type { Node } from "@xyflow/svelte";
 import type { MindMapNodeData } from "./mindmapLayout";
 import { MINDMAP_ROOT_ID } from "./mindmapLayout";
 

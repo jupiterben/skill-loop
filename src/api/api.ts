@@ -20,6 +20,7 @@ import {
 } from "./http-utils.js";
 import { finishRunLiveForStory } from "../loop/run-live.js";
 import { parseRequiredStoryWorkType } from "../domain/story-work-type.js";
+import { startRequirementPlan } from "../loop/requirement-plan.js";
 
 export async function handleApiMutation(
   req: IncomingMessage,
@@ -35,6 +36,17 @@ export async function handleApiMutation(
   try {
     const projectName = resolveProjectName(db);
     const body = await readJsonBody(req);
+
+    if (req.method === "POST" && pathname === "/api/requirements/plan") {
+      const job = startRequirementPlan(db, projectRoot, projectName, {
+        id: requireBodyString(body, "id"),
+        requirement: requireBodyString(body, "requirement"),
+        agentProfileId: pickOptionalString(body, "agentProfileId"),
+        tool: pickOptionalString(body, "tool"),
+      });
+      sendJson(res, { job }, 202);
+      return true;
+    }
 
     if (req.method === "POST" && pathname === "/api/agents") {
       const profile = db.saveAgentProfile(

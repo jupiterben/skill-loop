@@ -73,5 +73,15 @@ describe("treeViewData", () => {
     const data = buildProjectTreeData("skill-loop", 50, sampleTree(), new Set(["US-002"]));
     const draft = data[0]?.children?.[0]?.children?.[1];
     expect(draft?.meta.running).toBe(true);
+    expect(draft?.meta.storyId).toBe("US-002");
+    expect(draft?.meta.sublabel).toBe("草稿");
+  });
+
+  it("keeps IDs separate from state and prioritizes pending removal over completed", () => {
+    const roots = sampleTree();
+    roots[0].children[0].removalRequested = true;
+    const stories = buildProjectTreeData("demo", 50, roots)[0].children![0].children!;
+    expect(stories[0].meta).toMatchObject({ storyId: "US-001", kind: "pending_removal", sublabel: "待移除" });
+    expect(stories[1].meta).toMatchObject({ storyId: "US-002", kind: "draft", sublabel: "草稿" });
   });
 });

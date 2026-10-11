@@ -188,41 +188,42 @@ describe("运行中 Story 高亮", () => {
     expect(resolveRunningStoryIds(data)).toEqual(new Set(["US-001", "US-002"]));
   });
 
-  it("App.tsx 将 runningStoryIds 传入 MindMapPanel", () => {
-    const appSrc = readFileSync(join(here, "../../App.tsx"), "utf8");
-    expect(appSrc).toContain("resolveRunningStoryIds");
-    expect(appSrc).toContain("runningStoryIds={[...runningStoryIds]}");
+  it("MindMapPanel 从 Dashboard 数据解析运行中的 Story", () => {
+    const appSrc = readFileSync(join(here, "../../App.svelte"), "utf8");
+    const panelSrc = readFileSync(join(here, "../../components/MindMapPanel.svelte"), "utf8");
+    expect(appSrc).toContain("<MindMapPanel {data}");
+    expect(panelSrc).toContain("resolveRunningStoryIds(data)");
   });
 
   it("脑图节点与结构树有运行中 visual state", () => {
     const mindMapNodeSrc = readFileSync(
-      join(here, "../../components/MindMapNode.tsx"),
+      join(here, "../../components/MindMapNode.svelte"),
       "utf8"
     );
-    expect(mindMapNodeSrc).toContain("mm-node--running");
-    expect(mindMapNodeSrc).toContain("mm-node__running-badge");
+    expect(mindMapNodeSrc).toContain("class:running={data.isRunning}");
+    expect(mindMapNodeSrc).toContain("node-running");
     expect(mindMapNodeSrc).toContain("执行中");
 
     const treeViewSrc = readFileSync(
-      join(here, "../../components/ProjectTreeView.tsx"),
+      join(here, "../../components/ProjectTreeView.svelte"),
       "utf8"
     );
-    expect(treeViewSrc).toContain("project-tree-view__title--running");
-    expect(treeViewSrc).toContain("project-tree-view__running");
+    expect(treeViewSrc).toContain("item.meta.running");
+    expect(treeViewSrc).toContain("class:success");
     expect(treeViewSrc).toContain("运行中");
 
-    const cssSrc = readFileSync(join(here, "../../index.css"), "utf8");
-    expect(cssSrc).toContain(".mm-node--running");
-    expect(cssSrc).toContain(".project-tree-view__running");
+    const cssSrc = readFileSync(join(here, "../../workspace.css"), "utf8");
+    expect(cssSrc).toContain(".mm-node.running");
+    expect(cssSrc).toContain(".success");
   });
 
   it("MindMapPanel 将 runningIds 传给 ProjectTreeView 并设置 isRunning", () => {
     const panelSrc = readFileSync(
-      join(here, "../../components/MindMapPanel.tsx"),
+      join(here, "../../components/MindMapPanel.svelte"),
       "utf8"
     );
-    expect(panelSrc).toContain("runningStoryIds");
-    expect(panelSrc).toContain("isRunning: runningIds.has(n.id)");
-    expect(panelSrc).toContain("runningIds={runningIds}");
+    expect(panelSrc).toContain("resolveRunningStoryIds");
+    expect(panelSrc).toContain("isRunning: runningIds.has(node.id) && !story?.passes");
+    expect(panelSrc).toContain("{runningIds}");
   });
 });

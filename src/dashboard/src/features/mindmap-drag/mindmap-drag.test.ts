@@ -1,7 +1,7 @@
 import { mkdtempSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import type { Node } from "@xyflow/react";
+import type { Node } from "@xyflow/svelte";
 import { afterEach, describe, expect, it } from "vitest";
 import { LoopStateDb } from "../../../../db/db.js";
 import {

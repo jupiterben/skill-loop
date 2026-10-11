@@ -72,7 +72,7 @@ export function resolveWorkspaceStatusView(
       kind: "parallel",
       stopRequested,
       items: executingRunItems.map(({ run, story }) => ({
-        workerId: run.workerId,
+        workerId: run.workerId ?? undefined,
         storyId: story.id,
         title: story.title,
       })),
@@ -86,8 +86,8 @@ export function resolveWorkspaceStatusView(
       storyId: executing.id,
       title: executing.title,
       iteration: run?.iteration,
-      tool: run?.tool,
-      workerId: run?.workerId,
+      tool: run?.tool ?? undefined,
+      workerId: run?.workerId ?? undefined,
       stopRequested,
     };
   }

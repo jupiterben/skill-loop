@@ -1,27 +1,29 @@
 {
   "id": "US-006",
   "milestoneId": null,
-  "parentId": "FT-002",
-  "dependsOn": [],
-  "title": "项目级 Agent CLI 配置与命令管理",
-  "description": "类型：代码实现。作为项目维护者，我需要通过 Loop CLI 维护多个带稳定 ID 的 Agent 配置并指定默认项，以便团队共享非敏感设置，而本机路径和凭证不污染版本库。配置代表一个已有工具适配器的一组参数，不改变 Story 的 draft/ready 生命周期。",
+  "parentId": "FT-003",
+  "dependsOn": [
+    "US-005"
+  ],
+  "title": "Dashboard 展示数据刷新时间并区分保存与刷新失败",
+  "description": "代码实现\n在已有轮询、手动刷新、错误提示和保留上次成功数据的基础上，显示数据新鲜度并区分写入失败与写入成功后刷新失败，避免用户误判保存结果或重复写入。复用现有请求与错误处理层，不增加离线写入队列，不自动重放 POST 请求；编辑器离开保护另由独立 Story 覆盖。",
   "workType": "implementation",
   "acceptanceCriteria": [
-    "定义带 schemaVersion 的项目配置：稳定 profile ID、名称、adapter、enabled、executable、model、args 字符串数组、timeoutMs、envRefs 与默认 profile；共享非敏感配置位于 loop-data/agent-config.json，本机覆盖位于不入库的 .loop-status/agent-config.local.json。",
-    "提供 agents list/show/set/remove/default 等等价 CLI 能力及 JSON 输出；更新按 profile ID，删除默认项或被引用项须明确拒绝或显式处理引用，不允许静默产生悬空默认值。",
-    "新增独立 --agent-profile 选择配置而保留 --tool 的旧语义，两者同时传入应清晰报错；配置选择顺序为显式 --agent-profile、显式 --tool、Story preferredTool、项目默认 profile、自动探测（plan 跳过 Story 偏好），显式选择不可用时不得静默换工具。",
-    "本机覆盖高于共享配置，未设置字段采用适配器默认；无配置文件的旧项目继续可用；空命令、未知适配器、无效超时、非数组参数、重复 ID 和悬空默认引用在写入前拒绝且不破坏原配置。",
-    "凭证只保存环境变量名称映射、不保存密钥值；保留 LOOP_PROJECT_ROOT、LOOP_WORKER_ID、LOOP_CLAIMED_STORY_ID 等调度环境变量，用户配置不得覆盖。纯解析和 CRUD 测试及 pnpm test 通过。"
+    "展示最近一次成功获取 Dashboard 数据的时间及刷新中、正常或刷新失败状态；首次加载失败不伪造更新时间，后续刷新失败保留最后成功的数据和时间。",
+    "手动重试仅重新读取数据，成功后清除过期提示并更新时间；非 JSON 错误响应、HTTP 错误与网络断开均转换为可读 message 并通过 ErrorAlert 展示。",
+    "写入失败与写入成功但随后读取失败分别显示明确结果；后者提供重新刷新入口，不提示重新保存，不自动重放写请求，不把旧快照当成已同步成功。",
+    "同一时刻不重复发送相同轮询读取；写入完成后的刷新不会复用写入前的旧快照；请求取消或组件卸载不产生错误提示或更新已销毁状态。",
+    "使用可控 fetch mock 和计时器覆盖首次失败、失败后恢复、写成功读失败、并发刷新及取消场景的请求/状态纯逻辑回归，pnpm test 通过；ErrorAlert 与更新时间展示手测通过，不新增组件渲染测试。"
   ],
-  "priority": 1,
-  "passes": true,
-  "everCompleted": true,
+  "priority": 0,
+  "passes": false,
+  "everCompleted": false,
   "status": "ready",
   "notes": "",
-  "sortOrder": 0,
+  "sortOrder": 5,
   "removalRequestedAt": null,
   "archivedAt": null,
   "claimedBy": null,
   "claimedAt": null,
-  "preferredTool": "claude"
+  "preferredTool": null
 }

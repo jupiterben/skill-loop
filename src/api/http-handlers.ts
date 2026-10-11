@@ -11,6 +11,7 @@ import { resolveProjectName, sendJson } from "./http-utils.js";
 import { RUN_TOOLS, type RunTool } from "../domain/run-tool.js";
 import { getAgentModels } from "../loop/agent-models.js";
 import { getInstalledAgentTools } from "../infra/installed-tools.js";
+import { getRequirementPlan } from "../loop/requirement-plan.js";
 
 export const API_VERSION = 8;
 
@@ -24,6 +25,11 @@ export async function handleDashboardApiRequest(
 ): Promise<boolean> {
   if (req.method === "GET" && pathname === "/api/health") {
     sendJson(res, { ok: true, projectRoot, apiVersion: API_VERSION });
+    return true;
+  }
+
+  if (req.method === "GET" && pathname === "/api/requirements/plan") {
+    sendJson(res, { job: getRequirementPlan(projectRoot) });
     return true;
   }
 

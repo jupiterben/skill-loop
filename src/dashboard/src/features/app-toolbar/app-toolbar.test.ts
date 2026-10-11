@@ -168,24 +168,24 @@ describe("顶栏项目概览（AppToolbar）", () => {
     );
   });
 
-  it("App.tsx 将 status 传入 AppToolbar", () => {
-    const appSrc = readFileSync(join(here, "../../App.tsx"), "utf8");
+  it("App.svelte 将 status 传入 AppToolbar", () => {
+    const appSrc = readFileSync(join(here, "../../App.svelte"), "utf8");
     expect(appSrc).toContain(
-      'import { AppToolbar } from "./components/AppToolbar"'
+      'import AppToolbar from "./components/AppToolbar.svelte"'
     );
-    expect(appSrc).toContain("<AppToolbar status={status} />");
+    expect(appSrc).toContain("<AppToolbar status={data.status} />");
   });
 
   it("AppToolbar 使用 resolveAppToolbarView 渲染统计与运行态", () => {
     const toolbarSrc = readFileSync(
-      join(here, "../../components/AppToolbar.tsx"),
+      join(here, "../../components/AppToolbar.svelte"),
       "utf8"
     );
     expect(toolbarSrc).toContain("resolveAppToolbarView");
-    expect(toolbarSrc).toContain("app-toolbar__project");
-    expect(toolbarSrc).toContain("app-toolbar__tag--branch");
+    expect(toolbarSrc).toContain("{view.project}");
+    expect(toolbarSrc).toContain("{view.branchName}");
     expect(toolbarSrc).toContain("运行中");
     expect(toolbarSrc).toContain("全部完成");
-    expect(toolbarSrc).toContain("app-toolbar__progress-pct");
+    expect(toolbarSrc).toContain("{view.progressPct}");
   });
 });

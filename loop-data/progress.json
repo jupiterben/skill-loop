@@ -22,12 +22,21 @@
       "id": 3
     },
     {
-      "storyId": "US-006",
-      "entryDate": "2026-09-30",
-      "summary": "Story US-006 已完成",
+      "storyId": "US-005",
+      "entryDate": "2026-10-10",
+      "summary": "Story US-005 已完成",
       "learnings": [],
-      "id": 4
+      "id": 7
+    },
+    {
+      "storyId": "US-005",
+      "entryDate": "2026-10-10",
+      "summary": "已实现执行历史组合筛选、已加载范围、稳定排序与每页20条、完整只读详情、Story地图定位/归档详情/删除提示及同Story进度关联。刷新保留条件与选中记录并校正页码。提交25740d3；pnpm test 321项通过，pnpm build通过，svelte-check零错误零警告。45条本地模拟数据完成桌面/390px窄屏手测：长错误全文、空/无匹配、定位、只读归档、刷新/耗时/分页收缩均通过，无写入请求，未调用真实Agent。",
+      "learnings": [
+        "Dashboard API 当前仅加载20条运行和30条进度；进度没有runId/workerId，运行详情只能按Story关联已加载进度，不能推断为本次运行独占日志。"
+      ],
+      "id": 8
     }
   ],
-  "nextId": 5
+  "nextId": 9
 }

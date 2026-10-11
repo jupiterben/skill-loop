@@ -4,6 +4,7 @@
     "PRD 位于 loop-data/，运行历史、协调器、worker 和 live 输出位于 .loop-status/；通过 Loop CLI 修改需求状态。",
     "新 Story 必须显式指定 workType，默认 draft；用户 confirm 后才允许 next/run 调度。Feature 只分组，不执行。",
     "复用现有 Vitest 用例和临时目录 fixture；核心测试放 src/db、src/domain、src/loop、src/infra，Dashboard 关联逻辑测试保留原位置；不新增 React 组件渲染测试。",
-    "执行回归使用本地可控的模拟 Agent，不调用真实 AI 服务；Git fixture 只操作临时仓库，不触碰当前工作区或用户 worktree。"
+    "执行回归使用本地可控的模拟 Agent，不调用真实 AI 服务；Git fixture 只操作临时仓库，不触碰当前工作区或用户 worktree。",
+    "Dashboard 运行历史仅筛选当前 API 已加载记录；progress 无 runId/workerId，只能按 Story 关联并标明范围，不按日期推断本次运行日志。归档运行详情使用独立只读视图，不复用带恢复/删除操作的节点管理面板。"
   ]
 }

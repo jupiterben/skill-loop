@@ -187,21 +187,20 @@ describe("工作区执行状态栏（WorkspaceStatusBar）", () => {
     expect(handlers).toContain("status,");
   });
 
-  it("App.tsx 将 status 与 loopRunner 传入 WorkspaceStatusBar", () => {
-    const appSrc = readFileSync(join(here, "../../App.tsx"), "utf8");
+  it("App.svelte 将 Dashboard 数据传入 WorkspaceStatusBar", () => {
+    const appSrc = readFileSync(join(here, "../../App.svelte"), "utf8");
     expect(appSrc).toContain(
-      'import { WorkspaceStatusBar } from "./components/WorkspaceStatusBar"'
+      'import WorkspaceStatusBar from "./components/WorkspaceStatusBar.svelte"'
     );
     expect(appSrc).toContain("<WorkspaceStatusBar");
-    expect(appSrc).toContain("status={status}");
-    expect(appSrc).toContain("loopRunner={data.loopRunner}");
+    expect(appSrc).toContain("<WorkspaceStatusBar {data}");
 
     const barSrc = readFileSync(
-      join(here, "../../components/WorkspaceStatusBar.tsx"),
+      join(here, "../../components/WorkspaceStatusBar.svelte"),
       "utf8"
     );
     expect(barSrc).toContain('role="status"');
-    expect(barSrc).toContain("workspace-status__content");
+    expect(barSrc).toContain("resolveWorkspaceStatusView(data.status, data.userStories, data.loopRunner)");
     expect(barSrc).toContain("并行执行中");
     expect(barSrc).toContain("全部 Story 已完成");
     expect(barSrc).toContain("已请求停止");

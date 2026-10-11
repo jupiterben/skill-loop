@@ -1,4 +1,3 @@
-import type { TreeDataNode } from "antd";
 import type { SelectedMindMapNode, TreeNode } from "../types";
 import { MINDMAP_ROOT_ID } from "./mindmapLayout";
 
@@ -6,8 +5,8 @@ export function treeNodeToSelectedKind(
   node: TreeNode
 ): SelectedMindMapNode["kind"] {
   if (node.kind === "feature") return "feature";
-  if (node.passes) return "done";
   if (node.removalRequested) return "pending_removal";
+  if (node.passes) return "done";
   if (node.draft) return "draft";
   if (node.blocked) return "blocked";
   return "story";
@@ -16,19 +15,22 @@ export function treeNodeToSelectedKind(
 export interface ProjectTreeNodeMeta {
   kind: SelectedMindMapNode["kind"];
   label: string;
+  storyId?: string;
   sublabel?: string;
   running?: boolean;
 }
 
-export type ProjectTreeDataNode = TreeDataNode & {
+export type ProjectTreeDataNode = {
+  key: string;
+  children?: ProjectTreeDataNode[];
   meta: ProjectTreeNodeMeta;
 };
 
 function storyStatusLabel(node: TreeNode): string | undefined {
+  if (node.removalRequested) return "待移除";
   if (node.passes) return "已完成";
   if (node.draft) return "草稿";
   if (node.blocked) return "阻塞";
-  if (node.removalRequested) return "待移除";
   return undefined;
 }
 
@@ -42,10 +44,11 @@ function walkTreeNode(
     meta: {
       kind,
       label: node.title,
+      storyId: node.kind === "story" ? node.id : undefined,
       sublabel:
         node.kind === "feature"
           ? "Feature"
-          : storyStatusLabel(node) ?? node.id,
+          : storyStatusLabel(node) ?? "可执行",
       running: runningIds.has(node.id),
     },
     children: node.children.map((child) => walkTreeNode(child, runningIds)),

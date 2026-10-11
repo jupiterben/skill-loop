@@ -1,0 +1,7 @@
+{
+  "id": "FT-003",
+  "parentId": null,
+  "title": "Dashboard",
+  "description": "提供前端 显示项目的执行状态和编辑项目内容",
+  "sortOrder": 2
+}

@@ -98,27 +98,27 @@ describe("Dashboard 启停外循环（LoopRunControl）", () => {
     expect(handlersSrc).toContain('pathname === "/api/loop-run/stop"');
   });
 
-  it("App.tsx 挂载 LoopRunControl 并在启停后 refresh", () => {
-    const appSrc = readFileSync(join(here, "../../App.tsx"), "utf8");
+  it("App.svelte 挂载 LoopRunControl 并在启停后 refresh", () => {
+    const appSrc = readFileSync(join(here, "../../App.svelte"), "utf8");
+    const controlSrc = readFileSync(join(here, "LoopRunControl.svelte"), "utf8");
     expect(appSrc).toContain("LoopRunControl");
-    expect(appSrc).toContain("api.startLoopRun");
-    expect(appSrc).toContain("api.stopLoopRun");
-    expect(appSrc).toContain("await refresh()");
+    expect(controlSrc).toContain("api.startLoopRun");
+    expect(controlSrc).toContain("api.stopLoopRun");
+    expect(controlSrc).toContain("await onRefresh()");
     expect(appSrc).toContain("loopRunner={data.loopRunner}");
-    expect(appSrc).toContain("AgentLivePanel");
-    expect(appSrc).toContain("RunsPanel");
+    expect(appSrc).toContain("ActivityPanel");
     expect(appSrc).toContain("WorkspaceStatusBar");
   });
 
   it("LoopRunControl 提供启动/停止与 tool、workers 设置", () => {
     const src = readFileSync(
-      join(here, "./LoopRunControl.tsx"),
+      join(here, "./LoopRunControl.svelte"),
       "utf8"
     );
     expect(src).toContain("启动");
     expect(src).toContain("停止");
     expect(src).toContain("agentSelectionOptions");
     expect(src).toContain("workers");
-    expect(src).toContain("until-stop");
+    expect(src).toContain("untilStop");
   });
 });

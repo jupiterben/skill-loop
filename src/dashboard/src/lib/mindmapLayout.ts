@@ -1,5 +1,5 @@
-import type { Edge, Node } from "@xyflow/react";
-import { MarkerType } from "@xyflow/react";
+import type { Edge, Node } from "@xyflow/svelte";
+import { MarkerType } from "@xyflow/system";
 import type { StoryDependency, TreeNode } from "../types";
 
 export type MindMapNodeData = {
@@ -11,12 +11,9 @@ export type MindMapNodeData = {
   connectable?: boolean;
   isRunning?: boolean;
   showDepHandles?: boolean;
-  addable?: boolean;
   collapsible?: boolean;
   collapsed?: boolean;
   childCount?: number;
-  onAddFeature?: () => void;
-  onAddStory?: () => void;
   onConfirmDraft?: () => void;
   confirmable?: boolean;
   onUnconfirmDraft?: () => void;
@@ -56,7 +53,7 @@ export const depEdgeMarker = (
 
 /** 依赖边默认/选中描边色（实线 + 半透明） */
 export function depEdgeStrokeColor(selected: boolean): string {
-  return selected ? "rgba(255, 229, 102, 0.85)" : "rgba(232, 148, 58, 0.45)";
+  return selected ? "#e3b341" : "rgba(210, 153, 34, 0.6)";
 }
 
 export type NodeHeightMap = Readonly<Record<string, number>>;
@@ -172,7 +169,7 @@ function placeNodes(
         type: "smoothstep",
         selectable: false,
         deletable: false,
-        style: { stroke: "var(--mm-edge)", strokeWidth: 2 },
+        style: "stroke: var(--mm-edge); stroke-width: 2",
       });
     }
 

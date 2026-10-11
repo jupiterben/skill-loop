@@ -18,6 +18,18 @@ pnpm install && pnpm build
 
 看板开发模式（热更新）需 dev 依赖：`pnpm dev`（在仓库根目录）
 
+看板使用 Svelte 5 + TypeScript + Vite，脑图由 Svelte Flow 实现。
+前端源码位于 `src/dashboard/src/`，与 CLI 共用现有 API 和领域类型。
+`pnpm check:dashboard` 执行 Svelte 类型及可访问性检查；
+`pnpm build` 会先检查前端，再将静态资源构建到 `public/`。
+当前 Svelte 检查工具使用 TypeScript 6。浏览器回归测试使用独立临时项目，
+不会修改实际项目数据，也不会启动真实 Agent：
+
+```bash
+pnpm exec playwright install chromium
+pnpm test:dashboard:e2e
+```
+
 ## 发布精简包
 
 不含 `src/` 源码，仅包含根目录入口、`package.json`、`dist/`、`public/` 和 `templates/` 等运行所需文件：
@@ -76,6 +88,17 @@ Dashboard 的启动工具列表也可选择 `codex`。Loop 继承本机 Codex CL
 .\loop.ps1 dashboard dev          # 开发模式（热更新），http://localhost:5173
 .\loop.ps1 dashboard stop
 ```
+
+**新需求**：直接在工作区底部常驻的“AI 需求输入”中用自然语言描述目标，再点击“交给 AI 整理”。
+Planner 使用本机已安装、已登录的 Agent CLI（可在输入区设置中切换配置），
+读取现有 Feature / Story 后自动拆分与归类，必要时创建新的 Feature。
+Story 保持草稿，点击结果即可查看目标与验收标准，确认可执行后才进入外循环。
+Story 面板默认只读，点击“编辑”修改内容；分组、优先级、Agent 等位于“安排与分组”。
+手动创建统一位于结构树顶部的“＋”菜单，可选择 Feature 或 Story，并在弹窗中调整所属 Feature。
+
+规划任务及输出保存在 `.loop-status/requirement-plan.json`，输入框上方可展开进度与结果，切换视图或刷新页面后可继续查看。
+同一项目同时只接受一个规划任务；失败不自动重试，可能已写入的 Story 会保留供检查。
+规划沿用现有 Agent CLI 的权限模式，不提供额外沙箱，仅在可信项目中使用。
 
 ## 项目 Agent 配置
 
